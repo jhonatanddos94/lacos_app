@@ -1,7 +1,4 @@
 ---
-alwaysApply: true
----
----
 description: Arquitetura oficial do Projeto Laços
 globs:
 alwaysApply: true
@@ -9,15 +6,11 @@ alwaysApply: true
 
 # Arquitetura Oficial — Projeto Laços
 
-Você é o Arquiteto de Software responsável pelo projeto **Laços**.
+Você atua como arquiteto e desenvolvedor Flutter do projeto **Laços**.
 
-Seu principal objetivo é preservar a arquitetura do projeto durante toda sua evolução.
+Seu objetivo é preservar a arquitetura, o domínio e o Design System do projeto durante toda evolução.
 
-Antes de implementar qualquer funcionalidade, sempre considere os documentos oficiais do projeto como fonte de verdade.
-
-Nunca altere a arquitetura para facilitar uma implementação.
-
-Sempre priorize simplicidade, legibilidade, escalabilidade e baixo acoplamento.
+Antes de implementar qualquer funcionalidade, considere os documentos oficiais como fonte da verdade.
 
 ---
 
@@ -25,17 +18,20 @@ Sempre priorize simplicidade, legibilidade, escalabilidade e baixo acoplamento.
 
 O Laços é um CRM inteligente para profissionais da beleza.
 
-Seu principal objetivo é fortalecer o relacionamento entre profissional e cliente através do registro de memórias, histórico de atendimentos e organização da agenda.
+Seu principal objetivo é fortalecer o relacionamento entre profissional e cliente através de:
+
+- Memórias da cliente
+- Histórico de atendimentos
+- Agenda
+- Organização do salão
 
 O sistema não é apenas uma agenda.
 
-Todo desenvolvimento deve preservar essa filosofia.
+Toda implementação deve preservar essa filosofia.
 
 ---
 
-# Arquitetura Oficial
-
-A arquitetura oficial do projeto é composta por:
+# Stack Oficial
 
 - Flutter
 - Material Design 3
@@ -44,98 +40,79 @@ A arquitetura oficial do projeto é composta por:
 - Clean Architecture
 - Feature First
 - Firebase Authentication
-- Back4App (Parse Server)
+- Back4App / Parse Server
 
-Essas tecnologias representam detalhes de implementação.
+Todas essas tecnologias são detalhes de implementação.
 
-O domínio nunca deverá depender delas.
-
----
-
-# Filosofia Arquitetural
-
-Sempre preservar:
-
-- Baixo acoplamento
-- Alta coesão
-- Escalabilidade
-- Testabilidade
-- Simplicidade
-- Evolução contínua
-
-Toda decisão deve favorecer a manutenção futura.
+O domínio nunca deve depender delas.
 
 ---
 
-# Clean Architecture
+# Arquitetura
 
-Toda feature deverá respeitar a seguinte divisão:
+A arquitetura oficial segue:
 
-Presentation
-
-↓
-
-Application
-
-↓
-
-Domain
-
-↓
-
+Presentation  
+↓  
+Application  
+↓  
+Domain  
+↓  
 Infrastructure
 
-Jamais inverter esse fluxo.
+Nunca inverter esse fluxo.
 
 ---
 
-# Responsabilidade de cada camada
+# Presentation
 
-## Presentation
-
-Responsável apenas por:
+Responsável por:
 
 - Pages
 - Widgets
 - Controllers
 - Notifiers
-- Providers
+- Providers de UI
 
-Nunca colocar regra de negócio.
+Nunca deve:
 
-Nunca acessar Back4App diretamente.
-
-Nunca acessar Firebase diretamente.
+- Conter regra de negócio
+- Acessar Firebase diretamente
+- Acessar Back4App diretamente
+- Usar ParseObject
+- Criar estilos visuais fora do Design System
 
 ---
 
-## Application
+# Application
 
-Responsável pelos casos de uso.
+Responsável por:
 
-Toda orquestração deve ocorrer aqui.
+- Use Cases
+- Orquestração de ações
+- Coordenação entre estado e domínio
 
-Os Use Cases representam ações do sistema.
+Use Cases representam ações do sistema.
 
 Exemplos:
 
 - Login
 - Criar Cliente
-- Atualizar Memória
+- Criar Memória
 - Agendar Atendimento
 
 ---
 
-## Domain
+# Domain
 
 Representa o coração do sistema.
 
-Contém apenas:
+Pode conter:
 
 - Entities
-- Repository Contracts
 - Value Objects
-- Regras de negócio
+- Repository Contracts
+- Regras de negócio puras
 
 Nunca importar:
 
@@ -150,134 +127,143 @@ O Domain deve ser totalmente independente.
 
 ---
 
-## Infrastructure
+# Infrastructure
 
 Responsável por detalhes técnicos.
 
-Contém:
+Pode conter:
 
 - Repository Implementations
 - Data Sources
 - DTOs
 - Mappers
+- Integrações externas
 
-Toda comunicação com APIs externas acontece aqui.
+Toda comunicação com Firebase, Back4App, Storage ou APIs externas deve ficar aqui.
 
 ---
 
 # Feature First
 
-Cada funcionalidade deve ser organizada em sua própria feature.
+Cada funcionalidade deve ficar dentro de sua própria feature.
 
 Exemplo:
 
-features/
+```text
+features/auth
+features/clients
+features/memories
+features/appointments
+```
 
-clients/
+Cada feature deve seguir:
 
-appointments/
+```text
+application/
+domain/
+infrastructure/
+presentation/
+```
 
-memories/
+Criar apenas features necessárias no momento.
 
-services/
-
-professionals/
-
-salon/
-
-auth/
-
-Cada feature deve ser independente sempre que possível.
+Não criar pastas ou arquivos especulativos.
 
 ---
 
-# Fluxo da Aplicação
+# Fluxo Obrigatório
 
-Toda comunicação deverá seguir:
+Toda comunicação com dados externos deve seguir:
 
+```text
 UI
-
 ↓
-
 Controller / Notifier
-
 ↓
-
 UseCase
-
 ↓
-
-Repository
-
+Repository Contract
 ↓
-
+Repository Implementation
+↓
 DataSource
-
 ↓
+Firebase / Back4App / API externa
+```
 
-Back4App
-
-Nunca quebrar esse fluxo.
+A UI nunca acessa serviços externos diretamente.
 
 ---
 
 # Riverpod
 
-Riverpod será utilizado para:
+Riverpod será usado para:
 
-- Gerenciamento de Estado
-- Injeção de Dependência
+- Estado
+- Injeção de dependência
 
-Evite Service Locator.
+Preferir Providers.
 
-Evite Singletons globais.
+Evitar:
 
-Sempre preferir Providers.
+- Service Locator
+- Singletons globais
+- Estado global desnecessário
+
+Providers devem ficar na feature à qual pertencem.
+
+Não criar `core/providers` para providers de regra de negócio.
 
 ---
 
-# Navegação
+# GoRouter
 
-Toda navegação deverá utilizar GoRouter.
+Toda navegação deve usar GoRouter.
 
-Nunca utilizar Navigator diretamente, salvo quando estritamente necessário.
+Evitar `Navigator` diretamente, salvo necessidade pontual e justificada.
+
+Rotas devem respeitar os fluxos documentados em:
+
+```text
+05 - Fluxos da Aplicação
+```
 
 ---
 
 # Autenticação
 
-Firebase Authentication será responsável exclusivamente pela autenticação.
+Firebase Authentication é responsável apenas pela autenticação.
 
-O domínio nunca deverá conhecer Firebase.
+O domínio não deve conhecer Firebase.
 
-Caso seja necessário sincronizar usuários com o Back4App, essa responsabilidade pertence à camada Infrastructure.
-
----
-
-# Banco de Dados
-
-Back4App representa apenas a camada de persistência.
-
-Nunca utilizar ParseObject fora da camada Infrastructure.
-
-Sempre criar DTOs.
-
-Sempre utilizar Mappers.
-
-Nunca expor objetos do Parse para outras camadas.
+Sincronização entre Firebase e Back4App pertence à Infrastructure.
 
 ---
 
-# Armazenamento de Arquivos
+# Back4App
 
-As imagens nunca deverão ser armazenadas diretamente no banco de dados.
+Back4App representa persistência.
 
-O banco armazenará apenas referências.
+Regras:
 
-A implementação deverá permitir futura migração para:
+- Nunca usar ParseObject fora da Infrastructure.
+- Sempre usar DTOs.
+- Sempre usar Mappers.
+- Nunca expor objetos Parse para Domain, Application ou Presentation.
+- O domínio deve depender apenas de contratos.
 
-- Amazon S3
+---
+
+# Arquivos e Imagens
+
+Imagens nunca devem ser armazenadas diretamente no banco.
+
+O banco deve armazenar apenas referências e metadados.
+
+A arquitetura deve permitir futura migração para:
+
 - Firebase Storage
+- Amazon S3
 - Cloudflare R2
 - Supabase Storage
 
@@ -285,85 +271,233 @@ Sem alterar o domínio.
 
 ---
 
-# SOLID
+# Design System
 
-Toda implementação deverá respeitar:
+Sempre seguir:
 
-SRP
+```text
+06 - Design System & Experiência
+```
 
-Uma classe possui apenas uma responsabilidade.
+Toda UI deve usar os tokens oficiais:
 
-OCP
+- AppColors
+- AppTypography
+- AppSpacing
+- AppRadius
+- AppShadows
+- AppDurations
 
-Novas funcionalidades devem ser adicionadas por extensão.
+Nunca usar diretamente:
 
-DIP
+- Colors.*
+- TextStyle manual na tela
+- EdgeInsets com valores mágicos
+- BorderRadius manual
+- BoxShadow manual
+- Duration manual
 
-Sempre depender de abstrações.
+Quando precisar de componente visual, priorize criar ou reutilizar:
 
-Nunca depender de implementações concretas.
+- AppButton
+- AppTextField
+- AppCard
+- AppScaffold
+- AppDialog
+- AppBottomSheet
+- AppSnackBar
+- AppLoading
+- AppEmptyState
+
+Telas devem montar a interface usando componentes existentes.
+
+Não criar estilos isolados dentro das Pages.
 
 ---
 
-# Convenções
+# Comentários
+
+Comentários devem explicar **por que** algo foi feito.
+
+Nunca comentar o que o próprio código já explica.
+
+Evitar comentários redundantes como:
+
+```dart
+/// Nome do cliente.
+final String clientName;
+```
+
+Preferir nomes claros em vez de comentários.
+
+Usar documentação `///` apenas para:
+
+- Classes públicas
+- Componentes reutilizáveis
+- Métodos públicos relevantes
+- Algoritmos complexos
+- Regras de negócio não óbvias
+
+O código deve ser autoexplicativo.
+
+---
+
+# Tamanho dos Arquivos
+
+Evitar arquivos extensos.
+
+Referência:
+
+- Até 150 linhas: ideal
+- 150 a 250 linhas: aceitável
+- Acima de 250 linhas: avaliar extração
+- Acima de 300 linhas: refatorar ou justificar
+
+Se um arquivo ultrapassar 300 linhas, proponha divisão antes de continuar.
+
+Possíveis divisões:
+
+```text
+app_button.dart
+app_button_variant.dart
+app_button_style.dart
+```
+
+---
+
+# Tamanho dos Métodos
+
+Métodos devem ser pequenos e focados.
+
+Referência:
+
+- Até 20 linhas: ideal
+- 20 a 40 linhas: aceitável
+- Acima de 40 linhas: avaliar extração
+
+O método `build()` deve apenas montar a interface.
+
+Se o `build()` ficar grande, extraia:
+
+- métodos privados
+- widgets privados
+- componentes reutilizáveis
+
+---
+
+# Widgets
+
+Widgets reutilizáveis devem ficar em:
+
+```text
+shared/widgets
+```
+
+Widgets usados apenas por uma tela devem ser privados.
+
+Exemplo:
+
+```dart
+class _Header extends StatelessWidget
+```
+
+Evitar criar widgets públicos sem necessidade real.
+
+---
+
+# Código
 
 Sempre:
 
-- Utilizar nomes claros.
-- Criar classes pequenas.
-- Criar métodos pequenos.
-- Evitar duplicação.
-- Evitar comentários desnecessários.
-- Escrever código legível.
-
-Priorizar clareza acima de "código inteligente".
-
----
-
-# Implementação
-
-Nunca criar arquivos desnecessários.
+- Usar nomes claros
+- Criar classes pequenas
+- Criar métodos pequenos
+- Evitar duplicação
+- Evitar boilerplate desnecessário
+- Priorizar clareza acima de código “inteligente”
 
 Nunca criar código especulativo.
 
-Criar apenas aquilo que foi solicitado.
-
-Evitar boilerplate sempre que possível.
+Criar apenas o que foi solicitado ou necessário para a funcionalidade atual.
 
 ---
 
-# Documentação
+# Organização dos Arquivos Dart
 
-Os documentos oficiais do projeto representam a fonte da verdade.
+Preferir esta ordem:
 
-Sempre considerar:
+```dart
+// Imports Flutter
 
-00 - Visão do Produto
+// Imports packages
 
-01 - Regras de Negócio
+// Imports do projeto
 
-02 - Glossário do Domínio
+// Enums
 
-03 - Modelo de Domínio
+// Classe principal
 
-04 - Arquitetura
+// Construtor
 
-Caso exista conflito entre código e documentação, a documentação possui prioridade.
+// Propriedades
+
+// Getters
+
+// build
+
+// Métodos privados
+```
 
 ---
 
-# Antes de implementar qualquer funcionalidade
+# SOLID
 
-Sempre reflita:
+Respeitar especialmente:
+
+## SRP
+
+Cada classe deve ter uma única responsabilidade.
+
+## OCP
+
+Adicionar funcionalidades por extensão, evitando alterar código estável sem necessidade.
+
+## DIP
+
+Depender de abstrações, nunca de implementações concretas.
+
+---
+
+# Abstrações
+
+Não criar abstrações para problemas que ainda não existem.
+
+Preferir simplicidade.
+
+Criar abstrações quando houver:
+
+- Reutilização real
+- Proteção clara do domínio
+- Necessidade arquitetural
+- Mais de uma implementação possível
+
+---
+
+# Antes de Implementar
+
+Antes de escrever código, verificar:
 
 - Essa implementação respeita o domínio?
-- Essa implementação viola alguma camada?
-- Existe acoplamento desnecessário?
+- Essa implementação respeita a arquitetura?
+- Existe componente reutilizável que já resolve isso?
+- O Design System está sendo seguido?
+- Há acoplamento desnecessário?
 - O domínio continua independente?
 - A solução é a mais simples possível?
-- Essa decisão facilita a evolução futura?
+- Estou criando arquivos demais?
+- O arquivo ficará grande demais?
 
-Caso alguma resposta seja negativa, proponha uma alternativa antes de implementar.
+Se houver conflito entre documentação e código, a documentação possui prioridade.
 
 ---
 
@@ -371,6 +505,34 @@ Caso alguma resposta seja negativa, proponha uma alternativa antes de implementa
 
 O objetivo não é apenas fazer o código funcionar.
 
-O objetivo é construir um sistema sustentável, simples de evoluir e preparado para crescer durante muitos anos.
+O objetivo é construir um sistema sustentável, simples de evoluir e preparado para crescer.
 
-Toda decisão técnica deve preservar esse princípio.
+Toda decisão técnica deve preservar a longevidade do Laços.
+# Fonte de verdade
+
+Considere como fonte oficial, nesta ordem:
+
+1. Documentos do projeto (Visão do Produto, Regras de Negócio, Modelo de Domínio, Arquitetura e Design System).
+
+2. Estrutura atual do repositório.
+
+3. Decisões arquiteturais já implementadas.
+
+Nunca proponha alterações apenas porque são consideradas "boas práticas" genéricas.
+
+Toda mudança deve resolver um problema real identificado durante a auditoria.
+
+---
+
+# Forma de resposta
+
+Antes de sugerir qualquer alteração:
+
+- explique o problema encontrado;
+- apresente o impacto futuro caso ele não seja corrigido;
+- justifique tecnicamente a mudança;
+- somente depois proponha a nova estrutura.
+
+Evite respostas genéricas.
+
+Sempre considere que o projeto será mantido por uma equipe e evoluirá por muitos anos.

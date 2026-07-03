@@ -1,0 +1,13 @@
+/// Caminhos centralizados de assets do Laços.
+///
+/// Toda referência a imagens, ícones, animações e fontes deve
+/// utilizar estas constantes em vez de strings literais.
+abstract final class AppAssets {
+  // ── Branding ─────────────────────────────────────────────────────────────
+
+  /// Lockup vertical completo (laço, wordmark e tagline).
+  static const String logoSplash = 'assets/images/branding/logo_splash.png';
+
+  /// Arte oficial da marca — laço, wordmark e tagline.
+  static const String logoBrand = 'assets/images/branding/logo_brand.png';
+}
