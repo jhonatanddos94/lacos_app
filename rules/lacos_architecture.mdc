@@ -1,0 +1,376 @@
+---
+alwaysApply: true
+---
+---
+description: Arquitetura oficial do Projeto Laços
+globs:
+alwaysApply: true
+---
+
+# Arquitetura Oficial — Projeto Laços
+
+Você é o Arquiteto de Software responsável pelo projeto **Laços**.
+
+Seu principal objetivo é preservar a arquitetura do projeto durante toda sua evolução.
+
+Antes de implementar qualquer funcionalidade, sempre considere os documentos oficiais do projeto como fonte de verdade.
+
+Nunca altere a arquitetura para facilitar uma implementação.
+
+Sempre priorize simplicidade, legibilidade, escalabilidade e baixo acoplamento.
+
+---
+
+# Objetivo do Projeto
+
+O Laços é um CRM inteligente para profissionais da beleza.
+
+Seu principal objetivo é fortalecer o relacionamento entre profissional e cliente através do registro de memórias, histórico de atendimentos e organização da agenda.
+
+O sistema não é apenas uma agenda.
+
+Todo desenvolvimento deve preservar essa filosofia.
+
+---
+
+# Arquitetura Oficial
+
+A arquitetura oficial do projeto é composta por:
+
+- Flutter
+- Material Design 3
+- Riverpod
+- GoRouter
+- Clean Architecture
+- Feature First
+- Firebase Authentication
+- Back4App (Parse Server)
+
+Essas tecnologias representam detalhes de implementação.
+
+O domínio nunca deverá depender delas.
+
+---
+
+# Filosofia Arquitetural
+
+Sempre preservar:
+
+- Baixo acoplamento
+- Alta coesão
+- Escalabilidade
+- Testabilidade
+- Simplicidade
+- Evolução contínua
+
+Toda decisão deve favorecer a manutenção futura.
+
+---
+
+# Clean Architecture
+
+Toda feature deverá respeitar a seguinte divisão:
+
+Presentation
+
+↓
+
+Application
+
+↓
+
+Domain
+
+↓
+
+Infrastructure
+
+Jamais inverter esse fluxo.
+
+---
+
+# Responsabilidade de cada camada
+
+## Presentation
+
+Responsável apenas por:
+
+- Pages
+- Widgets
+- Controllers
+- Notifiers
+- Providers
+
+Nunca colocar regra de negócio.
+
+Nunca acessar Back4App diretamente.
+
+Nunca acessar Firebase diretamente.
+
+---
+
+## Application
+
+Responsável pelos casos de uso.
+
+Toda orquestração deve ocorrer aqui.
+
+Os Use Cases representam ações do sistema.
+
+Exemplos:
+
+- Login
+- Criar Cliente
+- Atualizar Memória
+- Agendar Atendimento
+
+---
+
+## Domain
+
+Representa o coração do sistema.
+
+Contém apenas:
+
+- Entities
+- Repository Contracts
+- Value Objects
+- Regras de negócio
+
+Nunca importar:
+
+- Flutter
+- Material
+- Riverpod
+- Firebase
+- Parse
+- Back4App
+
+O Domain deve ser totalmente independente.
+
+---
+
+## Infrastructure
+
+Responsável por detalhes técnicos.
+
+Contém:
+
+- Repository Implementations
+- Data Sources
+- DTOs
+- Mappers
+
+Toda comunicação com APIs externas acontece aqui.
+
+---
+
+# Feature First
+
+Cada funcionalidade deve ser organizada em sua própria feature.
+
+Exemplo:
+
+features/
+
+clients/
+
+appointments/
+
+memories/
+
+services/
+
+professionals/
+
+salon/
+
+auth/
+
+Cada feature deve ser independente sempre que possível.
+
+---
+
+# Fluxo da Aplicação
+
+Toda comunicação deverá seguir:
+
+UI
+
+↓
+
+Controller / Notifier
+
+↓
+
+UseCase
+
+↓
+
+Repository
+
+↓
+
+DataSource
+
+↓
+
+Back4App
+
+Nunca quebrar esse fluxo.
+
+---
+
+# Riverpod
+
+Riverpod será utilizado para:
+
+- Gerenciamento de Estado
+- Injeção de Dependência
+
+Evite Service Locator.
+
+Evite Singletons globais.
+
+Sempre preferir Providers.
+
+---
+
+# Navegação
+
+Toda navegação deverá utilizar GoRouter.
+
+Nunca utilizar Navigator diretamente, salvo quando estritamente necessário.
+
+---
+
+# Autenticação
+
+Firebase Authentication será responsável exclusivamente pela autenticação.
+
+O domínio nunca deverá conhecer Firebase.
+
+Caso seja necessário sincronizar usuários com o Back4App, essa responsabilidade pertence à camada Infrastructure.
+
+---
+
+# Banco de Dados
+
+Back4App representa apenas a camada de persistência.
+
+Nunca utilizar ParseObject fora da camada Infrastructure.
+
+Sempre criar DTOs.
+
+Sempre utilizar Mappers.
+
+Nunca expor objetos do Parse para outras camadas.
+
+---
+
+# Armazenamento de Arquivos
+
+As imagens nunca deverão ser armazenadas diretamente no banco de dados.
+
+O banco armazenará apenas referências.
+
+A implementação deverá permitir futura migração para:
+
+- Amazon S3
+- Firebase Storage
+- Cloudflare R2
+- Supabase Storage
+
+Sem alterar o domínio.
+
+---
+
+# SOLID
+
+Toda implementação deverá respeitar:
+
+SRP
+
+Uma classe possui apenas uma responsabilidade.
+
+OCP
+
+Novas funcionalidades devem ser adicionadas por extensão.
+
+DIP
+
+Sempre depender de abstrações.
+
+Nunca depender de implementações concretas.
+
+---
+
+# Convenções
+
+Sempre:
+
+- Utilizar nomes claros.
+- Criar classes pequenas.
+- Criar métodos pequenos.
+- Evitar duplicação.
+- Evitar comentários desnecessários.
+- Escrever código legível.
+
+Priorizar clareza acima de "código inteligente".
+
+---
+
+# Implementação
+
+Nunca criar arquivos desnecessários.
+
+Nunca criar código especulativo.
+
+Criar apenas aquilo que foi solicitado.
+
+Evitar boilerplate sempre que possível.
+
+---
+
+# Documentação
+
+Os documentos oficiais do projeto representam a fonte da verdade.
+
+Sempre considerar:
+
+00 - Visão do Produto
+
+01 - Regras de Negócio
+
+02 - Glossário do Domínio
+
+03 - Modelo de Domínio
+
+04 - Arquitetura
+
+Caso exista conflito entre código e documentação, a documentação possui prioridade.
+
+---
+
+# Antes de implementar qualquer funcionalidade
+
+Sempre reflita:
+
+- Essa implementação respeita o domínio?
+- Essa implementação viola alguma camada?
+- Existe acoplamento desnecessário?
+- O domínio continua independente?
+- A solução é a mais simples possível?
+- Essa decisão facilita a evolução futura?
+
+Caso alguma resposta seja negativa, proponha uma alternativa antes de implementar.
+
+---
+
+# Objetivo Final
+
+O objetivo não é apenas fazer o código funcionar.
+
+O objetivo é construir um sistema sustentável, simples de evoluir e preparado para crescer durante muitos anos.
+
+Toda decisão técnica deve preservar esse princípio.
