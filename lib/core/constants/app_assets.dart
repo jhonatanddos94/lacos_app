@@ -5,7 +5,7 @@
 abstract final class AppAssets {
   // ── Branding ─────────────────────────────────────────────────────────────
 
-  /// Lockup vertical completo (laço, wordmark e tagline).
+  /// Ícone da marca para a Splash.
   static const String logoSplash = 'assets/images/branding/logo_splash.png';
 
   /// Arte oficial da marca — laço, wordmark e tagline.

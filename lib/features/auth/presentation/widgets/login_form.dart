@@ -59,17 +59,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
     if (emailError != null || passwordError != null) return;
 
-    ref.read(authControllerProvider.notifier).signIn(
-          email: email.trim(),
-          password: password,
-        );
+    ref
+        .read(authControllerProvider.notifier)
+        .signIn(email: email.trim(), password: password);
   }
 
   void _showAuthError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -88,7 +87,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       children: [
         AppTextField(
           label: 'E-mail',
-          hint: 'seu@email.com',
+          hint: 'Informe seu email',
           controller: _emailController,
           enabled: !isLoading,
           errorText: _emailError,
@@ -105,7 +104,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         const SizedBox(height: AppSpacing.sm),
         AppTextField(
           label: 'Senha',
-          hint: 'Sua senha',
+          hint: 'Informe sua senha',
           controller: _passwordController,
           enabled: !isLoading,
           errorText: _passwordError,
@@ -123,8 +122,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             onPressed: isLoading
                 ? null
                 : () => _setStateIfMounted(
-                      () => _obscurePassword = !_obscurePassword,
-                    ),
+                    () => _obscurePassword = !_obscurePassword,
+                  ),
             icon: Icon(
               _obscurePassword
                   ? Icons.visibility_outlined

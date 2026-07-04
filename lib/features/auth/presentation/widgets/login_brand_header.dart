@@ -7,7 +7,8 @@ class LoginBrandHeader extends StatelessWidget {
   const LoginBrandHeader({super.key});
 
   static const _tabletBreakpoint = 600.0;
-  static const _maxLogoWidth = 280.0;
+  static const _maxLogoWidthPhone = 200.0;
+  static const _maxLogoWidthTablet = 240.0;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +29,9 @@ class LoginBrandHeader extends StatelessWidget {
     final width = screenSize.width;
 
     if (screenSize.shortestSide >= _tabletBreakpoint) {
-      return (width * 0.40).clamp(0, _maxLogoWidth);
+      return (width * 0.32).clamp(0, _maxLogoWidthTablet);
     }
 
-    return (width * 0.55).clamp(0, _maxLogoWidth);
+    return (width * 0.42).clamp(0, _maxLogoWidthPhone);
   }
 }

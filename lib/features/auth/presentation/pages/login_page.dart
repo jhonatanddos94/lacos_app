@@ -33,28 +33,28 @@ class LoginPage extends StatelessWidget {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   padding: AppSpacing.screenPadding.copyWith(
-                    top: AppSpacing.md,
+                    top: AppSpacing.xl,
                     bottom: AppSpacing.lg,
                   ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight:
-                          constraints.maxHeight - AppSpacing.md - AppSpacing.lg,
+                          constraints.maxHeight - AppSpacing.xl - AppSpacing.lg,
                     ),
-                    child: Center(
+                    child: Align(
+                      alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 420),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const LoginBrandHeader(),
-                            const SizedBox(height: AppSpacing.lg),
-                            const LoginWelcomeSection(),
-                            const SizedBox(height: AppSpacing.lg),
-                            const LoginForm(),
-                            const SizedBox(height: AppSpacing.lg),
-                            const LoginFooter(),
+                          children: const [
+                            LoginBrandHeader(),
+                            SizedBox(height: AppSpacing.md),
+                            LoginWelcomeSection(),
+                            SizedBox(height: AppSpacing.xl),
+                            LoginForm(),
+                            SizedBox(height: AppSpacing.lg),
+                            LoginFooter(),
                           ],
                         ),
                       ),
