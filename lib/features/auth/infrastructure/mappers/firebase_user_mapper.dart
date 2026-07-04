@@ -15,6 +15,7 @@ class FirebaseUserMapper {
     return AuthenticatedUser(
       id: user.uid,
       email: email,
+      isEmailVerified: user.emailVerified,
     );
   }
 }

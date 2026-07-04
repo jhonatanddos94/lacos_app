@@ -3,4 +3,8 @@ abstract final class RoutePaths {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const verifyEmail = '/verify-email';
+  static const welcome = '/welcome';
+  static const createSalon = '/create-salon';
+  static const completeProfile = '/complete-profile';
 }

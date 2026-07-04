@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/auth/application/controllers/auth_controller.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
 import 'package:lacos_app/features/auth/presentation/validators/email_validator.dart';
 import 'package:lacos_app/features/auth/presentation/validators/password_validator.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_divider.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_form_actions.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_google_button.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/login/login_divider.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/login/login_form_actions.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/login/login_google_button.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
@@ -71,6 +73,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _handleAuthenticated(AuthAuthenticated state) {
+    if (!mounted) return;
+
+    context.go(AppRouteResolver.resolveAfterAuth(state.user));
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
@@ -79,6 +87,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (next case AuthError(:final message)) {
         _showAuthError(message);
+        return;
+      }
+
+      if (next case final AuthAuthenticated state) {
+        _handleAuthenticated(state);
       }
     });
 

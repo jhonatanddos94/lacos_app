@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:lacos_app/core/constants/app_assets.dart';
 
-/// Cabeçalho de marca da tela de login.
-class LoginBrandHeader extends StatelessWidget {
-  const LoginBrandHeader({super.key});
+/// Cabeçalho de marca das telas de autenticação.
+class AuthBrandHeader extends StatelessWidget {
+  const AuthBrandHeader({super.key});
 
   static const _tabletBreakpoint = 600.0;
   static const _maxLogoWidthPhone = 200.0;

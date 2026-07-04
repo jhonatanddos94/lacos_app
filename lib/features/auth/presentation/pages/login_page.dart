@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_background.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_brand_header.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_footer.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_form.dart';
-import 'package:lacos_app/features/auth/presentation/widgets/login_welcome_section.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/login/login_form.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/login/login_welcome_section.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/shared/auth_background.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/shared/auth_brand_header.dart';
+import 'package:lacos_app/features/auth/presentation/widgets/shared/auth_footer.dart';
 
 /// Tela de login do Laços.
 class LoginPage extends StatelessWidget {
@@ -27,7 +27,7 @@ class LoginPage extends StatelessWidget {
       value: _systemOverlayStyle,
       child: Scaffold(
         backgroundColor: AppColors.warmWhite,
-        body: LoginBackground(
+        body: AuthBackground(
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -48,13 +48,13 @@ class LoginPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: const [
-                            LoginBrandHeader(),
+                            AuthBrandHeader(),
                             SizedBox(height: AppSpacing.md),
                             LoginWelcomeSection(),
                             SizedBox(height: AppSpacing.xl),
                             LoginForm(),
                             SizedBox(height: AppSpacing.lg),
-                            LoginFooter(),
+                            AuthFooter.signUp(),
                           ],
                         ),
                       ),

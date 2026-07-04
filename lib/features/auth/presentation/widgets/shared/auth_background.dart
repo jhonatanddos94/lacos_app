@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
 
-/// Fundo da tela de login com gradiente e formas decorativas.
-class LoginBackground extends StatelessWidget {
-  const LoginBackground({required this.child, super.key});
+/// Fundo das telas de autenticação com gradiente e formas decorativas.
+class AuthBackground extends StatelessWidget {
+  const AuthBackground({required this.child, super.key});
 
   final Widget child;
 
@@ -28,7 +28,7 @@ class LoginBackground extends StatelessWidget {
           Positioned(
             top: -72,
             right: -48,
-            child: _LoginBlob(
+            child: _AuthBlob(
               size: 220,
               color: AppColors.purple200.withValues(alpha: 0.35),
             ),
@@ -36,7 +36,7 @@ class LoginBackground extends StatelessWidget {
           Positioned(
             bottom: -96,
             left: -64,
-            child: _LoginBlob(
+            child: _AuthBlob(
               size: 260,
               color: AppColors.softLilac.withValues(alpha: 0.55),
             ),
@@ -48,8 +48,8 @@ class LoginBackground extends StatelessWidget {
   }
 }
 
-class _LoginBlob extends StatelessWidget {
-  const _LoginBlob({required this.size, required this.color});
+class _AuthBlob extends StatelessWidget {
+  const _AuthBlob({required this.size, required this.color});
 
   final double size;
   final Color color;

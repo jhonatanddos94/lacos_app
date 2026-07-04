@@ -24,6 +24,11 @@ class FirebaseAuthRepository implements AuthRepository {
       _firebaseAuth.authStateChanges().map(_mapper.toDomain);
 
   @override
+  AuthenticatedUser? get currentUser => _mapper.toDomain(
+        _firebaseAuth.currentUser,
+      );
+
+  @override
   Future<AuthenticatedUser> signIn({
     required String email,
     required String password,
@@ -42,6 +47,62 @@ class FirebaseAuthRepository implements AuthRepository {
       }
 
       return user;
+    } on FirebaseAuthException catch (error) {
+      throw FormatException(_errorMapper.toMessage(error.code));
+    }
+  }
+
+  @override
+  Future<AuthenticatedUser> createAccount({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = _mapper.toDomain(credential.user);
+      if (user == null) {
+        throw StateError(
+          'Não foi possível criar sua conta. Tente novamente.',
+        );
+      }
+
+      return user;
+    } on FirebaseAuthException catch (error) {
+      throw FormatException(_errorMapper.toMessage(error.code));
+    }
+  }
+
+  @override
+  Future<void> sendEmailVerification() async {
+    try {
+      final currentUser = _firebaseAuth.currentUser;
+      if (currentUser == null) {
+        throw StateError('Não encontramos uma sessão ativa. Entre novamente.');
+      }
+      await currentUser.sendEmailVerification();
+    } on FirebaseAuthException catch (error) {
+      throw FormatException(_errorMapper.toMessage(error.code));
+    }
+  }
+
+  @override
+  Future<AuthenticatedUser?> reloadUser() async {
+    try {
+      await _firebaseAuth.currentUser?.reload();
+      return _mapper.toDomain(_firebaseAuth.currentUser);
+    } on FirebaseAuthException catch (error) {
+      throw FormatException(_errorMapper.toMessage(error.code));
+    }
+  }
+
+  @override
+  Future<void> deleteCurrentUser() async {
+    try {
+      await _firebaseAuth.currentUser?.delete();
     } on FirebaseAuthException catch (error) {
       throw FormatException(_errorMapper.toMessage(error.code));
     }
