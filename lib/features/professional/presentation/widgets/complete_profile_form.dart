@@ -1,20 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
+import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
-class CompleteProfileForm extends StatelessWidget {
+class CompleteProfileForm extends ConsumerStatefulWidget {
   const CompleteProfileForm({super.key});
 
-  void _completeProfile() {
-    // TODO: criar primeiro profissional
+  @override
+  ConsumerState<CompleteProfileForm> createState() =>
+      _CompleteProfileFormState();
+}
+
+class _CompleteProfileFormState extends ConsumerState<CompleteProfileForm> {
+  final _nameController = TextEditingController();
+  final _specialtiesController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _specialtiesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _completeProfile() async {
+    if (ref.read(createProfessionalControllerProvider).isLoading) return;
+
+    await ref
+        .read(createProfessionalControllerProvider.notifier)
+        .createProfessional(
+          name: _nameController.text,
+          specialties: _specialtiesController.text,
+        );
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _resolveErrorMessage(Object error) {
+    return switch (error) {
+      FormatException(message: final message) => message,
+      StateError(message: final message) => message,
+      _ => 'Não foi possível concluir seu perfil. Tente novamente.',
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final state = ref.watch(createProfessionalControllerProvider);
+    final isLoading = state.isLoading;
+
+    ref.listen<AsyncValue<Professional?>>(
+      createProfessionalControllerProvider,
+      (previous, next) {
+        if (next.hasError) {
+          _showMessage(_resolveErrorMessage(next.error!));
+          return;
+        }
+
+        if (previous?.isLoading == true && next.valueOrNull != null) {
+          _showMessage('Perfil profissional criado com sucesso.');
+          context.go(AppRouteResolver.resolveAfterProfessionalCreated());
+        }
+      },
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -37,27 +97,33 @@ class CompleteProfileForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        const AppTextField(
+        AppTextField(
           label: 'Nome profissional',
           hint: 'Maria Oliveira',
           helperText: 'Obrigatório',
+          controller: _nameController,
+          enabled: !isLoading,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.words,
-          autofillHints: [AutofillHints.name],
-          prefixIcon: Icon(Icons.badge_outlined),
+          autofillHints: const [AutofillHints.name],
+          prefixIcon: const Icon(Icons.badge_outlined),
         ),
         const SizedBox(height: AppSpacing.sm),
-        const AppTextField(
+        AppTextField(
           label: 'Especialidade principal',
           hint: 'Ex.: Cabeleireira, Colorista...',
+          controller: _specialtiesController,
+          enabled: !isLoading,
           textInputAction: TextInputAction.done,
           textCapitalization: TextCapitalization.words,
-          prefixIcon: Icon(Icons.content_cut_outlined),
+          prefixIcon: const Icon(Icons.content_cut_outlined),
+          onFieldSubmitted: (_) => _completeProfile(),
         ),
         const SizedBox(height: AppSpacing.md),
         AppButton(
           label: 'Concluir configuração',
-          onPressed: _completeProfile,
+          isLoading: isLoading,
+          onPressed: isLoading ? null : _completeProfile,
         ),
       ],
     );

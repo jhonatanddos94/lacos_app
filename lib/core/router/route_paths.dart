@@ -7,4 +7,5 @@ abstract final class RoutePaths {
   static const welcome = '/welcome';
   static const createSalon = '/create-salon';
   static const completeProfile = '/complete-profile';
+  static const home = '/home';
 }
