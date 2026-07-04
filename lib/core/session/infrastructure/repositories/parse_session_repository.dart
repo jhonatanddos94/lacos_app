@@ -10,8 +10,8 @@ class ParseSessionRepository implements SessionRepository {
   ParseSessionRepository(
     AuthRepository authRepository, {
     ParseSessionErrorMapper? errorMapper,
-  })  : _authRepository = authRepository,
-        _errorMapper = errorMapper ?? const ParseSessionErrorMapper();
+  }) : _authRepository = authRepository,
+       _errorMapper = errorMapper ?? const ParseSessionErrorMapper();
 
   final AuthRepository _authRepository;
   final ParseSessionErrorMapper _errorMapper;
@@ -22,11 +22,6 @@ class ParseSessionRepository implements SessionRepository {
       final firebaseUser = _authRepository.currentUser;
       if (firebaseUser == null) {
         throw StateError('Não encontramos uma sessão ativa. Entre novamente.');
-      }
-
-      final currentParseUser = await ParseUser.currentUser();
-      if (_isSameParseUser(currentParseUser, firebaseUser.id)) {
-        return;
       }
 
       await _loginOrCreateParseUser(firebaseUser);
@@ -82,11 +77,7 @@ class ParseSessionRepository implements SessionRepository {
     AuthenticatedUser firebaseUser,
     String password,
   ) async {
-    final parseUser = ParseUser(
-      firebaseUser.id,
-      password,
-      firebaseUser.email,
-    );
+    final parseUser = ParseUser(firebaseUser.id, password, firebaseUser.email);
     final response = await parseUser.signUp();
 
     if (!response.success) {

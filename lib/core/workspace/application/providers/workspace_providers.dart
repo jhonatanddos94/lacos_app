@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/core/session/application/providers/session_providers.dart';
 import 'package:lacos_app/core/workspace/domain/entities/workspace.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
 import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
@@ -17,8 +18,11 @@ final workspaceProvider = FutureProvider<Workspace?>((ref) async {
     return Workspace(user: user, salon: null, professional: null);
   }
 
+  final sessionRepository = ref.watch(sessionRepositoryProvider);
   final salonRepository = ref.watch(salonRepositoryProvider);
   final professionalRepository = ref.watch(professionalRepositoryProvider);
+
+  await sessionRepository.syncAuthenticatedUser();
 
   final salon = await salonRepository.getCurrentSalon();
   final professional = salon == null
