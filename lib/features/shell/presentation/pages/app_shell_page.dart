@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/agenda/presentation/pages/agenda_page.dart';
 import 'package:lacos_app/features/clients/presentation/pages/clients_page.dart';
 import 'package:lacos_app/features/home/presentation/pages/home_page.dart';
 import 'package:lacos_app/features/shell/presentation/widgets/app_navigation_bar.dart';
@@ -24,10 +25,10 @@ class _AppShellPageState extends State<AppShellPage> {
       backgroundColor: AppColors.warmWhite,
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [
-          _ShellPlaceholder(label: 'Agenda'),
-          ClientsPage(),
-          HomePage(),
+        children: [
+          const AgendaPage(),
+          const ClientsPage(),
+          const HomePage(),
           _ShellPlaceholder(label: 'Serviços'),
           _ShellPlaceholder(label: 'Mais'),
         ],

@@ -168,6 +168,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
             right: AppSpacing.screenHorizontal,
             bottom: AppSpacing.sm,
             child: FloatingActionButton(
+              heroTag: 'clients_fab',
               onPressed: () => _openCreateClientSheet(context, ref),
               backgroundColor: AppColors.lacosPurple,
               foregroundColor: AppColors.onPrimary,
