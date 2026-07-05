@@ -5,7 +5,10 @@
 abstract final class AppAssets {
   // ── Branding ─────────────────────────────────────────────────────────────
 
-  /// Ícone da marca para a Splash.
+  /// Laço oficial da marca — PNG transparente, recorte limpo.
+  static const String lacosLogo = 'assets/images/branding/lacos_logo.png';
+
+  /// Ícone da marca para a Splash (canvas legado — preferir [lacosLogo]).
   static const String logoSplash = 'assets/images/branding/logo_splash.png';
 
   /// Arte oficial da marca — laço, wordmark e tagline.

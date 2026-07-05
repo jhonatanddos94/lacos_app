@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
-import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/core/theme/app_typography.dart';
+import 'package:lacos_app/core/widgets/splash_loading_indicator.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/core/workspace/domain/entities/workspace.dart';
 
@@ -19,13 +21,9 @@ class SplashPage extends ConsumerStatefulWidget {
   ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends ConsumerState<SplashPage>
-    with SingleTickerProviderStateMixin {
+class _SplashPageState extends ConsumerState<SplashPage> {
   static const _minimumSplashDuration = Duration(milliseconds: 1500);
 
-  late final AnimationController _controller;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
   late final Future<void> _minimumSplashDelay;
 
   bool _navigationScheduled = false;
@@ -41,20 +39,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(vsync: this, duration: AppDurations.slow);
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.96,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _controller.forward();
     _minimumSplashDelay = Future<void>.delayed(_minimumSplashDuration);
   }
 
@@ -74,12 +58,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final workspaceState = ref.watch(workspaceProvider);
 
@@ -90,20 +68,14 @@ class _SplashPageState extends ConsumerState<SplashPage>
         body: _SplashBackground(
           child: SafeArea(
             child: Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: workspaceState.when(
-                    data: (workspace) {
-                      _scheduleNavigation(workspace);
-                      return const _SplashLoading();
-                    },
-                    loading: () => const _SplashLoading(),
-                    error: (error, stackTrace) => _SplashError(
-                      onRetry: () => ref.invalidate(workspaceProvider),
-                    ),
-                  ),
+              child: workspaceState.when(
+                data: (workspace) {
+                  _scheduleNavigation(workspace);
+                  return const _SplashLoading();
+                },
+                loading: () => const _SplashLoading(),
+                error: (error, stackTrace) => _SplashError(
+                  onRetry: () => ref.invalidate(workspaceProvider),
                 ),
               ),
             ),
@@ -119,19 +91,28 @@ class _SplashLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final theme = Theme.of(context);
+
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _SplashBrand(),
-        SizedBox(height: AppSpacing.xl),
-        SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
+        const _SplashBrand(),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          AppStrings.splashPreparing,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge?.copyWith(
             color: AppColors.onPrimary,
           ),
         ),
+        const SizedBox(height: AppSpacing.xxxs),
+        Text(
+          AppStrings.splashYourEnvironment,
+          textAlign: TextAlign.center,
+          style: AppTypography.subtitle(brightness: Brightness.dark),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        const SplashLoadingIndicator(),
       ],
     );
   }
@@ -217,7 +198,7 @@ class _SplashBrand extends StatelessWidget {
     final logoWidth = (screenWidth * 0.64).clamp(220.0, _maxLogoWidth);
 
     return Image.asset(
-      AppAssets.logoSplash,
+      AppAssets.lacosLogo,
       width: logoWidth,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,

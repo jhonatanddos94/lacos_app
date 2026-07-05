@@ -6,4 +6,5 @@ abstract final class AppDurations {
   static const Duration slow = Duration(milliseconds: 300);
   static const Duration splash = Duration(milliseconds: 300);
   static const Duration carousel = Duration(seconds: 5);
+  static const Duration memoryPreviewRotation = Duration(seconds: 4);
 }

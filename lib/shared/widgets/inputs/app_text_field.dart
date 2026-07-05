@@ -30,7 +30,11 @@ class AppTextField extends StatelessWidget {
     this.helperText,
     this.errorText,
     this.maxLines = 1,
+    this.minLines,
     this.maxLength,
+    this.expands = false,
+    this.autofocus = false,
+    this.focusNode,
     this.inputFormatters,
   });
 
@@ -53,7 +57,11 @@ class AppTextField extends StatelessWidget {
   final String? helperText;
   final String? errorText;
   final int? maxLines;
+  final int? minLines;
   final int? maxLength;
+  final bool expands;
+  final bool autofocus;
+  final FocusNode? focusNode;
   final List<TextInputFormatter>? inputFormatters;
 
   bool get _hasError => errorText != null && errorText!.isNotEmpty;
@@ -63,13 +71,15 @@ class AppTextField extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final decorationTheme = theme.inputDecorationTheme;
-    final effectiveMaxLines = obscureText ? 1 : maxLines;
+    final effectiveMaxLines = expands ? null : (obscureText ? 1 : maxLines);
 
     return AnimatedOpacity(
       duration: AppDurations.fast,
       opacity: enabled ? 1 : 0.6,
       child: TextFormField(
         controller: controller,
+        focusNode: focusNode,
+        autofocus: autofocus,
         onChanged: onChanged,
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
@@ -80,6 +90,8 @@ class AppTextField extends StatelessWidget {
         obscureText: obscureText,
         enabled: enabled,
         readOnly: readOnly,
+        expands: expands,
+        minLines: expands ? null : minLines,
         maxLines: effectiveMaxLines,
         maxLength: maxLength,
         inputFormatters: inputFormatters,

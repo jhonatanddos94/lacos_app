@@ -17,6 +17,10 @@ import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/application/memory_providers.dart';
+import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/presentation/bottom_sheets/create_memory_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memories_preview_card.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 
 class ClientDetailsPage extends ConsumerStatefulWidget {
@@ -112,6 +116,23 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
     };
   }
 
+  Future<void> _openNewMemorySheet() async {
+    final memory = await showModalBottomSheet<ClientMemory>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
+      builder: (context) => CreateMemoryBottomSheet(clientId: _client.id),
+    );
+
+    if (!mounted || memory == null) return;
+
+    ref.invalidate(clientMemoriesProvider(_client.id));
+
+    _showMessage(AppStrings.memorySavedSuccess);
+  }
+
   Future<void> _openDeleteClientDialog() async {
     final deleted = await showDialog<bool>(
       context: context,
@@ -131,6 +152,7 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final isPhotoLoading = ref.watch(clientFormControllerProvider).isLoading;
+    final memoriesAsync = ref.watch(clientMemoriesProvider(_client.id));
 
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
@@ -157,18 +179,20 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 client: _client,
                 onEdit: _openEditClientSheet,
                 onPhotoTap: _changeClientPhoto,
+                onNewMemory: _openNewMemorySheet,
                 isPhotoLoading: isPhotoLoading,
               ),
               const SizedBox(height: AppSpacing.sm),
               _ClientDataCard(client: _client),
               const SizedBox(height: AppSpacing.sm),
-              const _HighlightSectionCard(
-                title: AppStrings.clientMemories,
-                titleIcon: Icons.auto_awesome_rounded,
-                emptyTitle: AppStrings.clientNoMemoriesTitle,
-                message: AppStrings.clientMemoriesComingSoon,
-                bodyIcon: Icons.favorite_rounded,
-                emphasized: true,
+              ClientMemoriesPreviewCard(
+                memories: memoriesAsync.value ?? const [],
+                isLoading: memoriesAsync.isLoading && !memoriesAsync.hasValue,
+                errorMessage: memoriesAsync.hasError
+                    ? AppStrings.clientMemoriesLoadError
+                    : null,
+                onTap: () =>
+                    _showMessage(AppStrings.clientMemoriesListComingSoon),
               ),
               const SizedBox(height: AppSpacing.sm),
               const _HighlightSectionCard(
@@ -203,12 +227,14 @@ class _ProfileCard extends StatelessWidget {
     required this.client,
     required this.onEdit,
     required this.onPhotoTap,
+    required this.onNewMemory,
     required this.isPhotoLoading,
   });
 
   final Client client;
   final VoidCallback onEdit;
   final VoidCallback onPhotoTap;
+  final VoidCallback onNewMemory;
   final bool isPhotoLoading;
 
   @override
@@ -279,7 +305,11 @@ class _ProfileCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
-          _QuickActions(client: client, onEdit: onEdit),
+          _QuickActions(
+            client: client,
+            onEdit: onEdit,
+            onNewMemory: onNewMemory,
+          ),
         ],
       ),
     );
@@ -316,10 +346,15 @@ class _ClientAvatar extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.client, required this.onEdit});
+  const _QuickActions({
+    required this.client,
+    required this.onEdit,
+    required this.onNewMemory,
+  });
 
   final Client client;
   final VoidCallback onEdit;
+  final VoidCallback onNewMemory;
 
   @override
   Widget build(BuildContext context) {
@@ -349,8 +384,8 @@ class _QuickActions extends StatelessWidget {
             child: _QuickActionButton(
               icon: Icons.auto_awesome_rounded,
               title: AppStrings.newMemory,
-              subtitle: AppStrings.comingSoon,
-              onTap: () => _showMessage(context, AppStrings.openLinkComingSoon),
+              subtitle: AppStrings.remember,
+              onTap: onNewMemory,
             ),
           ),
           const VerticalDivider(width: 1, color: AppColors.divider),
@@ -612,7 +647,6 @@ class _HighlightSectionCard extends StatelessWidget {
     required this.emptyTitle,
     required this.message,
     required this.bodyIcon,
-    this.emphasized = false,
   });
 
   final String title;
@@ -620,7 +654,6 @@ class _HighlightSectionCard extends StatelessWidget {
   final String emptyTitle;
   final String message;
   final IconData bodyIcon;
-  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
@@ -630,7 +663,6 @@ class _HighlightSectionCard extends StatelessWidget {
       title: title,
       titleIcon: titleIcon,
       showChevron: true,
-      emphasized: emphasized,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -837,13 +869,11 @@ class _DetailsCard extends StatelessWidget {
     this.title,
     this.titleIcon,
     this.showChevron = false,
-    this.emphasized = false,
   });
 
   final String? title;
   final IconData? titleIcon;
   final bool showChevron;
-  final bool emphasized;
   final Widget child;
 
   @override
@@ -856,10 +886,8 @@ class _DetailsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.borderMd,
-        boxShadow: emphasized ? AppShadows.level1 : AppShadows.level0,
-        border: Border.all(
-          color: emphasized ? AppColors.purple100 : AppColors.divider,
-        ),
+        boxShadow: AppShadows.level0,
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

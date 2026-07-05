@@ -12,6 +12,8 @@ abstract final class AppStrings {
   static const String optional = 'Opcional';
   static const String optionalWrapped = '(opcional)';
   static const String loading = 'Carregando...';
+  static const String splashPreparing = 'Estamos preparando';
+  static const String splashYourEnvironment = 'seu ambiente';
   static const String camera = 'Câmera';
   static const String gallery = 'Galeria';
 
@@ -50,6 +52,33 @@ abstract final class AppStrings {
   static const String talk = 'Conversar';
   static const String schedule = 'Agendar';
   static const String newMemory = 'Nova memória';
+  static const String newMemorySubtitle =
+      'Tudo que ajudar você a lembrar dessa cliente.';
+  static const String memoryContentLabel =
+      'O que você gostaria de lembrar sobre essa cliente?';
+  static const String memoryContentHint =
+      'Ex.:\n'
+      'Vai casar em dezembro.\n'
+      'Ama cappuccino.\n'
+      'Filha chama Alice.\n'
+      'Tem um Golden Retriever.\n'
+      'Prefere conversar pouco.';
+  static const String memoryTipTitle = 'Dica:';
+  static const String memoryTipBody =
+      'registre preferências, histórias, '
+      'datas importantes, família, '
+      'sonhos e qualquer detalhe que '
+      'torne o próximo atendimento '
+      'mais especial.';
+  static const String saveMemory = 'Salvar memória';
+  static const String remember = 'Lembrar';
+  static const String memorySavedSuccess = 'Memória salva com sucesso.';
+  static const String memorySaveError =
+      'Não foi possível salvar a memória. Tente novamente.';
+  static const String memoryRequired =
+      'Escreva uma memória antes de salvar.';
+  static const String memoryMaxLengthError =
+      'A memória pode ter no máximo 300 caracteres.';
   static const String copiedToClipboard =
       'Copiado para a área de transferência.';
   static const String phoneCopied = 'Telefone copiado.';
@@ -65,6 +94,10 @@ abstract final class AppStrings {
       'Nenhuma memória registrada.';
   static const String clientMemoriesComingSoon =
       'Os detalhes registrados nos atendimentos aparecerão aqui.';
+  static const String clientMemoriesLoadError =
+      'Não foi possível carregar as memórias.';
+  static const String clientMemoriesListComingSoon =
+      'Lista de memórias em breve.';
   static const String clientNoNextAppointment =
       'Nenhum atendimento agendado.';
   static const String clientHistoryComingSoon =
