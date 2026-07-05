@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
@@ -51,6 +52,22 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text(AppStrings.clientUpdatedSuccess)),
+    );
+  }
+
+  Future<void> _openDeleteClientDialog() async {
+    final deleted = await showDialog<bool>(
+      context: context,
+      builder: (context) => _DeleteClientDialog(client: _client),
+    );
+
+    if (!mounted || deleted != true) return;
+
+    ref.invalidate(clientsProvider);
+    context.pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStrings.clientDeletedSuccess)),
     );
   }
 
@@ -106,7 +123,7 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 bodyIcon: Icons.receipt_long_outlined,
               ),
               const SizedBox(height: AppSpacing.sm),
-              const _DeleteClientCard(),
+              _DeleteClientCard(onDelete: _openDeleteClientDialog),
               const SizedBox(height: AppSpacing.sm),
               const _FooterMessage(),
             ],
@@ -578,7 +595,9 @@ class _HighlightSectionCard extends StatelessWidget {
 }
 
 class _DeleteClientCard extends StatelessWidget {
-  const _DeleteClientCard();
+  const _DeleteClientCard({required this.onDelete});
+
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -622,7 +641,7 @@ class _DeleteClientCard extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs),
           OutlinedButton(
-            onPressed: () => _showMessage(context, AppStrings.deletionComingSoon),
+            onPressed: onDelete,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.softRose,
               side: const BorderSide(color: AppColors.softRose),
@@ -631,6 +650,90 @@ class _DeleteClientCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DeleteClientDialog extends ConsumerStatefulWidget {
+  const _DeleteClientDialog({required this.client});
+
+  final Client client;
+
+  @override
+  ConsumerState<_DeleteClientDialog> createState() =>
+      _DeleteClientDialogState();
+}
+
+class _DeleteClientDialogState extends ConsumerState<_DeleteClientDialog> {
+  Future<void> _confirmDelete() async {
+    final success = await ref
+        .read(clientFormControllerProvider.notifier)
+        .delete(widget.client);
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+
+    final error = ref.read(clientFormControllerProvider).error;
+    if (error != null) {
+      _showMessage(_resolveErrorMessage(error));
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _resolveErrorMessage(Object error) {
+    return switch (error) {
+      FormatException(message: final message) => message,
+      StateError(message: final message) => message,
+      _ => AppStrings.clientDeleteError,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLoading = ref.watch(clientFormControllerProvider).isLoading;
+
+    return AlertDialog(
+      title: const Text(AppStrings.deleteClientTitle),
+      content: Text(
+        AppStrings.deleteClientMessage,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: AppColors.textSecondary,
+          height: 1.4,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: isLoading ? null : () => Navigator.of(context).pop(false),
+          child: const Text(AppStrings.cancel),
+        ),
+        FilledButton(
+          onPressed: isLoading ? null : _confirmDelete,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.softRose,
+            foregroundColor: AppColors.onPrimary,
+            disabledBackgroundColor: AppColors.softRose.withValues(alpha: 0.5),
+            disabledForegroundColor: AppColors.onPrimary.withValues(alpha: 0.7),
+          ),
+          child: isLoading
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.onPrimary,
+                  ),
+                )
+              : const Text(AppStrings.deleteClient),
+        ),
+      ],
     );
   }
 }

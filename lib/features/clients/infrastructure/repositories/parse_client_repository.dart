@@ -139,6 +139,46 @@ class ParseClientRepository implements ClientRepository {
   }
 
   @override
+  Future<void> delete(String clientId) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject(_clientClassName))
+        ..whereEqualTo('objectId', clientId)
+        ..whereEqualTo('salon', _salonPointer(salon.id));
+
+      final fetchResponse = await query.query<ParseObject>();
+      if (!fetchResponse.success) {
+        throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+      }
+
+      final results = fetchResponse.results;
+      if (results == null || results.isEmpty) {
+        throw FormatException(AppStrings.clientDeleteError);
+      }
+
+      final parseClient = results.first as ParseObject;
+      parseClient.set<bool>('isActive', false);
+
+      final response = await parseClient.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.clientDeleteError);
+    }
+  }
+
+  @override
   Future<List<Client>> findAll() async {
     try {
       final salon = await _salonRepository.getCurrentSalon();

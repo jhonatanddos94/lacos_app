@@ -80,6 +80,22 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
     }
   }
 
+  Future<bool> delete(Client client) async {
+    if (state.isLoading) return false;
+
+    state = const AsyncLoading();
+
+    try {
+      await _repository.delete(client.id);
+      state = const AsyncData(null);
+      return true;
+    } on Object catch (error, stackTrace) {
+      final friendlyError = FormatException(_resolveErrorMessage(error));
+      state = AsyncError(friendlyError, stackTrace);
+      return false;
+    }
+  }
+
   Client? _fail(String message) {
     state = AsyncError(FormatException(message), StackTrace.current);
     return null;

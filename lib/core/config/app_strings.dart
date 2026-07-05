@@ -72,6 +72,11 @@ abstract final class AppStrings {
   static const String noServiceHistoryYet =
       'Nenhum atendimento registrado ainda.';
   static const String deleteClient = 'Excluir cliente';
+  static const String deleteClientTitle = 'Excluir cliente?';
+  static const String deleteClientMessage =
+      'Tem certeza que deseja remover esta cliente?\n\n'
+      'Ela deixará de aparecer na lista de clientes, mas seus dados '
+      'permanecerão armazenados para preservar o histórico do sistema.';
   static const String deleteClientDescription =
       'Ao excluir, todos os dados da cliente serão removidos permanentemente do sistema.';
   static const String tapValueToCopy = 'Toque no valor para copiar';
@@ -86,4 +91,8 @@ abstract final class AppStrings {
       'Cliente atualizada com sucesso';
   static const String clientUpdateError =
       'Não foi possível atualizar a cliente';
+  static const String clientDeletedSuccess =
+      'Cliente removida com sucesso.';
+  static const String clientDeleteError =
+      'Não foi possível remover a cliente.';
 }
