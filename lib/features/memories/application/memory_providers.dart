@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/memories/infrastructure/repositories/parse_client_memory_repository.dart';
-import 'package:lacos_app/features/memories/presentation/controllers/create_memory_controller.dart';
+import 'package:lacos_app/features/memories/presentation/controllers/memory_form_controller.dart';
 import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/salon/application/providers/salon_providers.dart';
 
@@ -22,10 +22,10 @@ final clientMemoriesProvider =
       return repository.findByClient(clientId: clientId);
     });
 
-final createMemoryControllerProvider =
-    StateNotifierProvider<CreateMemoryController, AsyncValue<ClientMemory?>>(
+final memoryFormControllerProvider =
+    StateNotifierProvider<MemoryFormController, AsyncValue<ClientMemory?>>(
       (ref) {
         final repository = ref.watch(clientMemoryRepositoryProvider);
-        return CreateMemoryController(repository);
+        return MemoryFormController(repository);
       },
     );

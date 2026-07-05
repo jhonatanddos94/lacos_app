@@ -7,6 +7,7 @@ import 'package:lacos_app/core/config/app_validation_messages.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/formatters/client_form_formatters.dart';
+import 'package:lacos_app/core/router/route_paths.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
@@ -19,7 +20,7 @@ import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.da
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
-import 'package:lacos_app/features/memories/presentation/bottom_sheets/create_memory_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_form_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_preview_card.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 
@@ -101,7 +102,9 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _resolveErrorMessage(Object error) {
@@ -123,7 +126,7 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => CreateMemoryBottomSheet(clientId: _client.id),
+      builder: (context) => MemoryFormBottomSheet(clientId: _client.id),
     );
 
     if (!mounted || memory == null) return;
@@ -191,8 +194,10 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 errorMessage: memoriesAsync.hasError
                     ? AppStrings.clientMemoriesLoadError
                     : null,
-                onTap: () =>
-                    _showMessage(AppStrings.clientMemoriesListComingSoon),
+                onTap: () => context.push(
+                  RoutePaths.clientMemories,
+                  extra: _client,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               const _HighlightSectionCard(
@@ -287,10 +292,9 @@ class _ProfileCard extends StatelessWidget {
                       ],
                       const SizedBox(height: AppSpacing.xs),
                       _SoftChip(
-                        label: '${AppStrings.clientSince} '
-                            '${_formatMonthYear(
-                          client.clientSince ?? client.createdAt,
-                        )}',
+                        label:
+                            '${AppStrings.clientSince} '
+                            '${_formatMonthYear(client.clientSince ?? client.createdAt)}',
                         icon: Icons.calendar_month_outlined,
                       ),
                     ],
@@ -338,9 +342,9 @@ class _ClientAvatar extends StatelessWidget {
       isLoading: isLoading,
       backgroundColor: AppColors.surface,
       initialTextStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: AppColors.purple800,
-            fontWeight: FontWeight.w800,
-          ),
+        color: AppColors.purple800,
+        fontWeight: FontWeight.w800,
+      ),
     );
   }
 }
@@ -510,8 +514,8 @@ class _ClientDataCard extends StatelessWidget {
               Text(
                 AppStrings.tapValueToCopy,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                  color: AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -590,11 +594,10 @@ class _CopyableInfoRow extends StatelessWidget {
                 height: _trailingColumnWidth,
                 child: Center(
                   child: IconButton(
-                    onPressed: onTrailingTap ??
+                    onPressed:
+                        onTrailingTap ??
                         () => _copyValue(context, value, copiedMessage),
-                    icon: _TrailingActionIcon(
-                      asset: trailingAsset,
-                    ),
+                    icon: _TrailingActionIcon(asset: trailingAsset),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints.tightFor(
                       width: _trailingButtonSize,
@@ -613,9 +616,7 @@ class _CopyableInfoRow extends StatelessWidget {
 }
 
 class _TrailingActionIcon extends StatelessWidget {
-  const _TrailingActionIcon({
-    this.asset,
-  });
+  const _TrailingActionIcon({this.asset});
 
   final String? asset;
 
@@ -795,7 +796,9 @@ class _DeleteClientDialogState extends ConsumerState<_DeleteClientDialog> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _resolveErrorMessage(Object error) {
@@ -856,9 +859,9 @@ class _FooterMessage extends StatelessWidget {
     return Text(
       AppStrings.clientFooterMessage,
       textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
     );
   }
 }
@@ -925,10 +928,7 @@ class _DetailsCard extends StatelessWidget {
 }
 
 class _SmallIcon extends StatelessWidget {
-  const _SmallIcon({
-    required this.icon,
-    this.color = AppColors.purple700,
-  });
+  const _SmallIcon({required this.icon, this.color = AppColors.purple700});
 
   final IconData icon;
   final Color color;

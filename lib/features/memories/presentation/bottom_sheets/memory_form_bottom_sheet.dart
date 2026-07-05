@@ -10,32 +10,47 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
+import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
-class CreateMemoryBottomSheet extends ConsumerStatefulWidget {
-  const CreateMemoryBottomSheet({required this.clientId, super.key});
+class MemoryFormBottomSheet extends ConsumerStatefulWidget {
+  const MemoryFormBottomSheet({
+    required this.clientId,
+    this.memory,
+    super.key,
+  });
 
   final String clientId;
+  final ClientMemory? memory;
 
   @override
-  ConsumerState<CreateMemoryBottomSheet> createState() =>
-      _CreateMemoryBottomSheetState();
+  ConsumerState<MemoryFormBottomSheet> createState() =>
+      _MemoryFormBottomSheetState();
 }
 
-class _CreateMemoryBottomSheetState
-    extends ConsumerState<CreateMemoryBottomSheet> {
+class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
   final _contentController = TextEditingController();
   final _focusNode = FocusNode();
+
+  bool get _isEditing => widget.memory != null;
 
   @override
   void initState() {
     super.initState();
+    _initializeFields();
     _contentController.addListener(_handleContentChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(createMemoryControllerProvider.notifier).reset();
+      ref.read(memoryFormControllerProvider.notifier).reset();
       _focusNode.requestFocus();
     });
+  }
+
+  void _initializeFields() {
+    final memory = widget.memory;
+    if (memory == null) return;
+
+    _contentController.text = memory.content;
   }
 
   @override
@@ -56,18 +71,17 @@ class _CreateMemoryBottomSheetState
   }
 
   void _cancel() {
-    if (ref.read(createMemoryControllerProvider).isLoading) return;
+    if (ref.read(memoryFormControllerProvider).isLoading) return;
     Navigator.of(context).pop();
   }
 
   Future<void> _saveMemory() async {
-    if (ref.read(createMemoryControllerProvider).isLoading) return;
+    if (ref.read(memoryFormControllerProvider).isLoading) return;
 
-    final memory = await ref
-        .read(createMemoryControllerProvider.notifier)
-        .create(
+    final memory = await ref.read(memoryFormControllerProvider.notifier).save(
           clientId: widget.clientId,
           content: _contentController.text,
+          initialMemory: widget.memory,
         );
 
     if (!mounted) return;
@@ -77,7 +91,7 @@ class _CreateMemoryBottomSheetState
       return;
     }
 
-    final error = ref.read(createMemoryControllerProvider).error;
+    final error = ref.read(memoryFormControllerProvider).error;
     if (error != null) {
       _showMessage(_resolveErrorMessage(error));
     }
@@ -103,7 +117,7 @@ class _CreateMemoryBottomSheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final state = ref.watch(createMemoryControllerProvider);
+    final state = ref.watch(memoryFormControllerProvider);
     final isLoading = state.isLoading;
     final contentLength = _contentController.text.characters.length;
 
@@ -136,7 +150,7 @@ class _CreateMemoryBottomSheetState
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const _CreateMemoryHeader(),
+                      _MemoryFormHeader(isEditing: _isEditing),
                       const SizedBox(height: AppSpacing.md),
                       SizedBox(
                         height: AppFieldSizes.memoryContentHeight,
@@ -175,7 +189,9 @@ class _CreateMemoryBottomSheetState
                       const _MemoryTipCard(),
                       const SizedBox(height: AppSpacing.md),
                       AppButton(
-                        label: AppStrings.saveMemory,
+                        label: _isEditing
+                            ? AppStrings.saveChanges
+                            : AppStrings.saveMemory,
                         isLoading: isLoading,
                         onPressed: isLoading ? null : _saveMemory,
                       ),
@@ -197,8 +213,10 @@ class _CreateMemoryBottomSheetState
   }
 }
 
-class _CreateMemoryHeader extends StatelessWidget {
-  const _CreateMemoryHeader();
+class _MemoryFormHeader extends StatelessWidget {
+  const _MemoryFormHeader({required this.isEditing});
+
+  final bool isEditing;
 
   @override
   Widget build(BuildContext context) {
@@ -214,8 +232,8 @@ class _CreateMemoryHeader extends StatelessWidget {
             color: AppColors.purple50,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.auto_awesome_rounded,
+          child: Icon(
+            isEditing ? Icons.edit_outlined : Icons.auto_awesome_rounded,
             color: AppColors.purple700,
             size: AppSpacing.sm,
           ),
@@ -226,7 +244,7 @@ class _CreateMemoryHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppStrings.newMemory,
+                isEditing ? AppStrings.editMemory : AppStrings.newMemory,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: AppColors.graphite,
                   fontWeight: FontWeight.w800,
@@ -234,7 +252,9 @@ class _CreateMemoryHeader extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xxxs),
               Text(
-                AppStrings.newMemorySubtitle,
+                isEditing
+                    ? AppStrings.editMemorySubtitle
+                    : AppStrings.newMemorySubtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                   height: 1.35,

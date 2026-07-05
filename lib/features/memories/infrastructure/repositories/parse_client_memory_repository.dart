@@ -78,6 +78,99 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
   }
 
   @override
+  Future<ClientMemory> update(ClientMemory memory) async {
+    try {
+      final memoryId = memory.id;
+      if (memoryId == null || memoryId.isEmpty) {
+        throw FormatException(AppStrings.memoryUpdateError);
+      }
+
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
+        ..whereEqualTo('objectId', memoryId)
+        ..whereEqualTo('salon', _salonPointer(salon.id))
+        ..whereEqualTo('isActive', true);
+
+      final fetchResponse = await query.query<ParseObject>();
+      if (!fetchResponse.success) {
+        throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+      }
+
+      final results = fetchResponse.results;
+      if (results == null || results.isEmpty) {
+        throw FormatException(AppStrings.memoryUpdateError);
+      }
+
+      final parseMemory = results.first as ParseObject;
+      parseMemory.set<String>('content', memory.content);
+
+      final response = await parseMemory.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      return _mapper.toDomain(parseMemory);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.memoryUpdateError);
+    }
+  }
+
+  @override
+  Future<void> delete(String memoryId) async {
+    try {
+      if (memoryId.isEmpty) {
+        throw FormatException(AppStrings.memoryDeleteError);
+      }
+
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
+        ..whereEqualTo('objectId', memoryId)
+        ..whereEqualTo('salon', _salonPointer(salon.id))
+        ..whereEqualTo('isActive', true);
+
+      final fetchResponse = await query.query<ParseObject>();
+      if (!fetchResponse.success) {
+        throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+      }
+
+      final results = fetchResponse.results;
+      if (results == null || results.isEmpty) {
+        throw FormatException(AppStrings.memoryDeleteError);
+      }
+
+      final parseMemory = results.first as ParseObject;
+      parseMemory.set<bool>('isActive', false);
+
+      final response = await parseMemory.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.memoryDeleteError);
+    }
+  }
+
+  @override
   Future<List<ClientMemory>> findByClient({
     required String clientId,
   }) async {

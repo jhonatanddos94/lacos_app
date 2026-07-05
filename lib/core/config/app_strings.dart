@@ -46,6 +46,14 @@ abstract final class AppStrings {
   static const String clientDetailsTitle = 'Ficha da cliente';
   static const String clientData = 'Dados da cliente';
   static const String clientMemories = 'Memórias';
+  static const String clientMemoriesSubtitle =
+      'Todas as memórias da cliente';
+  static const String clientMemoriesEmptyTitle =
+      'Ainda não há memórias cadastradas';
+  static const String clientMemoriesEmptyMessage =
+      'Adicione a primeira memória desta cliente para personalizar a '
+      'experiência dela.';
+  static const String addMemory = 'Adicionar memória';
   static const String clientServiceHistory = 'Histórico de atendimentos';
   static const String clientNextAppointment = 'Próximo atendimento';
   static const String whatsapp = 'WhatsApp';
@@ -71,10 +79,26 @@ abstract final class AppStrings {
       'torne o próximo atendimento '
       'mais especial.';
   static const String saveMemory = 'Salvar memória';
+  static const String editMemory = 'Editar memória';
+  static const String editMemorySubtitle =
+      'Ajuste essa lembrança para manter tudo atualizado.';
+  static const String memoryActions = 'Ações da memória';
+  static const String memoryActionsSubtitle = 'Escolha o que deseja fazer.';
+  static const String deleteMemory = 'Excluir memória';
+  static const String deleteMemoryTitle = 'Excluir memória?';
+  static const String deleteMemoryMessage =
+      'Essa memória deixará de aparecer na ficha da cliente, mas será '
+      'preservada no histórico interno do sistema.';
   static const String remember = 'Lembrar';
   static const String memorySavedSuccess = 'Memória salva com sucesso.';
+  static const String memoryUpdatedSuccess = 'Memória atualizada com sucesso.';
+  static const String memoryDeletedSuccess = 'Memória excluída com sucesso.';
   static const String memorySaveError =
       'Não foi possível salvar a memória. Tente novamente.';
+  static const String memoryUpdateError =
+      'Não foi possível atualizar a memória. Tente novamente.';
+  static const String memoryDeleteError =
+      'Não foi possível excluir a memória. Tente novamente.';
   static const String memoryRequired =
       'Escreva uma memória antes de salvar.';
   static const String memoryMaxLengthError =
@@ -85,21 +109,18 @@ abstract final class AppStrings {
   static const String instagramCopied = 'Instagram copiado.';
   static const String birthDateCopied = 'Nascimento copiado.';
   static const String dateCopied = 'Data copiada.';
-  static const String openLinkComingSoon =
-      'Abertura de links em breve.';
+  static const String openLinkComingSoon = 'Abertura de links em breve.';
   static const String deletionComingSoon = 'Exclusão em breve.';
   static const String clientRelationshipNote =
       'Use esta ficha para lembrar detalhes importantes e tornar cada atendimento mais pessoal.';
-  static const String clientNoMemoriesTitle =
-      'Nenhuma memória registrada.';
+  static const String clientNoMemoriesTitle = 'Nenhuma memória registrada.';
   static const String clientMemoriesComingSoon =
       'Os detalhes registrados nos atendimentos aparecerão aqui.';
   static const String clientMemoriesLoadError =
       'Não foi possível carregar as memórias.';
   static const String clientMemoriesListComingSoon =
       'Lista de memórias em breve.';
-  static const String clientNoNextAppointment =
-      'Nenhum atendimento agendado.';
+  static const String clientNoNextAppointment = 'Nenhum atendimento agendado.';
   static const String clientHistoryComingSoon =
       'Os atendimentos realizados aparecerão aqui com todos os detalhes.';
   static const String clientNextAppointmentComingSoon =
@@ -120,14 +141,10 @@ abstract final class AppStrings {
   static const String newClientTitle = 'Nova cliente';
   static const String editClientTitle = 'Editar cliente';
   static const String saveChanges = 'Salvar alterações';
-  static const String clientCreatedSuccess =
-      'Cliente cadastrada com sucesso!';
-  static const String clientUpdatedSuccess =
-      'Cliente atualizada com sucesso';
+  static const String clientCreatedSuccess = 'Cliente cadastrada com sucesso!';
+  static const String clientUpdatedSuccess = 'Cliente atualizada com sucesso';
   static const String clientUpdateError =
       'Não foi possível atualizar a cliente';
-  static const String clientDeletedSuccess =
-      'Cliente removida com sucesso.';
-  static const String clientDeleteError =
-      'Não foi possível remover a cliente.';
+  static const String clientDeletedSuccess = 'Cliente removida com sucesso.';
+  static const String clientDeleteError = 'Não foi possível remover a cliente.';
 }

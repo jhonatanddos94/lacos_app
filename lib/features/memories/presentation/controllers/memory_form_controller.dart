@@ -6,8 +6,8 @@ import 'package:lacos_app/core/config/app_validation_messages.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 
-class CreateMemoryController extends StateNotifier<AsyncValue<ClientMemory?>> {
-  CreateMemoryController(this._repository) : super(const AsyncData(null));
+class MemoryFormController extends StateNotifier<AsyncValue<ClientMemory?>> {
+  MemoryFormController(this._repository) : super(const AsyncData(null));
 
   final ClientMemoryRepository _repository;
 
@@ -15,9 +15,10 @@ class CreateMemoryController extends StateNotifier<AsyncValue<ClientMemory?>> {
     state = const AsyncData(null);
   }
 
-  Future<ClientMemory?> create({
+  Future<ClientMemory?> save({
     required String clientId,
     required String content,
+    ClientMemory? initialMemory,
   }) async {
     if (state.isLoading) return null;
 
@@ -33,6 +34,24 @@ class CreateMemoryController extends StateNotifier<AsyncValue<ClientMemory?>> {
     state = const AsyncLoading();
 
     try {
+      if (initialMemory != null) {
+        final memory = await _repository.update(
+          ClientMemory(
+            id: initialMemory.id,
+            clientId: initialMemory.clientId,
+            salonId: initialMemory.salonId,
+            professionalId: initialMemory.professionalId,
+            ownerId: initialMemory.ownerId,
+            content: trimmedContent,
+            isActive: initialMemory.isActive,
+            createdAt: initialMemory.createdAt,
+            updatedAt: initialMemory.updatedAt,
+          ),
+        );
+        state = AsyncData(memory);
+        return memory;
+      }
+
       final memory = await _repository.create(
         ClientMemory(
           clientId: clientId,
@@ -54,6 +73,31 @@ class CreateMemoryController extends StateNotifier<AsyncValue<ClientMemory?>> {
   ClientMemory? _fail(String message) {
     state = AsyncError(FormatException(message), StackTrace.current);
     return null;
+  }
+
+  Future<bool> delete(ClientMemory memory) async {
+    if (state.isLoading) return false;
+
+    final memoryId = memory.id;
+    if (memoryId == null || memoryId.isEmpty) {
+      state = AsyncError(
+        FormatException(AppStrings.memoryDeleteError),
+        StackTrace.current,
+      );
+      return false;
+    }
+
+    state = const AsyncLoading();
+
+    try {
+      await _repository.delete(memoryId);
+      state = const AsyncData(null);
+      return true;
+    } on Object catch (error, stackTrace) {
+      final friendlyError = FormatException(_resolveErrorMessage(error));
+      state = AsyncError(friendlyError, stackTrace);
+      return false;
+    }
   }
 }
 

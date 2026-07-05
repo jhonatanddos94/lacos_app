@@ -4,6 +4,7 @@ import 'package:lacos_app/core/router/route_paths.dart';
 import 'package:lacos_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:lacos_app/features/clients/presentation/routes/client_routes.dart';
 import 'package:lacos_app/features/home/presentation/routes/home_routes.dart';
+import 'package:lacos_app/features/memories/presentation/routes/memory_routes.dart';
 import 'package:lacos_app/features/professional/presentation/routes/professional_routes.dart';
 import 'package:lacos_app/features/salon/presentation/routes/salon_routes.dart';
 import 'package:lacos_app/features/splash/presentation/routes/splash_routes.dart';
@@ -19,6 +20,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ...professionalRoutes(ref),
       ...homeRoutes,
       ...clientRoutes,
+      ...memoryRoutes,
     ],
   );
 });

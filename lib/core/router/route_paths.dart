@@ -9,6 +9,7 @@ abstract final class RoutePaths {
   static const completeProfile = '/complete-profile';
   static const home = '/home';
   static const clientDetails = '/clients/:clientId';
+  static const clientMemories = '/client-memories';
 
   static String clientDetailsPath(String clientId) => '/clients/$clientId';
 }

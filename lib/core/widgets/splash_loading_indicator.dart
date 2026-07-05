@@ -1,19 +1,45 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 
-/// Indicador estático de carregamento da Splash — três lacinhos da marca.
-///
-/// A animação sequencial será implementada em etapa futura.
-class SplashLoadingIndicator extends StatelessWidget {
+/// Indicador de carregamento da Splash — três lacinhos da marca em sequência.
+class SplashLoadingIndicator extends StatefulWidget {
   const SplashLoadingIndicator({super.key});
 
-  static const _inactiveOpacity = 0.35;
-  static const _activeOpacity = 1.0;
+  @override
+  State<SplashLoadingIndicator> createState() => _SplashLoadingIndicatorState();
+}
+
+class _SplashLoadingIndicatorState extends State<SplashLoadingIndicator> {
+  static const _bowCount = 3;
   static const _separatorOpacity = 0.55;
+
+  int _activeIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(AppDurations.splashBowStep, (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _activeIndex = (_activeIndex + 1) % _bowCount;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,32 +47,41 @@ class SplashLoadingIndicator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const _SplashBowIcon(opacity: _inactiveOpacity),
+        _AnimatedBowStep(isActive: _activeIndex == 0),
         const _SplashBowSeparator(),
-        const _SplashBowIcon(opacity: _inactiveOpacity),
+        _AnimatedBowStep(isActive: _activeIndex == 1),
         const _SplashBowSeparator(),
-        const _SplashBowIcon(opacity: _activeOpacity),
+        _AnimatedBowStep(isActive: _activeIndex == 2),
       ],
     );
   }
 }
 
-class _SplashBowIcon extends StatelessWidget {
-  const _SplashBowIcon({required this.opacity});
+class _AnimatedBowStep extends StatelessWidget {
+  const _AnimatedBowStep({required this.isActive});
 
-  final double opacity;
+  static const _inactiveOpacity = 0.35;
+  static const _activeScale = 1.08;
+
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: opacity,
-      child: Image.asset(
-        AppAssets.lacosLogo,
-        width: AppIconSizes.lg,
-        height: AppIconSizes.lg,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        excludeFromSemantics: true,
+    return AnimatedOpacity(
+      opacity: isActive ? 1.0 : _inactiveOpacity,
+      duration: AppDurations.short,
+      curve: Curves.easeInOut,
+      child: AnimatedScale(
+        scale: isActive ? _activeScale : 1.0,
+        duration: AppDurations.short,
+        curve: Curves.easeInOut,
+        child: Image.asset(
+          AppAssets.lacosLogo,
+          width: AppIconSizes.lg,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          excludeFromSemantics: true,
+        ),
       ),
     );
   }
@@ -64,7 +99,7 @@ class _SplashBowSeparator extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.onPrimary.withValues(
-          alpha: SplashLoadingIndicator._separatorOpacity,
+          alpha: _SplashLoadingIndicatorState._separatorOpacity,
         ),
       ),
     );
