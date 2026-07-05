@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/services.dart';
+
 import 'package:image_picker/image_picker.dart';
 
 import 'package:lacos_app/core/config/app_date_formats.dart';
@@ -15,7 +13,10 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
+import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
@@ -30,14 +31,12 @@ class ClientFormBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
-  static const _photoAvatarSize = 96.0;
-  static const _cameraContainerSize = 40.0;
+  static const _photoAvatarRadius = 48.0;
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _birthDateController = TextEditingController();
   final _instagramController = TextEditingController();
-  final _imagePicker = ImagePicker();
 
   XFile? _selectedPhoto;
 
@@ -98,6 +97,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
           phone: _phoneController.text,
           birthDate: birthDate,
           instagram: _instagramController.text,
+          photoPath: _selectedPhoto?.path,
         );
 
     if (!mounted) return;
@@ -120,6 +120,8 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
   String _resolveErrorMessage(Object error) {
     return switch (error) {
+      ClientPhotoUploadException() =>
+        AppValidationMessages.clientPhotoUploadFailed,
       FormatException(message: final message) => message,
       StateError(message: final message) => message,
       _ =>
@@ -131,58 +133,10 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
   Future<void> _choosePhoto() async {
     if (ref.read(clientFormControllerProvider).isLoading) return;
 
-    final supportsCamera = _imagePicker.supportsImageSource(ImageSource.camera);
-    final supportsGallery = _imagePicker.supportsImageSource(
-      ImageSource.gallery,
+    final photo = await pickClientPhoto(
+      context,
+      onMessage: _showMessage,
     );
-
-    if (!supportsCamera && !supportsGallery) {
-      _showMessage(AppValidationMessages.clientPhotoPickerUnavailable);
-      return;
-    }
-
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (supportsCamera)
-                  ListTile(
-                    leading: const Icon(Icons.photo_camera_outlined),
-                    title: const Text(AppStrings.camera),
-                    onTap: () => Navigator.of(context).pop(ImageSource.camera),
-                  ),
-                if (supportsGallery)
-                  ListTile(
-                    leading: const Icon(Icons.photo_library_outlined),
-                    title: const Text(AppStrings.gallery),
-                    onTap: () => Navigator.of(context).pop(ImageSource.gallery),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (source == null) return;
-
-    final XFile? photo;
-    try {
-      photo = await _imagePicker.pickImage(source: source);
-    } on PlatformException {
-      _showMessage(AppValidationMessages.clientPhotoPickerUnavailable);
-      return;
-    } on Object {
-      _showMessage(AppValidationMessages.clientPhotoPickerUnavailable);
-      return;
-    }
 
     if (photo == null || !mounted) return;
 
@@ -195,7 +149,9 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     final state = ref.watch(clientFormControllerProvider);
     final isLoading = state.isLoading;
 
-    return Material(
+    return PopScope(
+      canPop: !isLoading,
+      child: Material(
       color: AppColors.surface,
       borderRadius: AppRadius.borderTopLg,
       child: Container(
@@ -228,10 +184,33 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  _PhotoPlaceholder(
-                    isEnabled: !isLoading,
-                    photo: _selectedPhoto,
-                    onTap: _choosePhoto,
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClientAvatar(
+                          name: widget.client?.name ?? _nameController.text,
+                          photoUrl: widget.client?.photoUrl,
+                          localPhotoPath: _selectedPhoto?.path,
+                          radius: _photoAvatarRadius,
+                          showCameraBadge: true,
+                          onTap: _choosePhoto,
+                          enabled: !isLoading,
+                        ),
+                        if (_selectedPhoto == null &&
+                            (widget.client?.photoUrl == null ||
+                                widget.client!.photoUrl!.isEmpty)) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            AppStrings.tapAvatarToAddPhoto,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppTextField(
@@ -318,102 +297,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _PhotoPlaceholder extends StatelessWidget {
-  const _PhotoPlaceholder({
-    required this.isEnabled,
-    required this.onTap,
-    this.photo,
-  });
-
-  final bool isEnabled;
-  final XFile? photo;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Opacity(
-        opacity: isEnabled ? 1 : 0.6,
-        child: InkWell(
-          // TODO(upload foto)
-          onTap: isEnabled ? onTap : null,
-          borderRadius: AppRadius.borderLg,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: _ClientFormBottomSheetState._photoAvatarSize,
-                height: _ClientFormBottomSheetState._photoAvatarSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.purple50,
-                  image: photo == null
-                      ? null
-                      : DecorationImage(
-                          image: FileImage(File(photo!.path)),
-                          fit: BoxFit.cover,
-                        ),
-                ),
-                child: photo == null
-                    ? Center(
-                        child: Container(
-                          width:
-                              _ClientFormBottomSheetState._cameraContainerSize,
-                          height:
-                              _ClientFormBottomSheetState._cameraContainerSize,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.purple100,
-                          ),
-                          child: const Icon(
-                            Icons.photo_camera_outlined,
-                            color: AppColors.purple700,
-                          ),
-                        ),
-                      )
-                    : Align(
-                        alignment: Alignment.bottomRight,
-                        child: Container(
-                          width:
-                              _ClientFormBottomSheetState._cameraContainerSize,
-                          height:
-                              _ClientFormBottomSheetState._cameraContainerSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.lacosPurple,
-                            border: Border.all(color: AppColors.surface),
-                          ),
-                          child: const Icon(
-                            Icons.photo_camera_outlined,
-                            color: AppColors.onPrimary,
-                          ),
-                        ),
-                    ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                AppStrings.addPhoto,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: AppColors.graphite,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              Text(
-                AppStrings.optionalWrapped,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    ),
     );
   }
 }

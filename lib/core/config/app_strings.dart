@@ -7,6 +7,8 @@ abstract final class AppStrings {
   static const String tryAgain = 'Tentar novamente';
   static const String comingSoon = 'Em breve';
   static const String addPhoto = 'Adicionar foto';
+  static const String tapAvatarToAddPhoto =
+      'Toque no avatar para adicionar uma foto';
   static const String optional = 'Opcional';
   static const String optionalWrapped = '(opcional)';
   static const String loading = 'Carregando...';

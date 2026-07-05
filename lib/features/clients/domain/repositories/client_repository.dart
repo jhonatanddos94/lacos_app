@@ -6,9 +6,10 @@ abstract interface class ClientRepository {
     required String phone,
     DateTime? birthDate,
     String? instagram,
+    String? photoPath,
   });
 
-  Future<Client> update(Client client);
+  Future<Client> update(Client client, {String? photoPath});
 
   Future<void> delete(String clientId);
 

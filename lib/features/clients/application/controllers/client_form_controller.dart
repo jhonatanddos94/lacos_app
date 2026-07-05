@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_validation_messages.dart';
 import 'package:lacos_app/core/formatters/client_form_formatters.dart';
+import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/repositories/client_repository.dart';
 
@@ -20,6 +21,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
     required String phone,
     DateTime? birthDate,
     String? instagram,
+    String? photoPath,
   }) async {
     if (state.isLoading) return null;
 
@@ -60,7 +62,10 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
           createdAt: initialClient.createdAt,
           updatedAt: initialClient.updatedAt,
         );
-        final client = await _repository.update(updatedClient);
+        final client = await _repository.update(
+          updatedClient,
+          photoPath: photoPath,
+        );
         state = AsyncData(client);
         return client;
       }
@@ -70,6 +75,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
         phone: clientPhone,
         birthDate: birthDate,
         instagram: normalizedInstagram,
+        photoPath: photoPath,
       );
       state = AsyncData(client);
       return client;
@@ -104,6 +110,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
 
 String _resolveErrorMessage(Object error) {
   return switch (error) {
+    ClientPhotoUploadException() => AppValidationMessages.clientPhotoUploadFailed,
     FormatException(message: final message) => message,
     StateError(message: final message) => message,
     _ =>

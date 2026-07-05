@@ -12,6 +12,8 @@ abstract final class AppValidationMessages {
       'Informe um Instagram válido.';
   static const String clientPhotoPickerUnavailable =
       'Não foi possível abrir a câmera ou galeria. Feche e abra o app novamente.';
+  static const String clientPhotoUploadFailed =
+      'Não foi possível salvar a foto. Tente novamente.';
 
   static const String salonNameRequired = 'Informe o nome do salão.';
   static const String ownerNameRequired = 'Informe o nome da proprietária.';

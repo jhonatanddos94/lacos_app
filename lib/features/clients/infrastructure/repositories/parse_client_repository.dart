@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/repositories/client_repository.dart';
 import 'package:lacos_app/features/clients/infrastructure/mappers/client_mapper.dart';
@@ -28,6 +31,7 @@ class ParseClientRepository implements ClientRepository {
     required String phone,
     DateTime? birthDate,
     String? instagram,
+    String? photoPath,
   }) async {
     try {
       final currentUser = await ParseUser.currentUser();
@@ -62,6 +66,11 @@ class ParseClientRepository implements ClientRepository {
       final owner = ParseUser.forQuery()..objectId = currentUser.objectId;
       client.set<ParseUser>('owner', owner);
 
+      final uploadedPhoto = await _uploadClientPhoto(photoPath);
+      if (uploadedPhoto != null) {
+        client.set<ParseFileBase>('photo', uploadedPhoto);
+      }
+
       final response = await client.save();
       if (!response.success) {
         throw FormatException(_errorMapper.toMessage(response.error));
@@ -69,6 +78,8 @@ class ParseClientRepository implements ClientRepository {
 
       return _mapper.toDomain(client);
     } on StateError {
+      rethrow;
+    } on ClientPhotoUploadException {
       rethrow;
     } on FormatException {
       rethrow;
@@ -80,7 +91,7 @@ class ParseClientRepository implements ClientRepository {
   }
 
   @override
-  Future<Client> update(Client client) async {
+  Future<Client> update(Client client, {String? photoPath}) async {
     try {
       final salon = await _salonRepository.getCurrentSalon();
       if (salon == null) {
@@ -123,6 +134,13 @@ class ParseClientRepository implements ClientRepository {
         parseClient.unset('instagram');
       }
 
+      if (photoPath != null) {
+        final uploadedPhoto = await _uploadClientPhoto(photoPath);
+        if (uploadedPhoto != null) {
+          parseClient.set<ParseFileBase>('photo', uploadedPhoto);
+        }
+      }
+
       final response = await parseClient.save();
       if (!response.success) {
         throw FormatException(_errorMapper.toMessage(response.error));
@@ -130,6 +148,8 @@ class ParseClientRepository implements ClientRepository {
 
       return _mapper.toDomain(parseClient);
     } on StateError {
+      rethrow;
+    } on ClientPhotoUploadException {
       rethrow;
     } on FormatException {
       rethrow;
@@ -220,5 +240,24 @@ class ParseClientRepository implements ClientRepository {
 
   ParseObject _salonPointer(String salonId) {
     return ParseObject(_salonClassName)..objectId = salonId;
+  }
+
+  Future<ParseFile?> _uploadClientPhoto(String? photoPath) async {
+    if (photoPath == null || photoPath.isEmpty) {
+      return null;
+    }
+
+    final file = File(photoPath);
+    if (!await file.exists()) {
+      throw const ClientPhotoUploadException();
+    }
+
+    final parseFile = ParseFile(file);
+    final response = await parseFile.save();
+    if (!response.success) {
+      throw const ClientPhotoUploadException();
+    }
+
+    return parseFile;
   }
 }

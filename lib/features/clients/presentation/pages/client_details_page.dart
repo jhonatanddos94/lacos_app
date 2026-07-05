@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:lacos_app/core/config/app_validation_messages.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/formatters/client_form_formatters.dart';
@@ -13,7 +14,10 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 
 class ClientDetailsPage extends ConsumerStatefulWidget {
   const ClientDetailsPage({required this.client, super.key});
@@ -55,6 +59,59 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
     );
   }
 
+  Future<void> _changeClientPhoto() async {
+    if (ref.read(clientFormControllerProvider).isLoading) return;
+
+    final photo = await pickClientPhoto(
+      context,
+      onMessage: (message) => _showMessage(message),
+    );
+
+    if (!mounted || photo == null) return;
+
+    final updatedClient = await ref
+        .read(clientFormControllerProvider.notifier)
+        .save(
+          initialClient: _client,
+          name: _client.name,
+          phone: _client.phone,
+          birthDate: _client.birthDate,
+          instagram: _client.instagram ?? '',
+          photoPath: photo.path,
+        );
+
+    if (!mounted) return;
+
+    if (updatedClient != null) {
+      setState(() => _client = updatedClient);
+      ref.invalidate(clientsProvider);
+      _showMessage(AppStrings.clientUpdatedSuccess);
+      return;
+    }
+
+    final error = ref.read(clientFormControllerProvider).error;
+    if (error != null) {
+      _showMessage(_resolveErrorMessage(error));
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _resolveErrorMessage(Object error) {
+    return switch (error) {
+      ClientPhotoUploadException() =>
+        AppValidationMessages.clientPhotoUploadFailed,
+      FormatException(message: final message) => message,
+      StateError(message: final message) => message,
+      _ =>
+        '${AppValidationMessages.unexpectedError} '
+            '${AppValidationMessages.tryAgain}',
+    };
+  }
+
   Future<void> _openDeleteClientDialog() async {
     final deleted = await showDialog<bool>(
       context: context,
@@ -73,6 +130,8 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isPhotoLoading = ref.watch(clientFormControllerProvider).isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
       appBar: AppBar(
@@ -94,7 +153,12 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ProfileCard(client: _client, onEdit: _openEditClientSheet),
+              _ProfileCard(
+                client: _client,
+                onEdit: _openEditClientSheet,
+                onPhotoTap: _changeClientPhoto,
+                isPhotoLoading: isPhotoLoading,
+              ),
               const SizedBox(height: AppSpacing.sm),
               _ClientDataCard(client: _client),
               const SizedBox(height: AppSpacing.sm),
@@ -135,10 +199,17 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
 }
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.client, required this.onEdit});
+  const _ProfileCard({
+    required this.client,
+    required this.onEdit,
+    required this.onPhotoTap,
+    required this.isPhotoLoading,
+  });
 
   final Client client;
   final VoidCallback onEdit;
+  final VoidCallback onPhotoTap;
+  final bool isPhotoLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +230,11 @@ class _ProfileCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _ClientAvatar(client: client),
+                _ClientAvatar(
+                  client: client,
+                  onTap: onPhotoTap,
+                  isLoading: isPhotoLoading,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
@@ -212,27 +287,30 @@ class _ProfileCard extends StatelessWidget {
 }
 
 class _ClientAvatar extends StatelessWidget {
-  const _ClientAvatar({required this.client});
+  const _ClientAvatar({
+    required this.client,
+    required this.onTap,
+    required this.isLoading,
+  });
 
   final Client client;
+  final VoidCallback onTap;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    final initial = client.name.isEmpty ? 'L' : client.name.substring(0, 1);
-
-    return CircleAvatar(
+    return ClientAvatar(
+      name: client.name,
+      photoUrl: client.photoUrl,
       radius: ClientDetailsPage._avatarSize / 2,
+      showCameraBadge: true,
+      onTap: onTap,
+      isLoading: isLoading,
       backgroundColor: AppColors.surface,
-      backgroundImage: client.photoUrl == null ? null : NetworkImage(client.photoUrl!),
-      child: client.photoUrl == null
-          ? Text(
-              initial,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.purple800,
-                    fontWeight: FontWeight.w800,
-                  ),
-            )
-          : null,
+      initialTextStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: AppColors.purple800,
+            fontWeight: FontWeight.w800,
+          ),
     );
   }
 }

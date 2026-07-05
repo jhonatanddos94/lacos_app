@@ -8,6 +8,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_tag.dart';
 
 class ClientCard extends StatelessWidget {
@@ -142,27 +143,10 @@ class _ClientAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = client.name.isEmpty ? 'L' : client.name.substring(0, 1);
-
-    return SizedBox(
-      width: ClientCard._avatarSize,
-      height: ClientCard._avatarSize,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CircleAvatar(
-            radius: ClientCard._avatarSize / 2,
-            backgroundColor: AppColors.purple100,
-            child: Text(
-              initial,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: AppColors.purple800,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return ClientAvatar(
+      name: client.name,
+      photoUrl: client.photoUrl,
+      radius: ClientCard._avatarSize / 2,
     );
   }
 }
