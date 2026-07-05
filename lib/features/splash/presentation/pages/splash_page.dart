@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
-import 'package:lacos_app/core/theme/app_durations.dart';
+import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/core/workspace/domain/entities/workspace.dart';

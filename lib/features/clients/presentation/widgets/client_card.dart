@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/formatters/client_form_formatters.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
-import 'package:lacos_app/features/clients/domain/entities/client_preview_data.dart';
+import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_tag.dart';
 
 class ClientCard extends StatelessWidget {
-  const ClientCard({required this.client, super.key});
+  const ClientCard({
+    required this.client,
+    this.onTap,
+    super.key,
+  });
 
   static const _avatarSize = 54.0;
 
-  final ClientPreview client;
+  final Client client;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,7 @@ class ClientCard extends StatelessWidget {
       color: AppColors.surface,
       borderRadius: AppRadius.borderMd,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: AppRadius.borderMd,
         child: Container(
           width: double.infinity,
@@ -61,7 +68,7 @@ class ClientCard extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.xxs),
                         Text(
-                          client.lastAppointmentDate,
+                          _shortDate(client.createdAt),
                           maxLines: 1,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: AppColors.textSecondary,
@@ -73,7 +80,7 @@ class ClientCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xxxs),
 
                     Text(
-                      client.phone,
+                      _formatPhone(client.phone),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -93,7 +100,7 @@ class ClientCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.xxxs),
                         Expanded(
                           child: Text(
-                            client.memoryLabel,
+                            _memoryLabel(client),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -109,7 +116,7 @@ class ClientCard extends StatelessWidget {
                     // Informação secundária
                     ClientTag(
                       icon: Icons.favorite_rounded,
-                      label: client.sinceLabel,
+                      label: _sinceLabel(client),
                     ),
                   ],
                 ),
@@ -131,7 +138,7 @@ class ClientCard extends StatelessWidget {
 class _ClientAvatar extends StatelessWidget {
   const _ClientAvatar({required this.client});
 
-  final ClientPreview client;
+  final Client client;
 
   @override
   Widget build(BuildContext context) {
@@ -154,26 +161,69 @@ class _ClientAvatar extends StatelessWidget {
               ),
             ),
           ),
-          if (client.isFavorite)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.lacosPurple,
-                ),
-                child: const Icon(
-                  Icons.favorite_rounded,
-                  color: AppColors.onPrimary,
-                  size: 11,
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
+}
+
+String _formatPhone(String phone) {
+  final digits = digitsOnly(phone);
+  if (digits.length == 10) {
+    return '(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-'
+        '${digits.substring(6)}';
+  }
+
+  if (digits.length == 11) {
+    return '(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-'
+        '${digits.substring(7)}';
+  }
+
+  return phone;
+}
+
+String _memoryLabel(Client client) {
+  final instagram = client.instagram;
+  if (instagram != null && instagram.isNotEmpty) {
+    return '@$instagram';
+  }
+
+  final birthDate = client.birthDate;
+  if (birthDate != null) {
+    return '${AppStrings.clientBirthday}: ${_dayMonthDate(birthDate)}';
+  }
+
+  return AppStrings.clientNoMemory;
+}
+
+String _sinceLabel(Client client) {
+  final since = client.clientSince ?? client.createdAt;
+  return '${AppStrings.clientSince} ${since.year}';
+}
+
+String _shortDate(DateTime date) {
+  return '${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)}';
+}
+
+String _dayMonthDate(DateTime date) {
+  return '${date.day.toString().padLeft(2, '0')}/'
+      '${date.month.toString().padLeft(2, '0')}';
+}
+
+String _monthName(int month) {
+  return switch (month) {
+    1 => 'Jan',
+    2 => 'Fev',
+    3 => 'Mar',
+    4 => 'Abr',
+    5 => 'Mai',
+    6 => 'Jun',
+    7 => 'Jul',
+    8 => 'Ago',
+    9 => 'Set',
+    10 => 'Out',
+    11 => 'Nov',
+    12 => 'Dez',
+    _ => '',
+  };
 }

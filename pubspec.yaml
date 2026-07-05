@@ -40,6 +40,7 @@ dependencies:
   firebase_core: ^4.11.0
   firebase_auth: ^6.5.4
   parse_server_sdk_flutter: ^10.7.0
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:

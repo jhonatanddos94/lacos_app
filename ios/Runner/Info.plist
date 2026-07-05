@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos acessar a câmera para adicionar a foto da cliente.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Precisamos acessar a galeria para adicionar a foto da cliente.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

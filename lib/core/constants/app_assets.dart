@@ -10,4 +10,9 @@ abstract final class AppAssets {
 
   /// Arte oficial da marca — laço, wordmark e tagline.
   static const String logoBrand = 'assets/images/branding/logo_brand.png';
+
+  // ── Icons ────────────────────────────────────────────────────────────────
+
+  static const String whatsappIcon = 'assets/icons/whatsapp.png';
+  static const String instagramIcon = 'assets/icons/instagram.png';
 }

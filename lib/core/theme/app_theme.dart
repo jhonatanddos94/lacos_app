@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:lacos_app/core/config/app_durations.dart';
+
 import 'app_colors.dart';
-import 'app_durations.dart';
 import 'app_icon_sizes.dart';
 import 'app_radius.dart';
 import 'app_shadows.dart';

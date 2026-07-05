@@ -1,42 +1,15 @@
-class ClientsDashboardData {
-  const ClientsDashboardData({required this.shortcuts, required this.clients});
-
-  final List<ClientShortcutPreview> shortcuts;
-  final List<ClientPreview> clients;
-}
-
 class ClientShortcutPreview {
   const ClientShortcutPreview({
-    required this.title,
-    required this.subtitle,
+    required this.label,
     required this.type,
+    this.isSelected = false,
+    this.isEnabled = true,
   });
 
-  final String title;
-  final String subtitle;
+  final String label;
   final ClientShortcutType type;
+  final bool isSelected;
+  final bool isEnabled;
 }
 
-enum ClientShortcutType { today, birthdays, reconnect }
-
-class ClientPreview {
-  const ClientPreview({
-    required this.name,
-    required this.phone,
-    required this.sinceLabel,
-    required this.memoryLabel,
-    required this.lastAppointmentDate,
-    required this.lastAppointmentService,
-    required this.isFavorite,
-    required this.isActive,
-  });
-
-  final String name;
-  final String phone;
-  final String sinceLabel;
-  final String memoryLabel;
-  final String lastAppointmentDate;
-  final String lastAppointmentService;
-  final bool isFavorite;
-  final bool isActive;
-}
+enum ClientShortcutType { all, favorites, recent, withoutReturn }

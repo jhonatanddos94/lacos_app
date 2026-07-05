@@ -3,92 +3,69 @@ import 'package:flutter/material.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
-import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client_preview_data.dart';
 
 class ClientShortcutCard extends StatelessWidget {
   const ClientShortcutCard({
     required this.shortcut,
-    this.compact = false,
     super.key,
   });
 
-  static const _iconContainerSize = 32.0;
-  static const _iconSize = 18.0;
-
   final ClientShortcutPreview shortcut;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final style = _ShortcutStyle.fromType(shortcut.type);
+    final foregroundColor = !shortcut.isEnabled
+        ? AppColors.textSecondary
+        : shortcut.isSelected
+        ? AppColors.onPrimary
+        : AppColors.purple700;
+    final backgroundColor = shortcut.isSelected
+        ? AppColors.lacosPurple
+        : AppColors.purple50;
 
     return Material(
-      color: AppColors.surface,
-      borderRadius: AppRadius.borderMd,
+      color: backgroundColor,
+      borderRadius: AppRadius.borderLg,
       child: InkWell(
-        onTap: () {},
-        borderRadius: AppRadius.borderMd,
+        onTap: shortcut.isEnabled ? () {} : null,
+        borderRadius: AppRadius.borderLg,
         child: Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xs,
-            vertical: compact ? AppSpacing.xxs : AppSpacing.xs,
+            vertical: AppSpacing.xxs,
           ),
           decoration: BoxDecoration(
-            borderRadius: AppRadius.borderMd,
-            boxShadow: AppShadows.level1,
-            border: Border.all(color: AppColors.divider),
+            borderRadius: AppRadius.borderLg,
+            border: Border.all(
+              color: shortcut.isSelected
+                  ? AppColors.lacosPurple
+                  : AppColors.divider,
+            ),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: _iconContainerSize,
-                height: _iconContainerSize,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.purple50,
-                ),
-                child: Icon(
-                  style.icon,
-                  color: AppColors.purple700,
-                  size: _iconSize,
-                ),
+              Icon(
+                style.icon,
+                color: foregroundColor,
+                size: AppIconSizes.sm,
               ),
               const SizedBox(width: AppSpacing.xxs),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      shortcut.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppColors.graphite,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      shortcut.subtitle,
-                      maxLines: compact ? 1 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.15,
-                      ),
-                    ),
-                  ],
+              Text(
+                shortcut.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: shortcut.isSelected
+                      ? FontWeight.w800
+                      : FontWeight.w700,
                 ),
               ),
-              if (!compact)
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.textSecondary,
-                  size: AppIconSizes.sm,
-                ),
             ],
           ),
         ),
@@ -104,14 +81,17 @@ class _ShortcutStyle {
 
   factory _ShortcutStyle.fromType(ClientShortcutType type) {
     return switch (type) {
-      ClientShortcutType.today => const _ShortcutStyle(
-          icon: Icons.event_available_outlined,
+      ClientShortcutType.all => const _ShortcutStyle(
+          icon: Icons.groups_2_outlined,
         ),
-      ClientShortcutType.birthdays => const _ShortcutStyle(
-          icon: Icons.cake_outlined,
+      ClientShortcutType.favorites => const _ShortcutStyle(
+          icon: Icons.favorite_border_rounded,
         ),
-      ClientShortcutType.reconnect => const _ShortcutStyle(
-          icon: Icons.refresh_rounded,
+      ClientShortcutType.recent => const _ShortcutStyle(
+          icon: Icons.schedule_rounded,
+        ),
+      ClientShortcutType.withoutReturn => const _ShortcutStyle(
+          icon: Icons.history_toggle_off_rounded,
         ),
     };
   }

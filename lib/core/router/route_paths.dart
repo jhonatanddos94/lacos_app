@@ -8,4 +8,7 @@ abstract final class RoutePaths {
   static const createSalon = '/create-salon';
   static const completeProfile = '/complete-profile';
   static const home = '/home';
+  static const clientDetails = '/clients/:clientId';
+
+  static String clientDetailsPath(String clientId) => '/clients/$clientId';
 }

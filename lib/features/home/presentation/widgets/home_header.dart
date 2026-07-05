@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
-import 'package:lacos_app/core/theme/app_durations.dart';
+import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
