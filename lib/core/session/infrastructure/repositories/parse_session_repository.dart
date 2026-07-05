@@ -1,5 +1,6 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/session/domain/repositories/session_repository.dart';
 import 'package:lacos_app/core/session/infrastructure/mappers/parse_session_error_mapper.dart';
 import 'package:lacos_app/features/auth/domain/entities/authenticated_user.dart';
@@ -34,6 +35,25 @@ class ParseSessionRepository implements SessionRepository {
       throw const FormatException(
         'Não foi possível preparar sua sessão. Tente novamente.',
       );
+    }
+  }
+
+  @override
+  Future<void> signOut() async {
+    try {
+      final currentUser = await ParseUser.currentUser();
+      if (currentUser == null) {
+        return;
+      }
+
+      final response = await currentUser.logout();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw const FormatException(AppStrings.logoutError);
     }
   }
 

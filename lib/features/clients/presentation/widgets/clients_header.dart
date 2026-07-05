@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/auth/presentation/account/account_actions_flow.dart';
 
-class ClientsHeader extends StatelessWidget {
+class ClientsHeader extends ConsumerWidget {
   const ClientsHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Row(
@@ -62,7 +64,7 @@ class ClientsHeader extends StatelessWidget {
         const SizedBox(width: AppSpacing.xxs),
         _HeaderIconButton(
           icon: Icons.account_circle_outlined,
-          onPressed: () {},
+          onPressed: () => showAccountActionsFlow(context, ref),
         ),
       ],
     );

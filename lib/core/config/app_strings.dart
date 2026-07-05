@@ -3,6 +3,15 @@ abstract final class AppStrings {
   static const String cancel = 'Cancelar';
   static const String edit = 'Editar';
   static const String delete = 'Excluir';
+  static const String account = 'Conta';
+  static const String profile = 'Meu perfil';
+  static const String logout = 'Sair da conta';
+  static const String logoutTitle = 'Sair da conta?';
+  static const String logoutMessage =
+      'Você precisará fazer login novamente para acessar o Laços.';
+  static const String logoutAction = 'Sair';
+  static const String logoutError =
+      'Não foi possível sair da conta. Tente novamente.';
   static const String search = 'Buscar';
   static const String tryAgain = 'Tentar novamente';
   static const String comingSoon = 'Em breve';

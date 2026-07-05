@@ -1,13 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:lacos_app/core/router/route_paths.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
-class WelcomeContent extends StatelessWidget {
+class WelcomeContent extends ConsumerStatefulWidget {
   const WelcomeContent({super.key});
+
+  @override
+  ConsumerState<WelcomeContent> createState() => _WelcomeContentState();
+}
+
+class _WelcomeContentState extends ConsumerState<WelcomeContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _redirectIfWorkspaceComplete();
+    });
+  }
+
+  Future<void> _redirectIfWorkspaceComplete() async {
+    ref.invalidate(workspaceProvider);
+    final workspace = await ref.read(workspaceProvider.future);
+
+    if (!mounted || workspace == null) return;
+
+    if (workspace.hasSalon && workspace.hasProfessional) {
+      context.go(RoutePaths.home);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

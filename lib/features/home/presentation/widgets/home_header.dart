@@ -11,11 +11,13 @@ class HomeHeader extends StatelessWidget {
   const HomeHeader({
     required this.professionalName,
     required this.salonName,
+    required this.onAccountTap,
     super.key,
   });
 
   final String professionalName;
   final String salonName;
+  final VoidCallback onAccountTap;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +91,7 @@ class HomeHeader extends StatelessWidget {
           const SizedBox(width: AppSpacing.xxs),
           _HeaderIconButton(
             icon: Icons.account_circle_outlined,
-            onPressed: () {},
+            onPressed: onAccountTap,
           ),
         ],
       ),

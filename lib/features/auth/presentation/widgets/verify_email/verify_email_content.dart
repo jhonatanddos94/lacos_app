@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/router/route_paths.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
@@ -13,6 +12,7 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/auth/application/controllers/auth_controller.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
+import 'package:lacos_app/features/auth/presentation/navigation/auth_workspace_navigation.dart';
 
 class VerifyEmailContent extends ConsumerStatefulWidget {
   const VerifyEmailContent({super.key});
@@ -102,13 +102,15 @@ class _VerifyEmailContentState extends ConsumerState<VerifyEmailContent> {
   Future<void> _signOut() async {
     if (_isChecking || _isResending) return;
 
-    await ref.read(authControllerProvider.notifier).signOut();
+    final success = await ref.read(authControllerProvider.notifier).signOut();
     if (!mounted) return;
-    context.go(RoutePaths.login);
+    if (success) {
+      context.go(RoutePaths.login);
+    }
   }
 
-  void _handleVerified() {
-    context.go(AppRouteResolver.resolveAfterEmailVerified());
+  Future<void> _handleVerified() async {
+    await navigateFromAuthenticatedWorkspace(ref, context);
   }
 
   void _showMessage(String message) {

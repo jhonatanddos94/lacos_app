@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/session/application/providers/session_providers.dart';
+import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
 import 'package:lacos_app/features/auth/domain/entities/authenticated_user.dart';
 import 'package:lacos_app/features/auth/domain/repositories/auth_repository.dart';
@@ -126,13 +128,17 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  Future<void> signOut() async {
+  Future<bool> signOut() async {
     state = const AuthLoading();
 
     try {
       await ref.read(authRepositoryProvider).signOut();
+      await ref.read(sessionRepositoryProvider).signOut();
+      ref.invalidate(workspaceProvider);
+      return true;
     } on Object catch (error) {
-      state = AuthError(_resolveErrorMessage(error));
+      state = AuthError(_resolveLogoutErrorMessage(error));
+      return false;
     }
   }
 
@@ -163,6 +169,14 @@ String _resolveErrorMessage(Object error) {
     FormatException(message: final message) => message,
     StateError(message: final message) => message,
     _ => 'Não foi possível entrar. Tente novamente.',
+  };
+}
+
+String _resolveLogoutErrorMessage(Object error) {
+  return switch (error) {
+    FormatException(message: final message) => message,
+    StateError(message: final message) => message,
+    _ => AppStrings.logoutError,
   };
 }
 

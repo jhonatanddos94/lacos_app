@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/auth/application/controllers/auth_controller.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
+import 'package:lacos_app/features/auth/presentation/navigation/auth_workspace_navigation.dart';
 import 'package:lacos_app/features/auth/presentation/validators/email_validator.dart';
 import 'package:lacos_app/features/auth/presentation/validators/password_validator.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
@@ -86,7 +85,7 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
 
     final authState = ref.read(authControllerProvider);
     if (authState is AuthAuthenticated) {
-      _handleAccountCreated(authState);
+      await _handleAccountCreated(authState);
     }
   }
 
@@ -112,8 +111,8 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _handleAccountCreated(AuthAuthenticated state) {
-    context.go(AppRouteResolver.resolveAfterAuth(state.user));
+  Future<void> _handleAccountCreated(AuthAuthenticated state) async {
+    await navigateFromAuthenticatedWorkspace(ref, context);
   }
 
   @override

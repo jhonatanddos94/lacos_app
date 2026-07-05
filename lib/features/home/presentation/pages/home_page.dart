@@ -5,6 +5,7 @@ import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/core/workspace/domain/entities/workspace.dart';
+import 'package:lacos_app/features/auth/presentation/account/account_actions_flow.dart';
 import 'package:lacos_app/features/home/application/providers/home_dashboard_providers.dart';
 import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_header.dart';
@@ -31,14 +32,14 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends ConsumerWidget {
   const _HomeContent({required this.workspace, required this.dashboard});
 
   final Workspace? workspace;
   final HomeDashboardData dashboard;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final professionalName = workspace?.professional?.name ?? 'Profissional';
     final salonName = workspace?.salon?.name ?? 'Seu salão';
 
@@ -59,6 +60,7 @@ class _HomeContent extends StatelessWidget {
                 HomeHeader(
                   professionalName: professionalName,
                   salonName: salonName,
+                  onAccountTap: () => showAccountActionsFlow(context, ref),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 NextAppointmentCard(appointment: dashboard.nextAppointment),
