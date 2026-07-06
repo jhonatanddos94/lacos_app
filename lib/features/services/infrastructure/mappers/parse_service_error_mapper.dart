@@ -3,17 +3,20 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 
-/// Converte erros do Parse em mensagens amigáveis para o Laços.
-class ParseSalonErrorMapper {
-  const ParseSalonErrorMapper();
+class ParseServiceErrorMapper {
+  const ParseServiceErrorMapper();
 
-  String toMessage(ParseError? error) {
+  String toMessage(ParseError? error, {bool forSave = false}) {
     if (ParseTemporaryErrorMapper.isTemporaryParseError(error)) {
       return AppStrings.temporaryLoadError;
     }
 
+    final fallback = forSave
+        ? 'Não foi possível salvar o serviço. Tente novamente.'
+        : 'Não foi possível carregar os serviços. Tente novamente.';
+
     if (error == null) {
-      return 'Não foi possível criar seu salão. Tente novamente.';
+      return fallback;
     }
 
     return switch (error.code) {
@@ -21,9 +24,8 @@ class ParseSalonErrorMapper {
       ParseError.invalidSessionToken => 'Sua sessão expirou. Entre novamente.',
       ParseError.objectNotFound ||
       ParseError.invalidQuery ||
-      ParseError.invalidClassName =>
-        'Não foi possível criar seu salão. Tente novamente.',
-      _ => 'Não foi possível criar seu salão. Tente novamente.',
+      ParseError.invalidClassName => fallback,
+      _ => fallback,
     };
   }
 }

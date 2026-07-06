@@ -1,75 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
-import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
+import 'package:lacos_app/features/agenda/presentation/mappers/agenda_appointment_display_mapper.dart';
+import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
+import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/presentation/bottom_sheets/create_appointment_bottom_sheet.dart';
 import 'package:lacos_app/features/home/presentation/widgets/schedule_item.dart';
+import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
-class AgendaPage extends StatefulWidget {
+class AgendaPage extends ConsumerStatefulWidget {
   const AgendaPage({super.key});
 
   @override
-  State<AgendaPage> createState() => _AgendaPageState();
+  ConsumerState<AgendaPage> createState() => _AgendaPageState();
 }
 
-class _AgendaPageState extends State<AgendaPage> {
+class _AgendaPageState extends ConsumerState<AgendaPage> {
   static const _maxContentWidth = 560.0;
   static const _fabInset = AppSpacing.md;
   static const _fabClearance = 56.0 + _fabInset;
-
-  static const _mockAppointments = [
-    TodayScheduleAppointment(
-      startTime: '09:00',
-      endTime: '10:00',
-      clientName: 'Juliana Mendes',
-      serviceName: 'Coloração',
-      status: ScheduleStatus.completed,
-    ),
-    TodayScheduleAppointment(
-      startTime: '11:00',
-      endTime: '12:30',
-      clientName: 'Marina Costa',
-      serviceName: 'Mechas + Tonalização',
-      status: ScheduleStatus.completed,
-    ),
-    TodayScheduleAppointment(
-      startTime: '14:30',
-      endTime: '15:30',
-      clientName: 'Ana Paula Silva',
-      serviceName: 'Corte e Escova',
-      status: ScheduleStatus.next,
-    ),
-  ];
 
   late DateTime _selectedDay;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedDay = DateTime(now.year, now.month, now.day);
+    _selectedDay = _normalizeDay(DateTime.now());
   }
 
+  DateTime get _normalizedSelectedDay => _normalizeDay(_selectedDay);
+
   List<DateTime> get _visibleDays {
-    final start = _selectedDay.subtract(const Duration(days: 3));
+    final start = _normalizedSelectedDay.subtract(const Duration(days: 3));
     return List.generate(7, (index) => start.add(Duration(days: index)));
   }
 
   void _selectDay(DateTime day) {
-    setState(() => _selectedDay = day);
+    setState(() => _selectedDay = _normalizeDay(day));
   }
 
-  void _openNewAppointment() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Novo agendamento em breve.')),
+  Future<void> _openNewAppointment() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
+      builder: (context) => const CreateAppointmentBottomSheet(),
     );
+  }
+
+  void _retryLoadAppointments() {
+    ref.invalidate(appointmentsByDayProvider(_normalizedSelectedDay));
   }
 
   @override
   Widget build(BuildContext context) {
+    final appointmentsAsync = ref.watch(
+      appointmentsByDayProvider(_normalizedSelectedDay),
+    );
+
     return SafeArea(
       bottom: false,
       child: Stack(
@@ -89,8 +85,10 @@ class _AgendaPageState extends State<AgendaPage> {
                       maxWidth: _maxContentWidth,
                     ),
                     child: _AgendaHeader(
-                      selectedDay: _selectedDay,
-                      appointments: _mockAppointments,
+                      selectedDay: _normalizedSelectedDay,
+                      appointments: appointmentsAsync.value,
+                      isLoading: appointmentsAsync.isLoading &&
+                          !appointmentsAsync.hasValue,
                     ),
                   ),
                 ),
@@ -105,7 +103,7 @@ class _AgendaPageState extends State<AgendaPage> {
                     ),
                     child: _AgendaDaySelector(
                       days: _visibleDays,
-                      selectedDay: _selectedDay,
+                      selectedDay: _normalizedSelectedDay,
                       onDaySelected: _selectDay,
                     ),
                   ),
@@ -120,31 +118,16 @@ class _AgendaPageState extends State<AgendaPage> {
                       constraints: const BoxConstraints(
                         maxWidth: _maxContentWidth,
                       ),
-                      child: ClipRRect(
-                        borderRadius: AppRadius.borderMd,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: AppRadius.borderMd,
-                            boxShadow: AppShadows.level1,
-                            border: Border.all(color: AppColors.divider),
-                          ),
-                          child: ListView.separated(
-                            padding: const EdgeInsets.only(
-                              bottom: _fabClearance,
-                            ),
-                            itemCount: _mockAppointments.length,
-                            separatorBuilder: (_, _) => Divider(
-                              height: 1,
-                              thickness: 0.5,
-                              color: AppColors.divider.withValues(alpha: 0.55),
-                            ),
-                            itemBuilder: (context, index) {
-                              return ScheduleItem(
-                                appointment: _mockAppointments[index],
-                              );
-                            },
-                          ),
+                      child: appointmentsAsync.when(
+                        loading: () => const _AgendaLoadingState(),
+                        error: (error, _) => _AgendaErrorState(
+                          message: _resolveAgendaErrorMessage(error),
+                          onRetry: _retryLoadAppointments,
+                        ),
+                        data: (appointments) => _AgendaAppointmentsList(
+                          appointments: appointments,
+                          selectedDay: _normalizedSelectedDay,
+                          bottomPadding: _fabClearance,
                         ),
                       ),
                     ),
@@ -170,16 +153,197 @@ class _AgendaPageState extends State<AgendaPage> {
       ),
     );
   }
+
+  DateTime _normalizeDay(DateTime day) {
+    return DateTime(day.year, day.month, day.day);
+  }
+}
+
+String _resolveAgendaErrorMessage(Object error) {
+  return switch (error) {
+    FormatException(message: final message) when message.isNotEmpty => message,
+    StateError(message: final message) => message,
+    _ => AppStrings.temporaryLoadError,
+  };
+}
+
+class _AgendaAppointmentsList extends StatelessWidget {
+  const _AgendaAppointmentsList({
+    required this.appointments,
+    required this.selectedDay,
+    required this.bottomPadding,
+  });
+
+  final List<Appointment> appointments;
+  final DateTime selectedDay;
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheduleItems = AgendaAppointmentDisplayMapper.toScheduleItems(
+      appointments,
+      selectedDay,
+    );
+
+    if (scheduleItems.isEmpty) {
+      return _AgendaEmptyState(bottomPadding: bottomPadding);
+    }
+
+    return ClipRRect(
+      borderRadius: AppRadius.borderMd,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.borderMd,
+          boxShadow: AppShadows.level1,
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: ListView.separated(
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          itemCount: scheduleItems.length,
+          separatorBuilder: (_, _) => Divider(
+            height: 1,
+            thickness: 0.5,
+            color: AppColors.divider.withValues(alpha: 0.55),
+          ),
+          itemBuilder: (context, index) {
+            return ScheduleItem(appointment: scheduleItems[index]);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _AgendaLoadingState extends StatelessWidget {
+  const _AgendaLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: AppRadius.borderMd,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.borderMd,
+          boxShadow: AppShadows.level1,
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+          child: Center(
+            child: SizedBox.square(
+              dimension: 28,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AgendaErrorState extends StatelessWidget {
+  const _AgendaErrorState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ClipRRect(
+      borderRadius: AppRadius.borderMd,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.borderMd,
+          boxShadow: AppShadows.level1,
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Padding(
+          padding: AppSpacing.screenPadding.copyWith(
+            top: AppSpacing.lg,
+            bottom: AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: AppColors.graphite,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppButton(
+                label: AppStrings.tryAgain,
+                onPressed: onRetry,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AgendaEmptyState extends StatelessWidget {
+  const _AgendaEmptyState({required this.bottomPadding});
+
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ClipRRect(
+      borderRadius: AppRadius.borderMd,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.borderMd,
+          boxShadow: AppShadows.level1,
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.sm,
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.lg + bottomPadding,
+          ),
+          child: Center(
+            child: Text(
+              AppStrings.agendaEmptyDay,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _AgendaHeader extends StatelessWidget {
   const _AgendaHeader({
     required this.selectedDay,
     required this.appointments,
+    required this.isLoading,
   });
 
   final DateTime selectedDay;
-  final List<TodayScheduleAppointment> appointments;
+  final List<Appointment>? appointments;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +392,7 @@ class _AgendaHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                _formatDaySummary(appointments, isToday: isToday),
+                _buildSummary(isToday: isToday),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
@@ -247,6 +411,35 @@ class _AgendaHeader extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _buildSummary({required bool isToday}) {
+    if (isLoading) {
+      return AppStrings.loading;
+    }
+
+    final loadedAppointments = appointments;
+    if (loadedAppointments == null) {
+      return isToday ? 'Nenhum atendimento hoje' : 'Nenhum atendimento';
+    }
+
+    if (loadedAppointments.isEmpty) {
+      return isToday ? 'Nenhum atendimento hoje' : 'Nenhum atendimento';
+    }
+
+    final countLabel = loadedAppointments.length == 1
+        ? '1 atendimento'
+        : '${loadedAppointments.length} atendimentos';
+    final nextTime = AgendaAppointmentDisplayMapper.nextStartTime(
+      loadedAppointments,
+      selectedDay,
+    );
+
+    if (nextTime == null) {
+      return countLabel;
+    }
+
+    return '$countLabel • Próximo às $nextTime';
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -417,37 +610,6 @@ String _formatAgendaDateLine(DateTime day, {required bool isToday}) {
   }
 
   return formattedDate;
-}
-
-String _formatDaySummary(
-  List<TodayScheduleAppointment> appointments, {
-  required bool isToday,
-}) {
-  if (appointments.isEmpty) {
-    return isToday ? 'Nenhum atendimento hoje' : 'Nenhum atendimento';
-  }
-
-  final countLabel =
-      appointments.length == 1 ? '1 atendimento' : '${appointments.length} atendimentos';
-  final nextTime = _nextAppointmentTime(appointments);
-
-  if (nextTime == null) {
-    return countLabel;
-  }
-
-  return '$countLabel • Próximo às $nextTime';
-}
-
-String? _nextAppointmentTime(List<TodayScheduleAppointment> appointments) {
-  final upcoming = appointments.where(
-    (appointment) => appointment.status != ScheduleStatus.completed,
-  );
-
-  if (upcoming.isEmpty) {
-    return null;
-  }
-
-  return upcoming.first.startTime;
 }
 
 String _fullWeekdayName(int weekday) {

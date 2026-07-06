@@ -13,10 +13,13 @@ abstract final class AppFieldLimits {
 
   static const int serviceName = 60;
   static const int serviceDescription = 300;
+  static const int serviceFormDescription = 200;
 
   static const int memoryTitle = 60;
   static const int memoryDescription = 500;
   static const int memoryContent = 300;
+
+  static const int appointmentNotes = 200;
 
   static const int performedProcedure = 300;
   static const int productsUsed = 300;

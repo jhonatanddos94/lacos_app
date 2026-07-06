@@ -14,6 +14,8 @@ abstract final class AppStrings {
       'Não foi possível sair da conta. Tente novamente.';
   static const String search = 'Buscar';
   static const String tryAgain = 'Tentar novamente';
+  static const String temporaryLoadError =
+      'Não foi possível carregar os dados agora. Tente novamente.';
   static const String comingSoon = 'Em breve';
   static const String addPhoto = 'Adicionar foto';
   static const String tapAvatarToAddPhoto =
@@ -129,6 +131,96 @@ abstract final class AppStrings {
       'Não foi possível carregar as memórias.';
   static const String clientMemoriesListComingSoon =
       'Lista de memórias em breve.';
+  static const String agendaEmptyDay = 'Nenhum atendimento para este dia.';
+  static const String agendaLoadError = temporaryLoadError;
+  static const String newAppointmentTitle = 'Novo Agendamento';
+  static const String newAppointmentSubtitle =
+      'Preencha os dados do atendimento';
+  static const String appointmentClientSection = 'Cliente';
+  static const String appointmentClientSectionSubtitle =
+      'Quem será atendida?';
+  static const String appointmentServiceSection = 'Serviços';
+  static const String appointmentServiceSectionSubtitle =
+      'Escolha um ou mais serviços para este atendimento';
+  static const String appointmentAddServicePrompt = 'Adicionar serviço';
+  static const String appointmentAddServiceHint =
+      'Escolha um ou mais serviços para este atendimento';
+  static const String appointmentAddAnotherService = '+ Adicionar outro serviço';
+  static const String appointmentNoServicesSelected = 'Nenhum serviço selecionado';
+  static const String appointmentServiceAlreadyAdded =
+      'Esse serviço já foi adicionado.';
+  static const String appointmentReplaceService = 'Trocar serviço';
+  static const String appointmentRemoveSelectedService = 'Remover serviço';
+  static const String appointmentAddAtLeastOneService =
+      'Adicione pelo menos um serviço.';
+  static const String appointmentClientRequired =
+      'Escolha uma cliente para continuar.';
+  static const String appointmentProfessionalRequired =
+      'Escolha uma profissional.';
+  static const String appointmentDateRequired =
+      'Escolha a data do atendimento.';
+  static const String appointmentStartTimeRequired =
+      'Escolha o horário de início.';
+  static const String appointmentChooseProfessionalPrompt =
+      'Escolher profissional';
+  static const String appointmentChooseProfessionalHint =
+      'Toque para selecionar uma profissional';
+  static const String appointmentChooseDatePrompt = 'Escolher data';
+  static const String appointmentChooseDateHint =
+      'Toque para selecionar a data';
+  static const String appointmentChooseStartTimePrompt = 'Escolher horário';
+  static const String appointmentEstimatedTotalPrefix = 'Total estimado:';
+  static const String appointmentProfessionalSection = 'Profissional';
+  static const String appointmentProfessionalSectionSubtitle =
+      'Quem realizará o atendimento?';
+  static const String appointmentDateTimeSection = 'Data e Hora';
+  static const String appointmentDateTimeSectionSubtitle =
+      'Quando será o atendimento?';
+  static const String appointmentNotesSection = 'Observações (opcional)';
+  static const String appointmentNotesSectionSubtitle =
+      'Alguma observação sobre o atendimento?';
+  static const String appointmentNotesHint =
+      'Ex.: Observação sobre o atendimento, preferência da cliente, etc.';
+  static const String appointmentConfirm = 'Confirmar Agendamento';
+  static const String appointmentDateLabel = 'Data';
+  static const String appointmentStartTimeLabel = 'Início';
+  static const String appointmentEndTimeLabel = 'Término (automático)';
+  static const String appointmentDurationSummaryPrefix = 'Duração total:';
+  static const String appointmentChooseClientPrompt =
+      'Buscar ou escolher cliente';
+  static const String appointmentChooseClientHint =
+      'Toque para encontrar uma cliente';
+  static const String appointmentChooseServicePrompt =
+      'Buscar ou escolher serviço';
+  static const String appointmentChooseServiceHint =
+      'Toque para encontrar um serviço';
+  static const String clientPickerTitle = 'Escolher cliente';
+  static const String clientPickerSearchHint = 'Buscar por nome ou telefone';
+  static const String clientPickerEmptyTitle = 'Nenhuma cliente encontrada';
+  static const String clientPickerEmptyMessage =
+      'Cadastre a cliente antes de criar o agendamento.';
+  static const String clientPickerNewClient = '+ Nova cliente';
+  static const String servicePickerTitle = 'Escolher serviço';
+  static const String servicePickerSearchHint = 'Buscar por nome ou categoria';
+  static const String servicePickerEmptyTitle = 'Nenhum serviço encontrado';
+  static const String servicePickerEmptyMessage =
+      'Cadastre um serviço antes de criar o agendamento.';
+  static const String servicePickerNewService = '+ Novo serviço';
+  static const String servicePickerNewServiceComingSoon =
+      'Cadastro de serviço em breve.';
+  static const String servicesLoadError =
+      'Não foi possível carregar os serviços.';
+  static const String appointmentSelectClientComingSoon =
+      'Seleção de cliente em breve.';
+  static const String appointmentSelectServiceComingSoon =
+      'Seleção de serviço em breve.';
+  static const String appointmentSelectProfessionalComingSoon =
+      'Seleção de profissional em breve.';
+  static const String appointmentSelectDateComingSoon =
+      'Seleção de data em breve.';
+  static const String appointmentSelectTimeComingSoon =
+      'Seleção de horário em breve.';
+  static const String appointmentSaveComingSoon = 'Salvar agendamento em breve.';
   static const String clientNoNextAppointment = 'Nenhum atendimento agendado.';
   static const String clientHistoryComingSoon =
       'Os atendimentos realizados aparecerão aqui com todos os detalhes.';
@@ -156,4 +248,38 @@ abstract final class AppStrings {
       'Não foi possível atualizar a cliente';
   static const String clientDeletedSuccess = 'Cliente removida com sucesso.';
   static const String clientDeleteError = 'Não foi possível remover a cliente.';
+  static const String newServiceTitle = 'Novo serviço';
+  static const String newServiceSubtitle =
+      'Cadastre um serviço para usar nos agendamentos.';
+  static const String serviceNameLabel = 'Nome do serviço';
+  static const String serviceNameHint = 'Ex.: Corte Feminino';
+  static const String serviceCategoryLabel = 'Categoria';
+  static const String serviceCategoryHint = 'Selecione uma categoria';
+  static const String serviceDurationLabel = 'Duração';
+  static const String serviceDurationHint = 'Selecione a duração';
+  static const String servicePriceLabel = 'Preço';
+  static const String servicePriceHint = 'R\$ 0,00';
+  static const String serviceDescriptionLabel = 'Descrição';
+  static const String serviceDescriptionHint =
+      'Ex.: Inclui lavagem, corte e finalização.';
+  static const String saveService = 'Salvar serviço';
+  static const String editServiceSubtitle =
+      'Atualize as informações do serviço.';
+  static const String serviceCreatedSuccess = 'Serviço criado com sucesso.';
+  static const String serviceUpdatedSuccess = 'Serviço atualizado com sucesso.';
+  static const String serviceDeletedSuccess = 'Serviço excluído com sucesso.';
+  static const String serviceSaveError =
+      'Não foi possível salvar o serviço. Tente novamente.';
+  static const String serviceUpdateError =
+      'Não foi possível atualizar o serviço. Tente novamente.';
+  static const String serviceDeleteError =
+      'Não foi possível excluir o serviço. Tente novamente.';
+  static const String serviceActions = 'Ações do serviço';
+  static const String serviceActionsSubtitle = 'Escolha o que deseja fazer.';
+  static const String editService = 'Editar serviço';
+  static const String deleteService = 'Excluir serviço';
+  static const String deleteServiceTitle = 'Excluir serviço?';
+  static const String deleteServiceMessage =
+      'Esse serviço deixará de aparecer para novos agendamentos. '
+      'Agendamentos antigos continuarão preservados.';
 }

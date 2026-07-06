@@ -11,6 +11,7 @@ class ClientsSearchBar extends StatelessWidget {
     required this.controller,
     required this.onChanged,
     required this.onClear,
+    this.hintText = AppStrings.clientsSearchHint,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class ClientsSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
+  final String hintText;
 
   bool get _hasText => controller.text.trim().isNotEmpty;
 
@@ -43,7 +45,7 @@ class ClientsSearchBar extends StatelessWidget {
             color: AppColors.graphite,
           ),
           decoration: InputDecoration(
-            hintText: AppStrings.clientsSearchHint,
+            hintText: hintText,
             hintStyle: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.textSecondary,
             ),

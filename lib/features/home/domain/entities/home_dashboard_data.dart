@@ -76,4 +76,4 @@ class TodayScheduleAppointment {
   final ScheduleStatus status;
 }
 
-enum ScheduleStatus { completed, next }
+enum ScheduleStatus { completed, next, pending, confirmed, canceled }

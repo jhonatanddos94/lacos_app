@@ -22,6 +22,7 @@ abstract final class AppValidationMessages {
       'Informe o nome da profissional.';
 
   static const String serviceNameRequired = 'Informe o nome do serviço.';
+  static const String serviceDurationRequired = 'Informe a duração do serviço.';
 
   static const String memoryTitleRequired =
       'Informe um título para a memória.';

@@ -1,0 +1,25 @@
+enum AppointmentStatus {
+  pending,
+  confirmed,
+  completed,
+  canceled;
+
+  static AppointmentStatus fromParse(String value) {
+    return switch (value) {
+      'pending' => AppointmentStatus.pending,
+      'confirmed' => AppointmentStatus.confirmed,
+      'completed' => AppointmentStatus.completed,
+      'canceled' => AppointmentStatus.canceled,
+      _ => throw ArgumentError.value(value, 'value', 'Status de agendamento inválido.'),
+    };
+  }
+
+  String toParse() {
+    return switch (this) {
+      AppointmentStatus.pending => 'pending',
+      AppointmentStatus.confirmed => 'confirmed',
+      AppointmentStatus.completed => 'completed',
+      AppointmentStatus.canceled => 'canceled',
+    };
+  }
+}

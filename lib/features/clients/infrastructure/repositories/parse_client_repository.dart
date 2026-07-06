@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/repositories/client_repository.dart';
@@ -231,9 +232,12 @@ class ParseClientRepository implements ClientRepository {
       rethrow;
     } on FormatException {
       rethrow;
-    } on Object {
-      throw const FormatException(
-        'Não foi possível carregar as clientes. Tente novamente.',
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback: AppStrings.clientsLoadError,
+        ),
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/salon/domain/entities/salon.dart';
 import 'package:lacos_app/features/salon/domain/repositories/salon_repository.dart';
 import 'package:lacos_app/features/salon/infrastructure/mappers/parse_salon_error_mapper.dart';
@@ -48,9 +49,12 @@ class ParseSalonRepository implements SalonRepository {
       rethrow;
     } on FormatException {
       rethrow;
-    } on Object {
-      throw const FormatException(
-        'Não foi possível carregar seu salão. Tente novamente.',
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback: 'Não foi possível carregar seu salão. Tente novamente.',
+        ),
       );
     }
   }

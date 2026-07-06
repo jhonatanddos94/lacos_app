@@ -25,9 +25,10 @@ class ScheduleItem extends StatelessWidget {
         ? 'L'
         : appointment.clientName.substring(0, 1);
     final isNext = appointment.status == ScheduleStatus.next;
-    final contentOpacity = appointment.status == ScheduleStatus.completed
-        ? 0.78
-        : 1.0;
+    final contentOpacity = switch (appointment.status) {
+      ScheduleStatus.completed || ScheduleStatus.canceled => 0.78,
+      _ => 1.0,
+    };
 
     return Material(
       color: Colors.transparent,
@@ -223,6 +224,21 @@ class _StatusStyle {
         label: 'Próximo',
         backgroundColor: AppColors.purple100,
         foregroundColor: AppColors.purple800,
+      ),
+      ScheduleStatus.confirmed => const _StatusStyle(
+        label: 'Confirmado',
+        backgroundColor: Color(0xFFE7F5EC),
+        foregroundColor: Color(0xFF3D7A5C),
+      ),
+      ScheduleStatus.pending => const _StatusStyle(
+        label: 'Pendente',
+        backgroundColor: Color(0xFFFFF4E5),
+        foregroundColor: AppColors.warmAmber,
+      ),
+      ScheduleStatus.canceled => const _StatusStyle(
+        label: 'Cancelado',
+        backgroundColor: Color(0xFFF3F3F4),
+        foregroundColor: AppColors.textSecondary,
       ),
     };
   }
