@@ -1,4 +1,5 @@
-import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
+import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
 
@@ -6,7 +7,7 @@ class AgendaAppointmentDisplayMapper {
   const AgendaAppointmentDisplayMapper._();
 
   static List<TodayScheduleAppointment> toScheduleItems(
-    List<Appointment> appointments,
+    List<AgendaAppointmentDisplay> appointments,
     DateTime selectedDay,
   ) {
     final sorted = [...appointments]
@@ -16,34 +17,41 @@ class AgendaAppointmentDisplayMapper {
     return sorted
         .map(
           (appointment) => TodayScheduleAppointment(
-            startTime: _formatTime(appointment.startAt),
-            endTime: _formatTime(appointment.endAt),
-            clientName: 'Cliente',
-            serviceName: 'Serviços',
+            startTime: formatAppointmentClockTime(appointment.startAt),
+            endTime: formatAppointmentClockTime(appointment.endAt),
+            clientName: appointment.clientName,
+            serviceName: appointment.servicesSummary,
+            durationLabel: formatAppointmentDuration(
+              appointment.startAt,
+              appointment.endAt,
+            ),
             status: _mapScheduleStatus(
               appointment,
-              isNext: appointment.id == nextAppointmentId,
+              isNext: appointment.appointmentId == nextAppointmentId,
             ),
           ),
         )
         .toList(growable: false);
   }
 
-  static String? nextStartTime(List<Appointment> appointments, DateTime day) {
+  static String? nextStartTime(
+    List<AgendaAppointmentDisplay> appointments,
+    DateTime day,
+  ) {
     final sorted = [...appointments]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
     final nextId = _findNextAppointmentId(sorted, day);
     if (nextId == null) return null;
 
     final nextAppointment = sorted.firstWhere(
-      (appointment) => appointment.id == nextId,
+      (appointment) => appointment.appointmentId == nextId,
     );
 
-    return _formatTime(nextAppointment.startAt);
+    return formatAppointmentClockTime(nextAppointment.startAt);
   }
 
   static String? _findNextAppointmentId(
-    List<Appointment> appointments,
+    List<AgendaAppointmentDisplay> appointments,
     DateTime selectedDay,
   ) {
     final now = DateTime.now();
@@ -59,7 +67,7 @@ class AgendaAppointmentDisplayMapper {
           if (isToday && appointment.startAt.isBefore(now)) {
             continue;
           }
-          return appointment.id;
+          return appointment.appointmentId;
       }
     }
 
@@ -67,7 +75,7 @@ class AgendaAppointmentDisplayMapper {
   }
 
   static ScheduleStatus _mapScheduleStatus(
-    Appointment appointment, {
+    AgendaAppointmentDisplay appointment, {
     required bool isNext,
   }) {
     if (isNext) {
@@ -80,12 +88,6 @@ class AgendaAppointmentDisplayMapper {
       AppointmentStatus.pending => ScheduleStatus.pending,
       AppointmentStatus.canceled => ScheduleStatus.canceled,
     };
-  }
-
-  static String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 
   static bool _isSameDay(DateTime a, DateTime b) {

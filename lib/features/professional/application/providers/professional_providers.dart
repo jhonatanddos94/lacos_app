@@ -11,6 +11,11 @@ final professionalRepositoryProvider = Provider<ProfessionalRepository>((ref) {
   return ParseProfessionalRepository(salonRepository);
 });
 
+final professionalsProvider = FutureProvider<List<Professional>>((ref) {
+  final repository = ref.watch(professionalRepositoryProvider);
+  return repository.findAll();
+});
+
 final createProfessionalControllerProvider =
     StateNotifierProvider<
       CreateProfessionalController,

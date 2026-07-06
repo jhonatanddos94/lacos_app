@@ -3,6 +3,10 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment_serv
 abstract interface class AppointmentServiceRepository {
   Future<List<AppointmentService>> findByAppointment(String appointmentId);
 
+  Future<List<AppointmentService>> findByAppointments(
+    List<String> appointmentIds,
+  );
+
   Future<List<AppointmentService>> createMany({
     required String appointmentId,
     required List<AppointmentService> services,

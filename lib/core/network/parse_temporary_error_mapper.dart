@@ -38,6 +38,24 @@ abstract final class ParseTemporaryErrorMapper {
       return AppStrings.temporaryLoadError;
     }
 
+    return _resolveFriendlyMessage(error, fallback: fallback);
+  }
+
+  static String messageForSaveThrowable(
+    Object error, {
+    required String fallback,
+  }) {
+    if (isTemporaryThrowable(error)) {
+      return AppStrings.temporarySaveError;
+    }
+
+    return _resolveFriendlyMessage(error, fallback: fallback);
+  }
+
+  static String _resolveFriendlyMessage(
+    Object error, {
+    required String fallback,
+  }) {
     return switch (error) {
       FormatException(message: final message) when message.isNotEmpty => message,
       StateError(message: final message) => message,
@@ -51,6 +69,11 @@ abstract final class ParseTemporaryErrorMapper {
     return normalized.contains('502') ||
         normalized.contains('bad gateway') ||
         normalized.contains('invalid response format') ||
-        normalized.contains('othercause');
+        normalized.contains('expected json') ||
+        normalized.contains('othercause') ||
+        normalized.contains('status code: -1') ||
+        normalized.contains('status code -1') ||
+        normalized.contains('<html') ||
+        normalized.contains('<!doctype html');
   }
 }

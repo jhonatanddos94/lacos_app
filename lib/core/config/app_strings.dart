@@ -16,6 +16,8 @@ abstract final class AppStrings {
   static const String tryAgain = 'Tentar novamente';
   static const String temporaryLoadError =
       'Não foi possível carregar os dados agora. Tente novamente.';
+  static const String temporarySaveError =
+      'Não foi possível conectar ao servidor. Tente novamente.';
   static const String comingSoon = 'Em breve';
   static const String addPhoto = 'Adicionar foto';
   static const String tapAvatarToAddPhoto =
@@ -132,6 +134,10 @@ abstract final class AppStrings {
   static const String clientMemoriesListComingSoon =
       'Lista de memórias em breve.';
   static const String agendaEmptyDay = 'Nenhum atendimento para este dia.';
+  static const String agendaRefreshingAfterCreate = 'Atualizando agenda...';
+  static const String agendaRefreshAfterCreateFailed =
+      'Agendamento salvo, mas não foi possível atualizar a agenda agora.';
+  static const String agendaRetryUpdate = 'Tentar atualizar';
   static const String agendaLoadError = temporaryLoadError;
   static const String newAppointmentTitle = 'Novo Agendamento';
   static const String newAppointmentSubtitle =
@@ -162,12 +168,28 @@ abstract final class AppStrings {
   static const String appointmentStartTimeRequired =
       'Escolha o horário de início.';
   static const String appointmentChooseProfessionalPrompt =
-      'Escolher profissional';
+      'Buscar ou escolher profissional';
   static const String appointmentChooseProfessionalHint =
-      'Toque para selecionar uma profissional';
+      'Toque para encontrar uma profissional';
   static const String appointmentChooseDatePrompt = 'Escolher data';
   static const String appointmentChooseDateHint =
       'Toque para selecionar a data';
+  static const String appointmentChangeDateHint = 'Toque para alterar a data';
+  static const String appointmentDateToday = 'Hoje';
+  static const String appointmentDateTomorrow = 'Amanhã';
+  static const String appointmentTimeOther = 'Outro horário';
+  static const String appointmentAvailabilityPrerequisites =
+      'Escolha cliente, serviços e profissional para ver horários disponíveis.';
+  static const String appointmentAvailabilityLoadError =
+      'Não foi possível carregar horários disponíveis.';
+  static const String appointmentNoAvailableTimes =
+      'Nenhum horário disponível para esta duração neste dia.';
+  static const String appointmentCustomTimeUnavailable =
+      'Esse horário não está disponível para a duração selecionada.';
+  static const String appointmentSlotNoLongerAvailable =
+      'Esse horário não está mais disponível.';
+  static const String appointmentSelectedTimeNoLongerAvailable =
+      'Escolha um novo horário para essa duração.';
   static const String appointmentChooseStartTimePrompt = 'Escolher horário';
   static const String appointmentEstimatedTotalPrefix = 'Total estimado:';
   static const String appointmentProfessionalSection = 'Profissional';
@@ -210,6 +232,17 @@ abstract final class AppStrings {
       'Cadastro de serviço em breve.';
   static const String servicesLoadError =
       'Não foi possível carregar os serviços.';
+  static const String professionalPickerTitle = 'Escolher profissional';
+  static const String professionalPickerSearchHint =
+      'Buscar por nome ou especialidade';
+  static const String professionalPickerEmptyTitle =
+      'Nenhuma profissional encontrada';
+  static const String professionalPickerEmptyMessage =
+      'Cadastre uma profissional antes de criar o agendamento.';
+  static const String professionalPickerNewProfessionalComingSoon =
+      'Nova profissional em breve.';
+  static const String professionalsLoadError =
+      'Não foi possível carregar as profissionais.';
   static const String appointmentSelectClientComingSoon =
       'Seleção de cliente em breve.';
   static const String appointmentSelectServiceComingSoon =
@@ -221,6 +254,18 @@ abstract final class AppStrings {
   static const String appointmentSelectTimeComingSoon =
       'Seleção de horário em breve.';
   static const String appointmentSaveComingSoon = 'Salvar agendamento em breve.';
+  static const String appointmentSaveError =
+      'Não foi possível salvar o agendamento. Tente novamente.';
+  static const String appointmentPartialSaveError =
+      'O agendamento foi parcialmente salvo. Verifique a agenda antes de tentar novamente.';
+  static const String appointmentCreatedSuccess =
+      'Agendamento criado com sucesso.';
+  static const String appointmentServiceSaveError =
+      'Não foi possível salvar os serviços do agendamento. Tente novamente.';
+  static const String appointmentInvalidTimeRange =
+      'O horário de término deve ser depois do horário de início.';
+  static const String appointmentNotesMaxLengthError =
+      'As observações devem ter no máximo 200 caracteres.';
   static const String clientNoNextAppointment = 'Nenhum atendimento agendado.';
   static const String clientHistoryComingSoon =
       'Os atendimentos realizados aparecerão aqui com todos os detalhes.';

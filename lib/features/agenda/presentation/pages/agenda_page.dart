@@ -1,16 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/agenda/application/agenda_day.dart';
+import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
+import 'package:lacos_app/features/agenda/application/providers/agenda_providers.dart';
 import 'package:lacos_app/features/agenda/presentation/mappers/agenda_appointment_display_mapper.dart';
+import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
-import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/create_appointment_bottom_sheet.dart';
+import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
 import 'package:lacos_app/features/home/presentation/widgets/schedule_item.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
@@ -27,6 +34,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   static const _fabClearance = 56.0 + _fabInset;
 
   late DateTime _selectedDay;
+  var _isRefreshingAfterCreate = false;
+  var _refreshAfterCreateFailed = false;
 
   @override
   void initState() {
@@ -36,17 +45,26 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
 
   DateTime get _normalizedSelectedDay => _normalizeDay(_selectedDay);
 
+  AgendaDay get _selectedAgendaDay => AgendaDay.from(_selectedDay);
+
   List<DateTime> get _visibleDays {
     final start = _normalizedSelectedDay.subtract(const Duration(days: 3));
     return List.generate(7, (index) => start.add(Duration(days: index)));
   }
 
   void _selectDay(DateTime day) {
-    setState(() => _selectedDay = _normalizeDay(day));
+    setState(() => _selectedDay = normalizeAppointmentDate(day));
+  }
+
+  Future<void> _refreshAppointmentsForDay(AgendaDay day) async {
+    await Future.wait([
+      ref.refresh(agendaAppointmentsDisplayProvider(day).future),
+      ref.refresh(appointmentsByDayProvider(day).future),
+    ]);
   }
 
   Future<void> _openNewAppointment() async {
-    await showModalBottomSheet<void>(
+    final createdAppointment = await showModalBottomSheet<CreatedAppointment>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -54,16 +72,116 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
       builder: (context) => const CreateAppointmentBottomSheet(),
     );
+
+    if (!mounted || createdAppointment == null) return;
+
+    final createdDay = AgendaDay.from(createdAppointment.appointment.startAt);
+
+    if (!isSameAppointmentDate(createdDay.toDateTime(), _normalizedSelectedDay)) {
+      setState(() => _selectedDay = createdDay.toDateTime());
+    }
+
+    setState(() {
+      _isRefreshingAfterCreate = true;
+      _refreshAfterCreateFailed = false;
+    });
+
+    try {
+      await _refreshAppointmentsForDay(createdDay);
+      if (!mounted) return;
+
+      setState(() => _isRefreshingAfterCreate = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.appointmentCreatedSuccess)),
+      );
+    } on Object {
+      if (!mounted) return;
+
+      setState(() {
+        _isRefreshingAfterCreate = false;
+        _refreshAfterCreateFailed = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.agendaRefreshAfterCreateFailed),
+        ),
+      );
+    }
+  }
+
+  Future<void> _retryRefreshAfterCreate() async {
+    setState(() {
+      _isRefreshingAfterCreate = true;
+      _refreshAfterCreateFailed = false;
+    });
+
+    try {
+      await _refreshAppointmentsForDay(_selectedAgendaDay);
+      if (!mounted) return;
+
+      setState(() {
+        _isRefreshingAfterCreate = false;
+        _refreshAfterCreateFailed = false;
+      });
+    } on Object {
+      if (!mounted) return;
+
+      setState(() {
+        _isRefreshingAfterCreate = false;
+        _refreshAfterCreateFailed = true;
+      });
+    }
   }
 
   void _retryLoadAppointments() {
-    ref.invalidate(appointmentsByDayProvider(_normalizedSelectedDay));
+    if (_refreshAfterCreateFailed) {
+      unawaited(_retryRefreshAfterCreate());
+      return;
+    }
+
+    unawaited(_refreshAppointmentsForDay(_selectedAgendaDay));
+  }
+
+  Widget _buildAppointmentsContent(
+    AsyncValue<List<AgendaAppointmentDisplay>> appointmentsAsync,
+  ) {
+    if (_isRefreshingAfterCreate) {
+      return _AgendaRefreshingAfterCreateState(
+        appointments: appointmentsAsync.value ?? const [],
+        selectedDay: _normalizedSelectedDay,
+        bottomPadding: _fabClearance,
+      );
+    }
+
+    if (_refreshAfterCreateFailed) {
+      return _AgendaRefreshAfterCreateFailedState(
+        appointments: appointmentsAsync.value ?? const [],
+        selectedDay: _normalizedSelectedDay,
+        bottomPadding: _fabClearance,
+        onRetry: () => unawaited(_retryRefreshAfterCreate()),
+      );
+    }
+
+    return appointmentsAsync.when(
+      loading: () => const _AgendaLoadingState(),
+      error: (error, _) => _AgendaErrorState(
+        message: _resolveAgendaErrorMessage(error),
+        onRetry: _retryLoadAppointments,
+      ),
+      data: (appointments) => _AgendaAppointmentsList(
+        appointments: appointments,
+        selectedDay: _normalizedSelectedDay,
+        bottomPadding: _fabClearance,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final appointmentsAsync = ref.watch(
-      appointmentsByDayProvider(_normalizedSelectedDay),
+      agendaAppointmentsDisplayProvider(_selectedAgendaDay),
     );
 
     return SafeArea(
@@ -87,8 +205,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                     child: _AgendaHeader(
                       selectedDay: _normalizedSelectedDay,
                       appointments: appointmentsAsync.value,
-                      isLoading: appointmentsAsync.isLoading &&
-                          !appointmentsAsync.hasValue,
+                      isLoading: _isRefreshingAfterCreate ||
+                          (appointmentsAsync.isLoading &&
+                              !appointmentsAsync.hasValue),
                     ),
                   ),
                 ),
@@ -118,18 +237,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                       constraints: const BoxConstraints(
                         maxWidth: _maxContentWidth,
                       ),
-                      child: appointmentsAsync.when(
-                        loading: () => const _AgendaLoadingState(),
-                        error: (error, _) => _AgendaErrorState(
-                          message: _resolveAgendaErrorMessage(error),
-                          onRetry: _retryLoadAppointments,
-                        ),
-                        data: (appointments) => _AgendaAppointmentsList(
-                          appointments: appointments,
-                          selectedDay: _normalizedSelectedDay,
-                          bottomPadding: _fabClearance,
-                        ),
-                      ),
+                      child: _buildAppointmentsContent(appointmentsAsync),
                     ),
                   ),
                 ),
@@ -154,9 +262,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     );
   }
 
-  DateTime _normalizeDay(DateTime day) {
-    return DateTime(day.year, day.month, day.day);
-  }
+  DateTime _normalizeDay(DateTime day) => normalizeAppointmentDate(day);
 }
 
 String _resolveAgendaErrorMessage(Object error) {
@@ -172,11 +278,15 @@ class _AgendaAppointmentsList extends StatelessWidget {
     required this.appointments,
     required this.selectedDay,
     required this.bottomPadding,
+    this.showEmptyState = true,
+    this.wrapInCard = true,
   });
 
-  final List<Appointment> appointments;
+  final List<AgendaAppointmentDisplay> appointments;
   final DateTime selectedDay;
   final double bottomPadding;
+  final bool showEmptyState;
+  final bool wrapInCard;
 
   @override
   Widget build(BuildContext context) {
@@ -186,31 +296,241 @@ class _AgendaAppointmentsList extends StatelessWidget {
     );
 
     if (scheduleItems.isEmpty) {
+      if (!showEmptyState) {
+        return const SizedBox.shrink();
+      }
+
       return _AgendaEmptyState(bottomPadding: bottomPadding);
     }
 
-    return ClipRRect(
-      borderRadius: AppRadius.borderMd,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.borderMd,
-          boxShadow: AppShadows.level1,
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: ListView.separated(
-          padding: EdgeInsets.only(bottom: bottomPadding),
-          itemCount: scheduleItems.length,
-          separatorBuilder: (_, _) => Divider(
-            height: 1,
-            thickness: 0.5,
-            color: AppColors.divider.withValues(alpha: 0.55),
+    final listView = _AgendaScheduleListView(scheduleItems: scheduleItems);
+
+    if (!wrapInCard) {
+      return listView;
+    }
+
+    return _AgendaListCard(
+      bottomPadding: bottomPadding,
+      child: listView,
+    );
+  }
+}
+
+class _AgendaScheduleListView extends StatelessWidget {
+  const _AgendaScheduleListView({required this.scheduleItems});
+
+  final List<TodayScheduleAppointment> scheduleItems;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: scheduleItems.length,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        thickness: 0.5,
+        color: AppColors.divider.withValues(alpha: 0.55),
+      ),
+      itemBuilder: (context, index) {
+        return ScheduleItem(appointment: scheduleItems[index]);
+      },
+    );
+  }
+}
+
+class _AgendaListCard extends StatelessWidget {
+  const _AgendaListCard({
+    required this.child,
+    required this.bottomPadding,
+  });
+
+  final Widget child;
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
+      child: ClipRRect(
+        borderRadius: AppRadius.borderMd,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppRadius.borderMd,
+            boxShadow: AppShadows.level1,
+            border: Border.all(color: AppColors.divider),
           ),
-          itemBuilder: (context, index) {
-            return ScheduleItem(appointment: scheduleItems[index]);
-          },
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: child,
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _AgendaRefreshingAfterCreateState extends StatelessWidget {
+  const _AgendaRefreshingAfterCreateState({
+    required this.appointments,
+    required this.selectedDay,
+    required this.bottomPadding,
+  });
+
+  final List<AgendaAppointmentDisplay> appointments;
+  final DateTime selectedDay;
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return _AgendaListCard(
+      bottomPadding: bottomPadding,
+      child: appointments.isEmpty
+          ? _AgendaRefreshingBanner(theme: theme)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _AgendaRefreshingBanner(theme: theme),
+                Expanded(
+                  child: _AgendaAppointmentsList(
+                    appointments: appointments,
+                    selectedDay: selectedDay,
+                    bottomPadding: 0,
+                    showEmptyState: false,
+                    wrapInCard: false,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _AgendaRefreshingBanner extends StatelessWidget {
+  const _AgendaRefreshingBanner({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox.square(
+            dimension: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: AppSpacing.xxs),
+          Text(
+            AppStrings.agendaRefreshingAfterCreate,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgendaRefreshAfterCreateFailedState extends StatelessWidget {
+  const _AgendaRefreshAfterCreateFailedState({
+    required this.appointments,
+    required this.selectedDay,
+    required this.bottomPadding,
+    required this.onRetry,
+  });
+
+  final List<AgendaAppointmentDisplay> appointments;
+  final DateTime selectedDay;
+  final double bottomPadding;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return _AgendaListCard(
+      bottomPadding: bottomPadding,
+      child: appointments.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.lg,
+              ),
+              child: _AgendaRefreshAfterCreateFailedMessage(
+                theme: theme,
+                onRetry: onRetry,
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.xs,
+                  ),
+                  child: _AgendaRefreshAfterCreateFailedMessage(
+                    theme: theme,
+                    onRetry: onRetry,
+                  ),
+                ),
+                Expanded(
+                  child: _AgendaAppointmentsList(
+                    appointments: appointments,
+                    selectedDay: selectedDay,
+                    bottomPadding: 0,
+                    showEmptyState: false,
+                    wrapInCard: false,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _AgendaRefreshAfterCreateFailedMessage extends StatelessWidget {
+  const _AgendaRefreshAfterCreateFailedMessage({
+    required this.theme,
+    required this.onRetry,
+  });
+
+  final ThemeData theme;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          AppStrings.agendaRefreshAfterCreateFailed,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary,
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        TextButton(
+          onPressed: onRetry,
+          child: const Text(AppStrings.agendaRetryUpdate),
+        ),
+      ],
     );
   }
 }
@@ -342,7 +662,7 @@ class _AgendaHeader extends StatelessWidget {
   });
 
   final DateTime selectedDay;
-  final List<Appointment>? appointments;
+  final List<AgendaAppointmentDisplay>? appointments;
   final bool isLoading;
 
   @override

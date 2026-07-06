@@ -1,5 +1,7 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/domain/repositories/professional_repository.dart';
 import 'package:lacos_app/features/professional/infrastructure/mappers/parse_professional_error_mapper.dart';
@@ -94,6 +96,52 @@ class ParseProfessionalRepository implements ProfessionalRepository {
     } on Object {
       throw const FormatException(
         'Não foi possível carregar seu perfil profissional. Tente novamente.',
+      );
+    }
+  }
+
+  @override
+  Future<List<Professional>> findAll() async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_professionalClassName))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByAscending('name');
+
+      final response = await query.query<ParseObject>();
+      if (!response.success) {
+        throw FormatException(
+          _errorMapper.toMessage(response.error, forLoad: true),
+        );
+      }
+
+      final results = response.results;
+      if (results == null || results.isEmpty) {
+        return const [];
+      }
+
+      return results
+          .whereType<ParseObject>()
+          .map(_mapper.toDomain)
+          .toList(growable: false);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback: AppStrings.professionalsLoadError,
+        ),
       );
     }
   }

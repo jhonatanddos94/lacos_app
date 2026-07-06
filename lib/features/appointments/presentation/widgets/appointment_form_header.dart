@@ -25,9 +25,12 @@ class AppointmentBottomSheetHandle extends StatelessWidget {
 }
 
 class AppointmentFormHeader extends StatelessWidget {
-  const AppointmentFormHeader({required this.onClose, super.key});
+  const AppointmentFormHeader({
+    required this.onClose,
+    super.key,
+  });
 
-  final VoidCallback onClose;
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {

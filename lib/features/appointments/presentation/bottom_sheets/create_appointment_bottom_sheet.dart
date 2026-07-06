@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/app/app.dart';
 import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/core/formatters/service_display_formatters.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/agenda/application/agenda_day.dart';
+import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
+import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_selected_service_actions_bottom_sheet.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/appointment_availability_calculator.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_client_section.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_date_time_section.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_form_header.dart';
@@ -16,21 +23,24 @@ import 'package:lacos_app/features/appointments/presentation/widgets/appointment
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_services_section.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/bottom_sheets/client_picker_bottom_sheet.dart';
+import 'package:lacos_app/features/professional/domain/entities/professional.dart';
+import 'package:lacos_app/features/professional/presentation/bottom_sheets/professional_picker_bottom_sheet.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/services/presentation/bottom_sheets/service_picker_bottom_sheet.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
-class CreateAppointmentBottomSheet extends StatefulWidget {
+class CreateAppointmentBottomSheet extends ConsumerStatefulWidget {
   const CreateAppointmentBottomSheet({super.key});
 
   @override
-  State<CreateAppointmentBottomSheet> createState() =>
+  ConsumerState<CreateAppointmentBottomSheet> createState() =>
       _CreateAppointmentBottomSheetState();
 }
 
 class _CreateAppointmentBottomSheetState
-    extends State<CreateAppointmentBottomSheet> {
+    extends ConsumerState<CreateAppointmentBottomSheet> {
   static const _emptyTimeLabel = '--:--';
+  static const _availabilityCalculator = AppointmentAvailabilityCalculator();
 
   final _scrollController = ScrollController();
   final _clientSectionKey = GlobalKey();
@@ -41,9 +51,8 @@ class _CreateAppointmentBottomSheetState
   final _notesController = TextEditingController();
   Client? _selectedClient;
   List<Service> _selectedServices = [];
-  String? _selectedProfessionalName;
-  String? _selectedProfessionalSpecialty;
-  String? _selectedDateLabel;
+  Professional? _selectedProfessional;
+  DateTime? _selectedDate;
   int? _selectedStartTimeMinutes;
 
   String? _clientError;
@@ -51,6 +60,15 @@ class _CreateAppointmentBottomSheetState
   String? _professionalError;
   String? _dateError;
   String? _startTimeError;
+  String? _saveError;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(createAppointmentControllerProvider.notifier).reset();
+    });
+  }
 
   @override
   void dispose() {
@@ -60,6 +78,7 @@ class _CreateAppointmentBottomSheetState
   }
 
   void _close() {
+    if (ref.read(createAppointmentControllerProvider).isLoading) return;
     Navigator.of(context).pop();
   }
 
@@ -74,9 +93,71 @@ class _CreateAppointmentBottomSheetState
     );
   }
 
-  void _confirmAppointment() {
+  Future<void> _confirmAppointment() async {
     if (!_validateForm()) return;
-    _showMessage(AppStrings.appointmentSaveComingSoon);
+    if (ref.read(createAppointmentControllerProvider).isLoading) return;
+
+    setState(() => _saveError = null);
+
+    final createdAppointment = await ref
+        .read(createAppointmentControllerProvider.notifier)
+        .save(
+          clientId: _selectedClient!.id,
+          professionalId: _selectedProfessional!.id,
+          services: _selectedServices,
+          startAt: _buildStartAt(),
+          endAt: _buildEndAt(),
+          existingAppointments: _readDayAppointments(),
+          notes: _notesController.text.trim(),
+        );
+
+    if (!mounted) return;
+
+    if (createdAppointment != null) {
+      Navigator.of(context).pop(createdAppointment);
+      return;
+    }
+
+    final errorMessage = _resolveSaveErrorMessage();
+    if (errorMessage != null) {
+      debugPrint('[AppointmentSave] failed: $errorMessage');
+      setState(() => _saveError = errorMessage);
+      _showMessage(errorMessage);
+    }
+  }
+
+  DateTime _buildStartAt() {
+    final date = _selectedDate!;
+    final startMinutes = _selectedStartTimeMinutes!;
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      startMinutes ~/ 60,
+      startMinutes % 60,
+    );
+  }
+
+  DateTime _buildEndAt() {
+    return _buildStartAt().add(Duration(minutes: _totalDurationMinutes));
+  }
+
+  List<Appointment> _readDayAppointments() {
+    final date = _selectedDate;
+    if (date == null) return const [];
+
+    return ref.read(appointmentsByDayProvider(AgendaDay.from(date))).value ??
+        const [];
+  }
+
+  String? _resolveSaveErrorMessage() {
+    final error = ref.read(createAppointmentControllerProvider).error;
+
+    return switch (error) {
+      FormatException(message: final message) => message,
+      _ => AppStrings.appointmentSaveError,
+    };
   }
 
   bool _validateForm() {
@@ -86,10 +167,10 @@ class _CreateAppointmentBottomSheetState
     final servicesError = _selectedServices.isEmpty
         ? AppStrings.appointmentAddAtLeastOneService
         : null;
-    final professionalError = _selectedProfessionalName == null
+    final professionalError = _selectedProfessional == null
         ? AppStrings.appointmentProfessionalRequired
         : null;
-    final dateError = _selectedDateLabel == null
+    final dateError = _selectedDate == null
         ? AppStrings.appointmentDateRequired
         : null;
     final startTimeError = _selectedStartTimeMinutes == null
@@ -146,6 +227,13 @@ class _CreateAppointmentBottomSheetState
     );
   }
 
+  bool get _canCalculateAvailableTimes {
+    return _selectedDate != null &&
+        _selectedProfessional != null &&
+        _selectedServices.isNotEmpty &&
+        _totalDurationMinutes > 0;
+  }
+
   double? get _totalPrice {
     double? total;
 
@@ -160,6 +248,27 @@ class _CreateAppointmentBottomSheetState
 
   bool get _hasSelectedServicePrices {
     return _selectedServices.any((service) => service.price != null);
+  }
+
+  DateTime get _todayDate => normalizeAppointmentDate(DateTime.now());
+
+  DateTime get _tomorrowDate =>
+      normalizeAppointmentDate(DateTime.now().add(const Duration(days: 1)));
+
+  String? get _selectedDateDisplayLabel {
+    final date = _selectedDate;
+    if (date == null) return null;
+    return formatAppointmentDateLabel(date);
+  }
+
+  bool get _isTodaySelected {
+    final date = _selectedDate;
+    return date != null && isSameAppointmentDate(date, _todayDate);
+  }
+
+  bool get _isTomorrowSelected {
+    final date = _selectedDate;
+    return date != null && isSameAppointmentDate(date, _tomorrowDate);
   }
 
   String get _startTimeDisplay {
@@ -326,44 +435,203 @@ class _CreateAppointmentBottomSheetState
     _addService(service);
   }
 
+  Future<void> _openProfessionalPicker() async {
+    final professional = await showModalBottomSheet<Professional>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
+      builder: (context) => const ProfessionalPickerBottomSheet(),
+    );
+
+    if (!mounted || professional == null) return;
+
+    setState(() {
+      _selectedProfessional = professional;
+      _professionalError = null;
+    });
+  }
+
+  void _setSelectedDate(DateTime date) {
+    setState(() {
+      _selectedDate = normalizeAppointmentDate(date);
+      _dateError = null;
+    });
+  }
+
+  void _selectToday() {
+    _setSelectedDate(_todayDate);
+  }
+
+  void _selectTomorrow() {
+    _setSelectedDate(_tomorrowDate);
+  }
+
+  Future<void> _openDatePicker() async {
+    final now = DateTime.now();
+    final initialDate = _selectedDate ?? _todayDate;
+    final firstDate = _todayDate;
+
+    final pickedDate = await showDatePicker(
+      context: context,
+      locale: LacosApp.appLocale,
+      initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
+      firstDate: firstDate,
+      lastDate: DateTime(now.year + 1, now.month, now.day),
+    );
+
+    if (!mounted || pickedDate == null) return;
+
+    _setSelectedDate(pickedDate);
+  }
+
+  void _setSelectedStartTime(int totalMinutes) {
+    setState(() {
+      _selectedStartTimeMinutes = totalMinutes;
+      _startTimeError = null;
+    });
+  }
+
+  void _retryLoadAvailableTimes() {
+    final date = _selectedDate;
+    if (date == null) return;
+    ref.invalidate(appointmentsByDayProvider(AgendaDay.from(date)));
+  }
+
+  List<DateTime> _calculateAvailableStartTimes(
+    List<Appointment> dayAppointments,
+  ) {
+    final date = _selectedDate!;
+    final professional = _selectedProfessional!;
+
+    return _availabilityCalculator.calculateAvailableStartTimes(
+      day: date,
+      durationMinutes: _totalDurationMinutes,
+      dayAppointments: dayAppointments,
+      professionalId: professional.id,
+    );
+  }
+
+  void _invalidateSelectedTimeIfNoLongerAvailable(
+    List<DateTime> availableStartTimes,
+  ) {
+    final selected = _selectedStartTimeMinutes;
+    if (selected == null) return;
+
+    final isAvailable = AppointmentAvailabilityCalculator.isStartTimeAvailable(
+      startTimeMinutes: selected,
+      availableStartTimes: availableStartTimes,
+    );
+    if (isAvailable) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _selectedStartTimeMinutes != selected) return;
+      setState(() => _selectedStartTimeMinutes = null);
+      _showMessage(AppStrings.appointmentSelectedTimeNoLongerAvailable);
+    });
+  }
+
+  Future<void> _openTimePicker(List<DateTime> availableStartTimes) async {
+    final initialTime = _selectedStartTimeMinutes == null
+        ? const TimeOfDay(hour: 9, minute: 0)
+        : TimeOfDay(
+            hour: _selectedStartTimeMinutes! ~/ 60,
+            minute: _selectedStartTimeMinutes! % 60,
+          );
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (!mounted || pickedTime == null) return;
+
+    final pickedMinutes = pickedTime.hour * 60 + pickedTime.minute;
+    final isAvailable = AppointmentAvailabilityCalculator.isStartTimeAvailable(
+      startTimeMinutes: pickedMinutes,
+      availableStartTimes: availableStartTimes,
+    );
+
+    if (!isAvailable) {
+      _showMessage(AppStrings.appointmentCustomTimeUnavailable);
+      return;
+    }
+
+    _setSelectedStartTime(pickedMinutes);
+  }
+
   @override
   Widget build(BuildContext context) {
+    var isLoadingAvailableTimes = false;
+    String? availabilityError;
+    List<int> displayedStartTimeMinutes = const [];
+    List<DateTime> availableStartTimes = const [];
+    var showNoAvailableTimesMessage = false;
+
+    if (_canCalculateAvailableTimes) {
+      final appointmentsAsync = ref.watch(
+        appointmentsByDayProvider(AgendaDay.from(_selectedDate!)),
+      );
+
+      appointmentsAsync.when(
+        data: (dayAppointments) {
+          availableStartTimes = _calculateAvailableStartTimes(dayAppointments);
+          displayedStartTimeMinutes =
+              _availabilityCalculator.toDisplayedStartTimeMinutes(
+            availableStartTimes,
+          );
+          showNoAvailableTimesMessage = availableStartTimes.isEmpty;
+          _invalidateSelectedTimeIfNoLongerAvailable(availableStartTimes);
+        },
+        loading: () => isLoadingAvailableTimes = true,
+        error: (_, _) {
+          availabilityError = AppStrings.appointmentAvailabilityLoadError;
+        },
+      );
+    }
+
+    final isSaving = ref.watch(createAppointmentControllerProvider).isLoading;
     final sheetHeight = MediaQuery.sizeOf(context).height * 0.9;
 
-    return GestureDetector(
-      onTap: _dismissKeyboard,
-      behavior: HitTestBehavior.translucent,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          height: sheetHeight,
-          decoration: BoxDecoration(
-            color: AppColors.warmWhite,
-            borderRadius: AppRadius.borderTopLg,
-            boxShadow: AppShadows.level2,
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: AppSpacing.xs),
-                  const AppointmentBottomSheetHandle(),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      padding: AppSpacing.screenPadding.copyWith(
-                        top: AppSpacing.sm,
-                        bottom: AppSpacing.lg,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          AppointmentFormHeader(onClose: _close),
+    return PopScope(
+      canPop: !isSaving,
+      child: GestureDetector(
+        onTap: _dismissKeyboard,
+        behavior: HitTestBehavior.translucent,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            height: sheetHeight,
+            decoration: BoxDecoration(
+              color: AppColors.warmWhite,
+              borderRadius: AppRadius.borderTopLg,
+              boxShadow: AppShadows.level2,
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.viewInsetsOf(context).bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.xs),
+                    const AppointmentBottomSheetHandle(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        padding: AppSpacing.screenPadding.copyWith(
+                          top: AppSpacing.sm,
+                          bottom: AppSpacing.lg,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            AppointmentFormHeader(
+                              onClose: isSaving ? null : _close,
+                            ),
                           const SizedBox(height: AppSpacing.lg),
                           KeyedSubtree(
                             key: _clientSectionKey,
@@ -387,46 +655,65 @@ class _CreateAppointmentBottomSheetState
                           KeyedSubtree(
                             key: _professionalSectionKey,
                             child: AppointmentProfessionalSection(
-                              professionalName: _selectedProfessionalName,
-                              professionalSpecialty:
-                                  _selectedProfessionalSpecialty,
+                              selectedProfessional: _selectedProfessional,
                               errorText: _professionalError,
-                              onTap: () => _showMessage(
-                                AppStrings
-                                    .appointmentSelectProfessionalComingSoon,
-                              ),
+                              onTap: _openProfessionalPicker,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           KeyedSubtree(
                             key: _dateTimeSectionKey,
                             child: AppointmentDateTimeSection(
-                              dateLabel: _selectedDateLabel,
+                              dateDisplayLabel: _selectedDateDisplayLabel,
+                              hasSelectedDate: _selectedDate != null,
+                              isTodaySelected: _isTodaySelected,
+                              isTomorrowSelected: _isTomorrowSelected,
                               dateError: _dateError,
                               startTimeValue: _startTimeDisplay,
                               endTimeValue: _computedEndTime,
+                              selectedStartTimeMinutes:
+                                  _selectedStartTimeMinutes,
                               startTimeError: _startTimeError,
                               durationSummaryLabel: _buildDurationSummaryLabel(),
                               appointmentSummaryLabel:
                                   _buildAppointmentSummaryLabel(),
-                              onDateTap: () => _showMessage(
-                                AppStrings.appointmentSelectDateComingSoon,
-                              ),
-                              onStartTimeTap: () => _showMessage(
-                                AppStrings.appointmentSelectTimeComingSoon,
-                              ),
-                              onEndTimeTap: () => _showMessage(
-                                AppStrings.appointmentSelectTimeComingSoon,
-                              ),
+                              canCalculateAvailableTimes:
+                                  _canCalculateAvailableTimes,
+                              isLoadingAvailableTimes: isLoadingAvailableTimes,
+                              availabilityError: availabilityError,
+                              displayedStartTimeMinutes:
+                                  displayedStartTimeMinutes,
+                              showNoAvailableTimesMessage:
+                                  showNoAvailableTimesMessage,
+                              onDateTap: _openDatePicker,
+                              onTodayTap: _selectToday,
+                              onTomorrowTap: _selectTomorrow,
+                              onSelectStartTime: _setSelectedStartTime,
+                              onCustomStartTimeTap: () =>
+                                  _openTimePicker(availableStartTimes),
+                              onRetryAvailability: _canCalculateAvailableTimes
+                                  ? _retryLoadAvailableTimes
+                                  : null,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           AppointmentNotesSection(controller: _notesController),
+                          if (_saveError != null) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              _saveError!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: AppSpacing.lg),
                           AppButton(
                             label: AppStrings.appointmentConfirm,
                             icon: Icons.check_circle_outline_rounded,
-                            onPressed: _confirmAppointment,
+                            isLoading: isSaving,
+                            onPressed: isSaving ? null : _confirmAppointment,
                           ),
                         ],
                       ),
@@ -438,6 +725,7 @@ class _CreateAppointmentBottomSheetState
           ),
         ),
       ),
+    ),
     );
   }
 }

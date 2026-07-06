@@ -4,4 +4,6 @@ abstract interface class ProfessionalRepository {
   Future<Professional> create({required String name, String? specialties});
 
   Future<Professional?> getCurrentProfessional();
+
+  Future<List<Professional>> findAll();
 }

@@ -6,24 +6,48 @@ import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 class ParseAppointmentServiceErrorMapper {
   const ParseAppointmentServiceErrorMapper();
 
-  String toMessage(ParseError? error) {
+  String toMessage(ParseError? error, {bool forSave = false}) {
     if (ParseTemporaryErrorMapper.isTemporaryParseError(error)) {
-      return AppStrings.temporaryLoadError;
+      return forSave
+          ? AppStrings.temporarySaveError
+          : AppStrings.temporaryLoadError;
     }
 
+    final fallback = forSave
+        ? AppStrings.appointmentServiceSaveError
+        : 'Não foi possível carregar os serviços do agendamento. Tente novamente.';
+
     if (error == null) {
-      return AppStrings.temporaryLoadError;
+      return fallback;
     }
 
     return switch (error.code) {
-      ParseError.connectionFailed => AppStrings.temporaryLoadError,
+      ParseError.connectionFailed ||
+      ParseError.internalServerError ||
+      ParseError.timeout ||
+      ParseError.otherCause =>
+        forSave ? AppStrings.temporarySaveError : AppStrings.temporaryLoadError,
       ParseError.invalidSessionToken => 'Sua sessão expirou. Entre novamente.',
       ParseError.objectNotFound ||
       ParseError.invalidQuery ||
-      ParseError.invalidClassName =>
-        'Não foi possível carregar os serviços do agendamento. Tente novamente.',
-      _ =>
-        'Não foi possível carregar os serviços do agendamento. Tente novamente.',
+      ParseError.invalidClassName => fallback,
+      _ => _messageFromErrorText(error.message, forSave: forSave, fallback: fallback),
     };
+  }
+
+  String _messageFromErrorText(
+    String? message, {
+    required bool forSave,
+    required String fallback,
+  }) {
+    if (ParseTemporaryErrorMapper.isTemporaryThrowable(
+      FormatException(message ?? ''),
+    )) {
+      return forSave
+          ? AppStrings.temporarySaveError
+          : AppStrings.temporaryLoadError;
+    }
+
+    return fallback;
   }
 }

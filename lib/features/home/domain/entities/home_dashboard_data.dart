@@ -67,6 +67,7 @@ class TodayScheduleAppointment {
     required this.clientName,
     required this.serviceName,
     required this.status,
+    this.durationLabel,
   });
 
   final String startTime;
@@ -74,6 +75,7 @@ class TodayScheduleAppointment {
   final String clientName;
   final String serviceName;
   final ScheduleStatus status;
+  final String? durationLabel;
 }
 
 enum ScheduleStatus { completed, next, pending, confirmed, canceled }

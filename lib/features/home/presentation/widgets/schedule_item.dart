@@ -17,6 +17,11 @@ class ScheduleItem extends StatelessWidget {
   final TodayScheduleAppointment appointment;
   final bool showTimeColumn;
 
+  bool get _hasServiceLabel {
+    final serviceName = appointment.serviceName.trim();
+    return serviceName.isNotEmpty && serviceName != 'Serviços';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -29,6 +34,7 @@ class ScheduleItem extends StatelessWidget {
       ScheduleStatus.completed || ScheduleStatus.canceled => 0.78,
       _ => 1.0,
     };
+    final durationLabel = appointment.durationLabel?.trim();
 
     return Material(
       color: Colors.transparent,
@@ -64,7 +70,7 @@ class ScheduleItem extends StatelessWidget {
                         children: [
                           if (showTimeColumn) ...[
                             SizedBox(
-                              width: 48,
+                              width: 50,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,23 +78,39 @@ class ScheduleItem extends StatelessWidget {
                                   Text(
                                     appointment.startTime,
                                     style:
-                                        theme.textTheme.labelLarge?.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.15,
+                                        theme.textTheme.titleSmall?.copyWith(
+                                      color: AppColors.graphite,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.1,
+                                      letterSpacing: -0.2,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 1),
                                   Text(
                                     appointment.endTime,
                                     style:
                                         theme.textTheme.labelSmall?.copyWith(
                                       color: AppColors.textSecondary
-                                          .withValues(alpha: 0.75),
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.1,
+                                          .withValues(alpha: 0.62),
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.05,
                                     ),
                                   ),
+                                  if (durationLabel != null &&
+                                      durationLabel.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      durationLabel,
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: AppColors.textSecondary
+                                            .withValues(alpha: 0.48),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 10,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -121,31 +143,21 @@ class ScheduleItem extends StatelessWidget {
                                     height: 1.2,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.spa_outlined,
-                                      size: AppIconSizes.sm - 2,
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.85),
+                                if (_hasServiceLabel) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    appointment.serviceName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.graphite
+                                          .withValues(alpha: 0.68),
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.2,
                                     ),
-                                    const SizedBox(width: AppSpacing.xxxs),
-                                    Expanded(
-                                      child: Text(
-                                        appointment.serviceName,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -184,7 +196,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xs,
-        vertical: 2,
+        vertical: 3,
       ),
       decoration: BoxDecoration(
         color: style.backgroundColor,
@@ -196,6 +208,7 @@ class _StatusChip extends StatelessWidget {
           color: style.foregroundColor,
           fontWeight: FontWeight.w700,
           height: 1.1,
+          letterSpacing: -0.1,
         ),
       ),
     );
@@ -218,7 +231,7 @@ class _StatusStyle {
       ScheduleStatus.completed => const _StatusStyle(
         label: 'Concluído',
         backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF3D7A5C),
+        foregroundColor: Color(0xFF2F6B4A),
       ),
       ScheduleStatus.next => const _StatusStyle(
         label: 'Próximo',
@@ -228,12 +241,12 @@ class _StatusStyle {
       ScheduleStatus.confirmed => const _StatusStyle(
         label: 'Confirmado',
         backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF3D7A5C),
+        foregroundColor: Color(0xFF2F6B4A),
       ),
       ScheduleStatus.pending => const _StatusStyle(
         label: 'Pendente',
         backgroundColor: Color(0xFFFFF4E5),
-        foregroundColor: AppColors.warmAmber,
+        foregroundColor: Color(0xFFB8741A),
       ),
       ScheduleStatus.canceled => const _StatusStyle(
         label: 'Cancelado',

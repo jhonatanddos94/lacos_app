@@ -1,5 +1,6 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
@@ -16,6 +17,8 @@ class ParseAppointmentRepository implements AppointmentRepository {
        _errorMapper = errorMapper ?? const ParseAppointmentErrorMapper();
 
   static const _appointmentClassName = 'Appointment';
+  static const _clientClassName = 'Client';
+  static const _professionalClassName = 'Professional';
   static const _salonClassName = 'Salon';
 
   final SalonRepository _salonRepository;
@@ -74,8 +77,61 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> create(Appointment appointment) {
-    throw UnimplementedError('create() será implementado em etapa futura.');
+  Future<Appointment> create(Appointment appointment) async {
+    try {
+      final currentUser = await ParseUser.currentUser();
+      if (currentUser is! ParseUser || currentUser.objectId == null) {
+        throw StateError(
+          'Não encontramos uma sessão ativa no servidor. Entre novamente.',
+        );
+      }
+
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final owner = ParseUser.forQuery()..objectId = currentUser.objectId;
+      final parseAppointment = ParseObject(_appointmentClassName)
+        ..set<ParseObject>('client', _clientPointer(appointment.clientId))
+        ..set<ParseObject>(
+          'professional',
+          _professionalPointer(appointment.professionalId),
+        )
+        ..set<ParseObject>('salon', _salonPointer(salon.id))
+        ..set<ParseUser>('owner', owner)
+        ..set<DateTime>('startAt', appointment.startAt)
+        ..set<DateTime>('endAt', appointment.endAt)
+        ..set<String>('status', appointment.status.toParse())
+        ..set<bool>('isActive', true);
+
+      final notes = appointment.notes;
+      if (notes != null && notes.isNotEmpty) {
+        parseAppointment.set<String>('notes', notes);
+      }
+
+      final response = await parseAppointment.save();
+      if (!response.success) {
+        throw FormatException(
+          _errorMapper.toMessage(response.error, forSave: true),
+        );
+      }
+
+      return _mapper.toDomain(parseAppointment);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForSaveThrowable(
+          error,
+          fallback: AppStrings.appointmentSaveError,
+        ),
+      );
+    }
   }
 
   @override
@@ -86,6 +142,14 @@ class ParseAppointmentRepository implements AppointmentRepository {
   @override
   Future<void> delete(String appointmentId) {
     throw UnimplementedError('delete() será implementado em etapa futura.');
+  }
+
+  ParseObject _clientPointer(String clientId) {
+    return ParseObject(_clientClassName)..objectId = clientId;
+  }
+
+  ParseObject _professionalPointer(String professionalId) {
+    return ParseObject(_professionalClassName)..objectId = professionalId;
   }
 
   ParseObject _salonPointer(String salonId) {
