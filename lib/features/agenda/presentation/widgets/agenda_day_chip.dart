@@ -12,6 +12,7 @@ class AgendaDayChip extends StatelessWidget {
     required this.isSelected,
     required this.isToday,
     required this.onTap,
+    this.isPast = false,
     super.key,
   });
 
@@ -19,14 +20,21 @@ class AgendaDayChip extends StatelessWidget {
   final bool isSelected;
   final bool isToday;
   final VoidCallback onTap;
+  final bool isPast;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final weekday = formatAgendaShortWeekday(day.weekday);
-    final backgroundColor = isSelected ? AppColors.lacosPurple : AppColors.surface;
-    final borderColor = isSelected ? AppColors.lacosPurple : AppColors.divider;
-    final textColor = isSelected ? AppColors.onPrimary : AppColors.graphite;
+    final backgroundColor = isSelected
+        ? (isPast ? AppColors.graphite : AppColors.lacosPurple)
+        : AppColors.surface;
+    final borderColor = isSelected
+        ? (isPast ? AppColors.graphite : AppColors.lacosPurple)
+        : (isPast ? AppColors.divider.withValues(alpha: 0.7) : AppColors.divider);
+    final textColor = isSelected
+        ? AppColors.onPrimary
+        : (isPast ? AppColors.textSecondary : AppColors.graphite);
     final subtitleColor = isSelected
         ? AppColors.onPrimary.withValues(alpha: 0.88)
         : AppColors.textSecondary;

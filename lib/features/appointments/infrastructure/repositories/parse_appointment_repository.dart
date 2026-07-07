@@ -81,6 +81,77 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
+  Future<Set<DateTime>> findActiveAppointmentDaysInRange({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final rangeStart = DateTime(start.year, start.month, start.day);
+      final rangeEnd = DateTime(
+        end.year,
+        end.month,
+        end.day,
+      ).add(const Duration(days: 1));
+
+      final query = QueryBuilder<ParseObject>(
+        ParseObject(_appointmentClassName),
+      )
+        ..whereEqualTo('salon', _salonPointer(salon.id))
+        ..whereEqualTo('isActive', true)
+        ..whereGreaterThanOrEqualsTo('startAt', rangeStart)
+        ..whereLessThan('startAt', rangeEnd)
+        ..orderByAscending('startAt');
+
+      final response = await query.query<ParseObject>();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      final results = response.results;
+      if (results == null || results.isEmpty) {
+        return const {};
+      }
+
+      final daysWithAppointments = <DateTime>{};
+      for (final parseObject in results.whereType<ParseObject>()) {
+        final appointment = _mapper.toDomain(parseObject);
+        if (!appointment.status.countsForCalendarIndicator) {
+          continue;
+        }
+
+        daysWithAppointments.add(
+          DateTime(
+            appointment.startAt.year,
+            appointment.startAt.month,
+            appointment.startAt.day,
+          ),
+        );
+      }
+
+      return daysWithAppointments;
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback:
+              'Não foi possível carregar os agendamentos. Tente novamente.',
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Appointment> create(Appointment appointment) async {
     try {
       final currentUser = await ParseUser.currentUser();
@@ -299,8 +370,65 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> update(Appointment appointment) {
-    throw UnimplementedError('update() será implementado em etapa futura.');
+  Future<Appointment> update(Appointment appointment) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final parseAppointment = await _fetchParseAppointment(appointment.id);
+      final existingAppointment = _mapper.toDomain(parseAppointment);
+
+      if (existingAppointment.salonId != salon.id) {
+        throw const AppointmentNotFoundException();
+      }
+
+      if (!existingAppointment.isActive) {
+        throw const AppointmentNotFoundException();
+      }
+
+      if (!existingAppointment.status.canBeEdited) {
+        throw const AppointmentCannotEditException();
+      }
+
+      _mapper.applyUpdate(
+        object: parseAppointment,
+        clientId: appointment.clientId,
+        professionalId: appointment.professionalId,
+        startAt: appointment.startAt,
+        endAt: appointment.endAt,
+        notes: appointment.notes,
+        clientPointer: _clientPointer,
+        professionalPointer: _professionalPointer,
+      );
+
+      final response = await parseAppointment.save();
+      if (!response.success) {
+        throw FormatException(
+          _errorMapper.toMessage(response.error, forSave: true),
+        );
+      }
+
+      return _mapper.toDomain(parseAppointment);
+    } on AppointmentCannotEditException {
+      rethrow;
+    } on AppointmentNotFoundException {
+      rethrow;
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForSaveThrowable(
+          error,
+          fallback: AppStrings.appointmentUpdateError,
+        ),
+      );
+    }
   }
 
   @override

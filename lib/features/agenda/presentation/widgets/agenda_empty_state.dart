@@ -8,11 +8,11 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 
 class AgendaEmptyState extends StatelessWidget {
   const AgendaEmptyState({
-    required this.bottomPadding,
+    this.isPastDay = false,
     super.key,
   });
 
-  final double bottomPadding;
+  final bool isPastDay;
 
   @override
   Widget build(BuildContext context) {
@@ -28,15 +28,17 @@ class AgendaEmptyState extends StatelessWidget {
           border: Border.all(color: AppColors.divider),
         ),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
+          padding: const EdgeInsets.fromLTRB(
             AppSpacing.sm,
             AppSpacing.lg,
             AppSpacing.sm,
-            AppSpacing.lg + bottomPadding,
+            AppSpacing.lg,
           ),
           child: Center(
             child: Text(
-              AppStrings.agendaEmptyDay,
+              isPastDay
+                  ? AppStrings.agendaEmptyPastDay
+                  : AppStrings.agendaEmptyDay,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,

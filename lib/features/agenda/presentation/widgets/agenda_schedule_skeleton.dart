@@ -72,12 +72,12 @@ class AgendaScheduleSkeleton extends StatelessWidget {
 
 class AgendaSkeletonList extends StatelessWidget {
   const AgendaSkeletonList({
-    required this.bottomPadding,
+    this.scrollBottomPadding = 0,
     this.itemCount = 5,
     super.key,
   });
 
-  final double bottomPadding;
+  final double scrollBottomPadding;
   final int itemCount;
 
   @override
@@ -91,20 +91,17 @@ class AgendaSkeletonList extends StatelessWidget {
           boxShadow: AppShadows.level1,
           border: Border.all(color: AppColors.divider),
         ),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottomPadding),
-          child: ListView.separated(
-            padding: EdgeInsets.zero,
-            itemCount: itemCount,
-            separatorBuilder: (_, _) => Divider(
-              height: 1,
-              thickness: 0.5,
-              color: AppColors.divider.withValues(alpha: 0.55),
-            ),
-            itemBuilder: (context, index) {
-              return const AgendaScheduleSkeleton();
-            },
+        child: ListView.separated(
+          padding: EdgeInsets.only(bottom: scrollBottomPadding),
+          itemCount: itemCount,
+          separatorBuilder: (_, _) => Divider(
+            height: 1,
+            thickness: 0.5,
+            color: AppColors.divider.withValues(alpha: 0.55),
           ),
+          itemBuilder: (context, index) {
+            return const AgendaScheduleSkeleton();
+          },
         ),
       ),
     );

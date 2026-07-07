@@ -4,6 +4,11 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 abstract interface class AppointmentRepository {
   Future<List<Appointment>> findByDay(DateTime day);
 
+  Future<Set<DateTime>> findActiveAppointmentDaysInRange({
+    required DateTime start,
+    required DateTime end,
+  });
+
   Future<Appointment> findById(String appointmentId);
 
   Future<Appointment> create(Appointment appointment);

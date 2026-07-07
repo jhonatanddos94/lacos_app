@@ -16,23 +16,56 @@ class AgendaAppointmentDisplayMapper {
 
     return sorted
         .map(
-          (appointment) => TodayScheduleAppointment(
-            startTime: formatAppointmentClockTime(appointment.startAt),
-            endTime: formatAppointmentClockTime(appointment.endAt),
-            clientName: appointment.clientName,
-            clientPhotoUrl: appointment.clientPhotoUrl,
-            serviceName: appointment.servicesSummary,
-            durationLabel: formatAppointmentDuration(
-              appointment.startAt,
-              appointment.endAt,
-            ),
-            status: _mapScheduleStatus(
-              appointment,
-              isNext: appointment.appointmentId == nextAppointmentId,
-            ),
+          (appointment) => toScheduleItem(
+            appointment,
+            isNext: appointment.appointmentId == nextAppointmentId,
           ),
         )
         .toList(growable: false);
+  }
+
+  static TodayScheduleAppointment toScheduleItem(
+    AgendaAppointmentDisplay appointment, {
+    required bool isNext,
+  }) {
+    return TodayScheduleAppointment(
+      startTime: formatAppointmentClockTime(appointment.startAt),
+      endTime: formatAppointmentClockTime(appointment.endAt),
+      clientName: appointment.clientName,
+      clientPhotoUrl: appointment.clientPhotoUrl,
+      serviceName: appointment.servicesSummary,
+      durationLabel: formatAppointmentDuration(
+        appointment.startAt,
+        appointment.endAt,
+      ),
+      status: _mapScheduleStatus(
+        appointment,
+        isNext: isNext,
+      ),
+      statusSubtitle: _statusSubtitle(appointment),
+      statusDetail: _statusDetail(appointment),
+    );
+  }
+
+  static String? _statusSubtitle(AgendaAppointmentDisplay appointment) {
+    if (appointment.status != AppointmentStatus.canceled) {
+      return null;
+    }
+
+    return formatAppointmentCanceledByLabel(appointment.canceledBy);
+  }
+
+  static String? _statusDetail(AgendaAppointmentDisplay appointment) {
+    if (appointment.status != AppointmentStatus.canceled) {
+      return null;
+    }
+
+    final reason = appointment.cancellationReason?.trim();
+    if (reason == null || reason.isEmpty) {
+      return null;
+    }
+
+    return reason;
   }
 
   static String? nextStartTime(
@@ -56,6 +89,10 @@ class AgendaAppointmentDisplayMapper {
     DateTime selectedDay,
   ) {
     final now = DateTime.now();
+    if (normalizeAppointmentDate(selectedDay).isBefore(normalizeAppointmentDate(now))) {
+      return null;
+    }
+
     final isToday = _isSameDay(selectedDay, now);
 
     for (final appointment in appointments) {

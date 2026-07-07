@@ -79,6 +79,31 @@ class AppointmentMapper {
     return value;
   }
 
+  void applyUpdate({
+    required ParseObject object,
+    required String clientId,
+    required String professionalId,
+    required DateTime startAt,
+    required DateTime endAt,
+    String? notes,
+    required ParseObject Function(String clientId) clientPointer,
+    required ParseObject Function(String professionalId) professionalPointer,
+  }) {
+    object
+      ..set<ParseObject>('client', clientPointer(clientId))
+      ..set<ParseObject>('professional', professionalPointer(professionalId))
+      ..set<DateTime>('startAt', startAt)
+      ..set<DateTime>('endAt', endAt);
+
+    final normalizedNotes = notes?.trim();
+    if (normalizedNotes == null || normalizedNotes.isEmpty) {
+      object.unset('notes');
+      return;
+    }
+
+    object.set<String>('notes', normalizedNotes);
+  }
+
   void applyCancellation({
     required ParseObject object,
     required AppointmentCanceledBy canceledBy,

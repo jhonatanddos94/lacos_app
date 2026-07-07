@@ -11,14 +11,14 @@ class AgendaRefreshingAfterCreateState extends StatelessWidget {
   const AgendaRefreshingAfterCreateState({
     required this.appointments,
     required this.selectedDay,
-    required this.bottomPadding,
+    this.scrollBottomPadding = 0,
     this.onAppointmentTap,
     super.key,
   });
 
   final List<AgendaAppointmentDisplay> appointments;
   final DateTime selectedDay;
-  final double bottomPadding;
+  final double scrollBottomPadding;
   final ValueChanged<AgendaAppointmentDisplay>? onAppointmentTap;
 
   @override
@@ -26,7 +26,6 @@ class AgendaRefreshingAfterCreateState extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AgendaListCard(
-      bottomPadding: bottomPadding,
       child: appointments.isEmpty
           ? AgendaRefreshingBanner(theme: theme)
           : Column(
@@ -37,7 +36,7 @@ class AgendaRefreshingAfterCreateState extends StatelessWidget {
                   child: AgendaAppointmentsList(
                     appointments: appointments,
                     selectedDay: selectedDay,
-                    bottomPadding: 0,
+                    scrollBottomPadding: scrollBottomPadding,
                     showEmptyState: false,
                     wrapInCard: false,
                     onAppointmentTap: onAppointmentTap,

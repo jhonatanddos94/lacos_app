@@ -134,11 +134,22 @@ abstract final class AppStrings {
   static const String clientMemoriesListComingSoon =
       'Lista de memórias em breve.';
   static const String agendaEmptyDay = 'Nenhum atendimento para este dia.';
+  static const String agendaEmptyPastDay =
+      'Nenhum atendimento registrado neste dia.';
+  static const String agendaHistoricalDayLabel = 'Consulta histórica';
+  static const String agendaSectionPending = 'Pendentes';
+  static const String agendaSectionCompleted = 'Concluídos';
+  static const String agendaSectionCanceled = 'Cancelados';
+  static const String appointmentCanceledByClientLabel = 'Cliente cancelou';
+  static const String appointmentCanceledBySalonLabel = 'Salão cancelou';
+  static const String appointmentCancellationReasonNotProvided =
+      'Motivo não informado';
   static const String agendaRefreshingAfterCreate = 'Atualizando agenda...';
   static const String agendaRefreshAfterCreateFailed =
       'Agendamento salvo, mas não foi possível atualizar a agenda agora.';
   static const String agendaRetryUpdate = 'Tentar atualizar';
   static const String agendaFullCalendarSoon = 'Calendário completo em breve.';
+  static const String agendaOpenCalendar = 'Abrir calendário mensal';
   static const String agendaLoadError = temporaryLoadError;
   static const String newAppointmentTitle = 'Novo Agendamento';
   static const String newAppointmentSubtitle =
@@ -266,6 +277,16 @@ abstract final class AppStrings {
       'O agendamento foi parcialmente salvo. Verifique a agenda antes de tentar novamente.';
   static const String appointmentCreatedSuccess =
       'Agendamento criado com sucesso.';
+  static const String appointmentUpdatedSuccess =
+      'Agendamento atualizado com sucesso.';
+  static const String appointmentUpdateError =
+      'Não foi possível atualizar o agendamento. Tente novamente.';
+  static const String appointmentServicesUpdateError =
+      'Não foi possível atualizar os serviços do agendamento.';
+  static const String appointmentEditServicesUnavailable =
+      'Não foi possível carregar os serviços deste agendamento para edição.';
+  static const String appointmentCannotEdit =
+      'Este atendimento não pode mais ser editado.';
   static const String appointmentDetailsTitle = 'Atendimento';
   static const String appointmentEditAction = 'Editar atendimento';
   static const String appointmentCancelAction = 'Cancelar atendimento';

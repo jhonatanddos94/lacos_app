@@ -13,6 +13,7 @@ class AvailabilityEngine {
     required DateTime openingTime,
     required DateTime closingTime,
     DateTime? notBefore,
+    String? ignoreAppointmentId,
   }) {
     if (durationMinutes <= 0) {
       return const [];
@@ -33,6 +34,11 @@ class AvailabilityEngine {
 
     final blockingAppointments = existingAppointments
         .where(_isBlockingAppointment)
+        .where(
+          (appointment) =>
+              ignoreAppointmentId == null ||
+              appointment.id != ignoreAppointmentId,
+        )
         .toList(growable: false);
 
     final availableStartTimes = <DateTime>[];
@@ -77,6 +83,7 @@ class AvailabilityEngine {
     required List<Appointment> existingAppointments,
     required DateTime openingTime,
     required DateTime closingTime,
+    String? ignoreAppointmentId,
   }) {
     if (!startAt.isBefore(endAt)) {
       return false;
@@ -93,6 +100,11 @@ class AvailabilityEngine {
     final professionalAppointments = existingAppointments
         .where((appointment) => appointment.professionalId == professionalId)
         .where(_isBlockingAppointment)
+        .where(
+          (appointment) =>
+              ignoreAppointmentId == null ||
+              appointment.id != ignoreAppointmentId,
+        )
         .toList(growable: false);
 
     return !_hasConflict(

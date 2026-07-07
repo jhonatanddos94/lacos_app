@@ -133,6 +133,14 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
+  Future<Set<DateTime>> findActiveAppointmentDaysInRange({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Appointment> findById(String appointmentId) async {
     final current = appointment;
     if (current == null) {

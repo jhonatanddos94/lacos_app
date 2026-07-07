@@ -11,15 +11,15 @@ class AgendaRefreshAfterCreateFailedState extends StatelessWidget {
   const AgendaRefreshAfterCreateFailedState({
     required this.appointments,
     required this.selectedDay,
-    required this.bottomPadding,
     required this.onRetry,
+    this.scrollBottomPadding = 0,
     this.onAppointmentTap,
     super.key,
   });
 
   final List<AgendaAppointmentDisplay> appointments;
   final DateTime selectedDay;
-  final double bottomPadding;
+  final double scrollBottomPadding;
   final VoidCallback onRetry;
   final ValueChanged<AgendaAppointmentDisplay>? onAppointmentTap;
 
@@ -28,7 +28,6 @@ class AgendaRefreshAfterCreateFailedState extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AgendaListCard(
-      bottomPadding: bottomPadding,
       child: appointments.isEmpty
           ? Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -61,7 +60,7 @@ class AgendaRefreshAfterCreateFailedState extends StatelessWidget {
                   child: AgendaAppointmentsList(
                     appointments: appointments,
                     selectedDay: selectedDay,
-                    bottomPadding: 0,
+                    scrollBottomPadding: scrollBottomPadding,
                     showEmptyState: false,
                     wrapInCard: false,
                     onAppointmentTap: onAppointmentTap,

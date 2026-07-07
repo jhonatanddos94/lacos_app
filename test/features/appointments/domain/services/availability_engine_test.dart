@@ -196,6 +196,25 @@ void main() {
       }
     });
 
+    test('isIntervalAvailable ignora appointment informado em ignoreAppointmentId', () {
+      final isAvailable = engine.isIntervalAvailable(
+        startAt: DateTime(2025, 7, 6, 9),
+        endAt: DateTime(2025, 7, 6, 10),
+        professionalId: 'professional-1',
+        existingAppointments: [
+          _appointment(
+            start: DateTime(2025, 7, 6, 9),
+            end: DateTime(2025, 7, 6, 10),
+          ),
+        ],
+        openingTime: openingTime,
+        closingTime: closingTime,
+        ignoreAppointmentId: 'appointment-9-0',
+      );
+
+      expect(isAvailable, isTrue);
+    });
+
     test('notBefore remove horários passados do dia atual', () {
       final notBefore = DateTime(2025, 7, 6, 14, 30);
 

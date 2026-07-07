@@ -4,12 +4,15 @@ import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/appointments/application/controllers/cancel_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/complete_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/create_appointment_controller.dart';
+import 'package:lacos_app/features/appointments/application/controllers/update_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/models/cancel_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
+import 'package:lacos_app/features/appointments/application/models/updated_appointment.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/complete_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/create_appointment_use_case.dart';
+import 'package:lacos_app/features/appointments/application/use_cases/update_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
@@ -42,6 +45,25 @@ final createAppointmentControllerProvider =
     >((ref) {
       final useCase = ref.watch(createAppointmentUseCaseProvider);
       return CreateAppointmentController(useCase);
+    });
+
+final updateAppointmentUseCaseProvider = Provider<UpdateAppointmentUseCase>((
+  ref,
+) {
+  return UpdateAppointmentUseCase(
+    appointmentRepository: ref.watch(appointmentRepositoryProvider),
+    appointmentServiceRepository: ref.watch(appointmentServiceRepositoryProvider),
+    availabilityEngine: ref.watch(availabilityEngineProvider),
+  );
+});
+
+final updateAppointmentControllerProvider =
+    StateNotifierProvider<
+      UpdateAppointmentController,
+      AsyncValue<UpdatedAppointment?>
+    >((ref) {
+      final useCase = ref.watch(updateAppointmentUseCaseProvider);
+      return UpdateAppointmentController(useCase);
     });
 
 final cancelAppointmentUseCaseProvider = Provider<CancelAppointmentUseCase>((

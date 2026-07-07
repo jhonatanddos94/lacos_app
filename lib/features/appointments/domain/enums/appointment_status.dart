@@ -27,4 +27,16 @@ enum AppointmentStatus {
     AppointmentStatus.pending || AppointmentStatus.confirmed => true,
     _ => false,
   };
+
+  bool get canBeEdited => switch (this) {
+    AppointmentStatus.pending || AppointmentStatus.confirmed => true,
+    _ => false,
+  };
+
+  bool get canBeCanceled => switch (this) {
+    AppointmentStatus.pending || AppointmentStatus.confirmed => true,
+    _ => false,
+  };
+
+  bool get countsForCalendarIndicator => this != AppointmentStatus.canceled;
 }

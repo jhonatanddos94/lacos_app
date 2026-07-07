@@ -11,6 +11,8 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details_query.dart';
+import 'package:lacos_app/features/appointments/application/helpers/appointment_provider_invalidation.dart';
+import 'package:lacos_app/features/appointments/application/models/updated_appointment.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_details_providers.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
@@ -101,15 +103,15 @@ class _AppointmentDetailsBottomSheetState
                   isBusy: isBusy,
                   cancelError: _cancelError,
                   completeError: _completeError,
-                  onEdit: isBusy
-                      ? null
-                      : () => _openEditAppointment(context, details),
-                  onComplete: isBusy
-                      ? null
-                      : () => _confirmCompleteAppointment(details),
-                  onCancel: isBusy
-                      ? null
-                      : () => _confirmCancelAppointment(details),
+                  onEdit: details.appointment.status.canBeEdited && !isBusy
+                      ? () => _openEditAppointment(context, details)
+                      : null,
+                  onComplete: details.appointment.status.canBeCompleted && !isBusy
+                      ? () => _confirmCompleteAppointment(details)
+                      : null,
+                  onCancel: details.appointment.status.canBeCanceled && !isBusy
+                      ? () => _confirmCancelAppointment(details)
+                      : null,
                 ),
               ),
             ),
@@ -183,8 +185,10 @@ class _AppointmentDetailsBottomSheetState
   }
 
   Future<void> _confirmCancelAppointment(AppointmentDetails details) async {
-    if (details.appointment.status == AppointmentStatus.completed) {
-      _showMessage(AppStrings.appointmentCannotCancelCompleted);
+    if (!details.appointment.status.canBeCanceled) {
+      if (details.appointment.status == AppointmentStatus.completed) {
+        _showMessage(AppStrings.appointmentCannotCancelCompleted);
+      }
       return;
     }
 
@@ -228,9 +232,41 @@ class _AppointmentDetailsBottomSheetState
     BuildContext context,
     AppointmentDetails details,
   ) async {
-    Navigator.of(context).pop();
+    if (!details.appointment.status.canBeEdited) {
+      _showMessage(AppStrings.appointmentCannotEdit);
+      return;
+    }
 
-    await showModalBottomSheet<void>(
+    final appointment = details.appointment;
+    final query = AppointmentDetailsQuery(
+      appointmentId: appointment.id,
+      day: appointment.startAt,
+    );
+
+    invalidateAppointmentDetailsProviders(
+      ref,
+      appointmentId: appointment.id,
+      day: appointment.startAt,
+    );
+
+    late AppointmentDetails freshDetails;
+    try {
+      freshDetails = await ref.read(appointmentDetailsProvider(query).future);
+    } on Object {
+      if (!mounted) return;
+      _showMessage(AppStrings.appointmentDetailsLoadError);
+      return;
+    }
+
+    if (freshDetails.services.isEmpty) {
+      _showMessage(AppStrings.appointmentEditServicesUnavailable);
+      return;
+    }
+
+    if (!mounted) return;
+    if (!context.mounted) return;
+
+    final updatedAppointment = await showModalBottomSheet<UpdatedAppointment>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -238,9 +274,23 @@ class _AppointmentDetailsBottomSheetState
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
       builder: (context) => AppointmentFormBottomSheet(
         mode: AppointmentFormMode.edit,
-        initialData: details,
+        initialData: freshDetails,
       ),
     );
+
+    if (!mounted) return;
+
+    if (updatedAppointment != null) {
+      invalidateAppointmentAfterUpdate(
+        ref,
+        appointmentId: updatedAppointment.appointment.id,
+        updatedDay: updatedAppointment.appointment.startAt,
+        originalDay: appointment.startAt,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop(updatedAppointment.appointment);
+    }
   }
 }
 
@@ -299,8 +349,8 @@ class _AppointmentDetailsError extends StatelessWidget {
 class _AppointmentDetailsContent extends StatelessWidget {
   const _AppointmentDetailsContent({
     required this.details,
-    required this.onEdit,
-    required this.onCancel,
+    this.onEdit,
+    this.onCancel,
     this.onComplete,
     this.isBusy = false,
     this.cancelError,
@@ -315,11 +365,9 @@ class _AppointmentDetailsContent extends StatelessWidget {
   final String? cancelError;
   final String? completeError;
 
-  bool get _canComplete => details.appointment.status.canBeCompleted;
-
-  bool get _canCancel =>
-      details.appointment.status != AppointmentStatus.completed &&
-      details.appointment.status != AppointmentStatus.canceled;
+  bool get _isReadOnly => !details.appointment.status.canBeEdited &&
+      !details.appointment.status.canBeCompleted &&
+      !details.appointment.status.canBeCanceled;
 
   @override
   Widget build(BuildContext context) {
@@ -407,18 +455,24 @@ class _AppointmentDetailsContent extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   _CompactNotesBlock(notes: notes),
                 ],
+                if (details.appointment.status == AppointmentStatus.canceled) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _CancellationDetailsBlock(appointment: details.appointment),
+                ],
               ],
             ),
           ),
         ),
-        _DetailsActionsFooter(
-          onEdit: onEdit,
-          onComplete: _canComplete ? onComplete : null,
-          onCancel: _canCancel ? onCancel : null,
-          isBusy: isBusy,
-          cancelError: cancelError,
-          completeError: completeError,
-        ),
+        if (!_isReadOnly || cancelError != null || completeError != null)
+          _DetailsActionsFooter(
+            onEdit: onEdit,
+            onComplete: onComplete,
+            onCancel: onCancel,
+            isBusy: isBusy,
+            cancelError: cancelError,
+            completeError: completeError,
+            showEditButton: details.appointment.status.canBeEdited,
+          ),
       ],
     );
   }
@@ -692,6 +746,55 @@ class _ServicesTotalRow extends StatelessWidget {
   }
 }
 
+class _CancellationDetailsBlock extends StatelessWidget {
+  const _CancellationDetailsBlock({required this.appointment});
+
+  final Appointment appointment;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canceledByLabel = formatAppointmentCanceledByLabel(appointment.canceledBy);
+    final reasonText =
+        formatAppointmentCancellationReasonDisplay(appointment.cancellationReason);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F3F4),
+        borderRadius: AppRadius.borderSm,
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (canceledByLabel != null)
+            Text(
+              canceledByLabel,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.graphite,
+                fontWeight: FontWeight.w700,
+                height: 1.3,
+              ),
+            ),
+          if (canceledByLabel != null) const SizedBox(height: AppSpacing.xxxs),
+          Text(
+            reasonText,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CompactNotesBlock extends StatelessWidget {
   const _CompactNotesBlock({required this.notes});
 
@@ -788,12 +891,13 @@ class _CompactSectionCard extends StatelessWidget {
 
 class _DetailsActionsFooter extends StatelessWidget {
   const _DetailsActionsFooter({
-    required this.onEdit,
+    this.onEdit,
     this.onComplete,
     this.onCancel,
     this.isBusy = false,
     this.cancelError,
     this.completeError,
+    this.showEditButton = true,
   });
 
   final VoidCallback? onEdit;
@@ -802,6 +906,7 @@ class _DetailsActionsFooter extends StatelessWidget {
   final bool isBusy;
   final String? cancelError;
   final String? completeError;
+  final bool showEditButton;
 
   @override
   Widget build(BuildContext context) {
@@ -855,15 +960,17 @@ class _DetailsActionsFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxxs),
               ],
-              AppButton(
-                label: AppStrings.appointmentEditAction,
-                icon: Icons.edit_outlined,
-                variant: onComplete != null
-                    ? AppButtonVariant.outline
-                    : AppButtonVariant.primary,
-                isLoading: isBusy,
-                onPressed: isBusy ? null : onEdit,
-              ),
+              if (showEditButton && onEdit != null) ...[
+                AppButton(
+                  label: AppStrings.appointmentEditAction,
+                  icon: Icons.edit_outlined,
+                  variant: onComplete != null
+                      ? AppButtonVariant.outline
+                      : AppButtonVariant.primary,
+                  isLoading: isBusy,
+                  onPressed: isBusy ? null : onEdit,
+                ),
+              ],
               if (onCancel != null) ...[
                 const SizedBox(height: AppSpacing.xxxs),
                 _CancelAppointmentButton(

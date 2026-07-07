@@ -32,10 +32,22 @@ class ScheduleItem extends StatelessWidget {
     final theme = Theme.of(context);
     final statusStyle = _StatusStyle.fromStatus(appointment.status);
     final isNext = !isHighlighted && appointment.status == ScheduleStatus.next;
+    final isCompleted = appointment.status == ScheduleStatus.completed;
+    final isCanceled = appointment.status == ScheduleStatus.canceled;
     final contentOpacity = switch (appointment.status) {
-      ScheduleStatus.completed || ScheduleStatus.canceled => 0.78,
+      ScheduleStatus.completed => 0.82,
+      ScheduleStatus.canceled => 0.76,
       _ => 1.0,
     };
+    final cardBackgroundColor = isHighlighted
+        ? AppColors.purple50
+        : isNext
+        ? AppColors.purple50
+        : isCompleted
+        ? const Color(0xFFF7F8F7)
+        : isCanceled
+        ? const Color(0xFFF3F3F4)
+        : AppColors.surface;
     final durationLabel = appointment.durationLabel?.trim();
 
     return Material(
@@ -45,11 +57,7 @@ class ScheduleItem extends StatelessWidget {
         child: AnimatedContainer(
           duration: AppDurations.normal,
           decoration: BoxDecoration(
-            color: isHighlighted
-                ? AppColors.purple50
-                : isNext
-                ? AppColors.purple50
-                : AppColors.surface,
+            color: cardBackgroundColor,
             border: isHighlighted
                 ? Border.all(color: AppColors.purple300, width: 1.5)
                 : null,
@@ -172,6 +180,35 @@ class ScheduleItem extends StatelessWidget {
                                     ),
                                   ),
                                 ],
+                                if (appointment.statusSubtitle != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    appointment.statusSubtitle!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ],
+                                if (appointment.statusDetail != null) ...[
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    appointment.statusDetail!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.textSecondary
+                                          .withValues(alpha: 0.88),
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -264,8 +301,8 @@ class _StatusStyle {
       ),
       ScheduleStatus.canceled => const _StatusStyle(
         label: 'Cancelado',
-        backgroundColor: Color(0xFFF3F3F4),
-        foregroundColor: AppColors.textSecondary,
+        backgroundColor: Color(0xFFFCE8EA),
+        foregroundColor: Color(0xFF9B4A54),
       ),
     };
   }

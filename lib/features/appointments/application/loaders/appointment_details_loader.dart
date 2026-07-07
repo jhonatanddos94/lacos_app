@@ -1,5 +1,4 @@
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
-import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
@@ -31,24 +30,21 @@ class AppointmentDetailsLoader {
     required String appointmentId,
     required DateTime day,
   }) async {
-    final normalizedDay = DateTime(day.year, day.month, day.day);
-
     final (
-      appointments,
+      appointment,
       appointmentServices,
       clients,
       professionals,
       services,
     ) = await (
-      _appointmentRepository.findByDay(normalizedDay),
+      _appointmentRepository.findById(appointmentId),
       _appointmentServiceRepository.findByAppointment(appointmentId),
       _clientRepository.findAll(),
       _professionalRepository.findAll(),
       _serviceRepository.findAll(),
     ).wait;
 
-    final appointment = _findAppointment(appointments, appointmentId);
-    if (appointment == null) {
+    if (!appointment.isActive) {
       throw StateError('Agendamento não encontrado.');
     }
 
@@ -82,29 +78,33 @@ class AppointmentDetailsLoader {
     );
   }
 
-  Appointment? _findAppointment(
-    List<Appointment> appointments,
-    String appointmentId,
-  ) {
-    for (final appointment in appointments) {
-      if (appointment.id == appointmentId) {
-        return appointment;
-      }
-    }
-
-    return null;
-  }
-
   List<Service> _resolveServices({
     required List<AppointmentService> appointmentServices,
     required Map<String, Service> serviceById,
   }) {
-    final sorted = [...appointmentServices]
-      ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+    final activeServices = appointmentServices
+        .where((item) => item.isActive)
+        .toList();
+    activeServices.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
 
-    return sorted
-        .map((item) => serviceById[item.serviceId])
-        .whereType<Service>()
+    return activeServices
+        .map(
+          (item) =>
+              serviceById[item.serviceId] ??
+              _serviceFromBookingSnapshot(item),
+        )
         .toList(growable: false);
+  }
+
+  Service _serviceFromBookingSnapshot(AppointmentService item) {
+    return Service(
+      id: item.serviceId,
+      name: 'Serviço',
+      durationMinutes: item.durationMinutesAtBooking,
+      price: item.priceAtBooking,
+      isActive: true,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    );
   }
 }

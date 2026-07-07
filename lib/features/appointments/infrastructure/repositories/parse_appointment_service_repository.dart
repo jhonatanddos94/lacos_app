@@ -196,10 +196,53 @@ class ParseAppointmentServiceRepository implements AppointmentServiceRepository 
   }
 
   @override
-  Future<void> deleteByAppointment(String appointmentId) {
-    throw UnimplementedError(
-      'deleteByAppointment() será implementado em etapa futura.',
-    );
+  Future<void> deleteByAppointment(String appointmentId) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query = QueryBuilder<ParseObject>(
+        ParseObject(_appointmentServiceClassName),
+      )
+        ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
+        ..whereEqualTo('salon', _salonPointer(salon.id))
+        ..whereEqualTo('isActive', true);
+
+      final response = await query.query<ParseObject>();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      final results = response.results;
+      if (results == null || results.isEmpty) {
+        return;
+      }
+
+      for (final parseObject in results.whereType<ParseObject>()) {
+        parseObject.set<bool>('isActive', false);
+        final saveResponse = await parseObject.save();
+        if (!saveResponse.success) {
+          throw FormatException(
+            _errorMapper.toMessage(saveResponse.error, forSave: true),
+          );
+        }
+      }
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForSaveThrowable(
+          error,
+          fallback: AppStrings.appointmentServiceSaveError,
+        ),
+      );
+    }
   }
 
   ParseObject _servicePointer(String serviceId) {

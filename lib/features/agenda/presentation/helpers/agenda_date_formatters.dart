@@ -1,4 +1,10 @@
-String formatAgendaDateLine(DateTime day, {required bool isToday}) {
+import 'package:lacos_app/core/config/app_strings.dart';
+
+String formatAgendaDateLine(
+  DateTime day, {
+  required bool isToday,
+  bool isPastDay = false,
+}) {
   final weekday = fullAgendaWeekdayName(day.weekday);
   final dayNumber = day.day.toString().padLeft(2, '0');
   final month = fullAgendaMonthName(day.month);
@@ -6,6 +12,10 @@ String formatAgendaDateLine(DateTime day, {required bool isToday}) {
 
   if (isToday) {
     return 'Hoje • $formattedDate';
+  }
+
+  if (isPastDay) {
+    return '${AppStrings.agendaHistoricalDayLabel} • $formattedDate';
   }
 
   return formattedDate;

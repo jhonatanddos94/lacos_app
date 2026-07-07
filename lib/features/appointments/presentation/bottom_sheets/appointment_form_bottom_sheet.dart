@@ -103,11 +103,15 @@ class _AppointmentFormBottomSheetState
       );
     }
 
-    if (!_isEditMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (_isEditMode) {
+        ref.read(updateAppointmentControllerProvider.notifier).reset();
+      } else {
         ref.read(createAppointmentControllerProvider.notifier).reset();
-      });
-    }
+      }
+    });
   }
 
   void _prefillFromInitialData(AppointmentDetails details) {
@@ -133,7 +137,10 @@ class _AppointmentFormBottomSheetState
   }
 
   void _close() {
-    if (ref.read(createAppointmentControllerProvider).isLoading) return;
+    if (ref.read(createAppointmentControllerProvider).isLoading ||
+        ref.read(updateAppointmentControllerProvider).isLoading) {
+      return;
+    }
     Navigator.of(context).pop();
   }
 
@@ -152,7 +159,35 @@ class _AppointmentFormBottomSheetState
     if (!_validateForm()) return;
 
     if (_isEditMode) {
-      _showMessage(AppStrings.appointmentUpdateComingSoon);
+      if (ref.read(updateAppointmentControllerProvider).isLoading) return;
+
+      setState(() => _saveError = null);
+
+      final updatedAppointment = await ref
+          .read(updateAppointmentControllerProvider.notifier)
+          .save(
+            appointmentId: widget.initialData!.appointment.id,
+            clientId: _selectedClient!.id,
+            professionalId: _selectedProfessional!.id,
+            services: _selectedServices,
+            startAt: _buildStartAt(),
+            endAt: _buildEndAt(),
+            notes: _notesController.text.trim(),
+          );
+
+      if (!mounted) return;
+
+      if (updatedAppointment != null) {
+        Navigator.of(context).pop(updatedAppointment);
+        return;
+      }
+
+      final errorMessage = _resolveSaveErrorMessage();
+      if (errorMessage != null) {
+        debugPrint('[AppointmentUpdate] failed: $errorMessage');
+        setState(() => _saveError = errorMessage);
+        _showMessage(errorMessage);
+      }
       return;
     }
 
@@ -221,11 +256,15 @@ class _AppointmentFormBottomSheetState
   }
 
   String? _resolveSaveErrorMessage() {
-    final error = ref.read(createAppointmentControllerProvider).error;
+    final error = _isEditMode
+        ? ref.read(updateAppointmentControllerProvider).error
+        : ref.read(createAppointmentControllerProvider).error;
 
     return switch (error) {
       FormatException(message: final message) => message,
-      _ => AppStrings.appointmentSaveError,
+      _ => _isEditMode
+          ? AppStrings.appointmentUpdateError
+          : AppStrings.appointmentSaveError,
     };
   }
 
@@ -675,7 +714,9 @@ class _AppointmentFormBottomSheetState
       );
     }
 
-    final isSaving = ref.watch(createAppointmentControllerProvider).isLoading;
+    final isSaving = _isEditMode
+        ? ref.watch(updateAppointmentControllerProvider).isLoading
+        : ref.watch(createAppointmentControllerProvider).isLoading;
     final sheetHeight = MediaQuery.sizeOf(context).height * 0.9;
 
     return PopScope(

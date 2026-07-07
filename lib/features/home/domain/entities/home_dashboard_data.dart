@@ -69,6 +69,8 @@ class TodayScheduleAppointment {
     required this.status,
     this.durationLabel,
     this.clientPhotoUrl,
+    this.statusSubtitle,
+    this.statusDetail,
   });
 
   final String startTime;
@@ -78,6 +80,8 @@ class TodayScheduleAppointment {
   final ScheduleStatus status;
   final String? durationLabel;
   final String? clientPhotoUrl;
+  final String? statusSubtitle;
+  final String? statusDetail;
 }
 
 enum ScheduleStatus { completed, next, pending, confirmed, canceled }

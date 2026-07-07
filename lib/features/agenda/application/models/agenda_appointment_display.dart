@@ -1,3 +1,4 @@
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 
 class AgendaAppointmentDisplay {
@@ -9,6 +10,8 @@ class AgendaAppointmentDisplay {
     required this.endAt,
     required this.status,
     this.clientPhotoUrl,
+    this.canceledBy,
+    this.cancellationReason,
   });
 
   final String appointmentId;
@@ -18,4 +21,6 @@ class AgendaAppointmentDisplay {
   final DateTime startAt;
   final DateTime endAt;
   final AppointmentStatus status;
+  final AppointmentCanceledBy? canceledBy;
+  final String? cancellationReason;
 }

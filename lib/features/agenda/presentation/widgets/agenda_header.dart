@@ -15,12 +15,16 @@ class AgendaHeader extends StatelessWidget {
     required this.selectedDay,
     required this.appointments,
     required this.isLoading,
+    required this.onCalendarPressed,
+    this.isPastDay = false,
     super.key,
   });
 
   final DateTime selectedDay;
   final List<AgendaAppointmentDisplay>? appointments;
   final bool isLoading;
+  final VoidCallback onCalendarPressed;
+  final bool isPastDay;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +50,11 @@ class AgendaHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                formatAgendaDateLine(selectedDay, isToday: isToday),
+                formatAgendaDateLine(
+                  selectedDay,
+                  isToday: isToday,
+                  isPastDay: isPastDay,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -56,7 +64,7 @@ class AgendaHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                _buildSummary(isToday: isToday),
+                _buildSummary(isToday: isToday, isPastDay: isPastDay),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
@@ -71,21 +79,31 @@ class AgendaHeader extends StatelessWidget {
         const SizedBox(width: AppSpacing.xs),
         AgendaHeaderIconButton(
           icon: Icons.calendar_month_rounded,
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(AppStrings.agendaFullCalendarSoon),
-              ),
-            );
-          },
+          tooltip: AppStrings.agendaOpenCalendar,
+          onPressed: onCalendarPressed,
         ),
       ],
     );
   }
 
-  String _buildSummary({required bool isToday}) {
+  String _buildSummary({required bool isToday, required bool isPastDay}) {
     if (isLoading) {
       return AppStrings.loading;
+    }
+
+    if (isPastDay) {
+      final loadedAppointments = appointments;
+      if (loadedAppointments == null) {
+        return AppStrings.agendaHistoricalDayLabel;
+      }
+
+      if (loadedAppointments.isEmpty) {
+        return AppStrings.agendaHistoricalDayLabel;
+      }
+
+      return loadedAppointments.length == 1
+          ? '1 atendimento registrado'
+          : '${loadedAppointments.length} atendimentos registrados';
     }
 
     final loadedAppointments = appointments;
@@ -117,11 +135,13 @@ class AgendaHeaderIconButton extends StatelessWidget {
   const AgendaHeaderIconButton({
     required this.icon,
     required this.onPressed,
+    this.tooltip,
     super.key,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +153,7 @@ class AgendaHeaderIconButton extends StatelessWidget {
         icon: Icon(icon),
         color: AppColors.purple700,
         iconSize: AppIconSizes.md,
-        tooltip: '',
+        tooltip: tooltip ?? '',
       ),
     );
   }

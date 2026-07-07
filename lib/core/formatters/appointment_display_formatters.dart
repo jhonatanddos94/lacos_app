@@ -1,3 +1,5 @@
+import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 
 String formatAppointmentDateLabel(DateTime date) {
@@ -75,6 +77,30 @@ String formatAppointmentStatusLabel(AppointmentStatus status) {
     AppointmentStatus.completed => 'Concluído',
     AppointmentStatus.canceled => 'Cancelado',
   };
+}
+
+String? formatAppointmentCanceledByLabel(AppointmentCanceledBy? canceledBy) {
+  return switch (canceledBy) {
+    AppointmentCanceledBy.client => AppStrings.appointmentCanceledByClientLabel,
+    AppointmentCanceledBy.salon => AppStrings.appointmentCanceledBySalonLabel,
+    null => null,
+  };
+}
+
+String formatAppointmentCancellationReasonDisplay(String? cancellationReason) {
+  final reason = cancellationReason?.trim();
+  if (reason != null && reason.isNotEmpty) {
+    return reason;
+  }
+
+  return AppStrings.appointmentCancellationReasonNotProvided;
+}
+
+String formatAgendaSectionTitle({
+  required String baseTitle,
+  required int count,
+}) {
+  return '$baseTitle ($count)';
 }
 
 String formatAppointmentDateTimeRange(DateTime startAt, DateTime endAt) {

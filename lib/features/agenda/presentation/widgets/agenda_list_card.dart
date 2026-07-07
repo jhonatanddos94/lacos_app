@@ -7,12 +7,10 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 class AgendaListCard extends StatelessWidget {
   const AgendaListCard({
     required this.child,
-    required this.bottomPadding,
     super.key,
   });
 
   final Widget child;
-  final double bottomPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +26,7 @@ class AgendaListCard extends StatelessWidget {
             boxShadow: AppShadows.level1,
             border: Border.all(color: AppColors.divider),
           ),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding),
-            child: child,
-          ),
+          child: child,
         ),
       ),
     );
