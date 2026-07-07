@@ -1,5 +1,6 @@
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
 import 'package:lacos_app/features/clients/domain/repositories/client_repository.dart';
@@ -24,7 +25,9 @@ class AgendaAppointmentsDisplayLoader {
 
   Future<List<AgendaAppointmentDisplay>> loadForDay(DateTime day) async {
     final normalizedDay = DateTime(day.year, day.month, day.day);
-    final appointments = await _appointmentRepository.findByDay(normalizedDay);
+    final appointments = (await _appointmentRepository.findByDay(normalizedDay))
+        .where((appointment) => appointment.status != AppointmentStatus.canceled)
+        .toList(growable: false);
     if (appointments.isEmpty) {
       return const [];
     }

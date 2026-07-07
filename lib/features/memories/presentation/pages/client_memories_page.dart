@@ -14,10 +14,11 @@ import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_actions_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_form_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_empty_state.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memories_error_state.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memories_header.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_summary_card.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memory_card.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/memory_delete_dialog.dart';
-import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class ClientMemoriesPage extends ConsumerStatefulWidget {
   const ClientMemoriesPage({required this.client, super.key});
@@ -168,7 +169,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
             ),
             Column(
               children: [
-                _ClientMemoriesHeader(onBack: () => context.pop()),
+                ClientMemoriesHeader(onBack: () => context.pop()),
                 Expanded(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -196,7 +197,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
                                 loading: () => const Center(
                                   child: CircularProgressIndicator(),
                                 ),
-                                error: (_, _) => _ClientMemoriesErrorState(
+                                error: (_, _) => ClientMemoriesErrorState(
                                   onRetry: _retryLoadMemories,
                                 ),
                                 data: (loadedMemories) =>
@@ -240,122 +241,6 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ClientMemoriesHeader extends StatelessWidget {
-  const _ClientMemoriesHeader({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: AppSpacing.screenPadding.copyWith(
-          top: AppSpacing.xs,
-          bottom: AppSpacing.sm,
-        ),
-        child: Row(
-          children: [
-            _HeaderIconButton(
-              icon: Icons.arrow_back_rounded,
-              onPressed: onBack,
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    AppStrings.clientMemories,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppColors.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxs),
-                  Text(
-                    AppStrings.clientMemoriesSubtitle,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.onPrimary.withValues(alpha: 0.88),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            _HeaderIconButton(
-              icon: Icons.tune_rounded,
-              onPressed: () {
-                // TODO(filtros de memórias)
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.onPrimary.withValues(alpha: 0.14),
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        color: AppColors.onPrimary,
-        iconSize: AppIconSizes.md,
-        tooltip: '',
-      ),
-    );
-  }
-}
-
-class _ClientMemoriesErrorState extends StatelessWidget {
-  const _ClientMemoriesErrorState({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: AppSpacing.screenPadding,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            AppStrings.clientMemoriesLoadError,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: AppColors.graphite,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppButton(
-            label: AppStrings.tryAgain,
-            onPressed: onRetry,
-          ),
-        ],
       ),
     );
   }

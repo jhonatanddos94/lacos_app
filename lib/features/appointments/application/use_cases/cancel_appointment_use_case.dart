@@ -1,0 +1,26 @@
+import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
+import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
+
+class CancelAppointmentUseCase {
+  const CancelAppointmentUseCase({
+    required AppointmentRepository appointmentRepository,
+  }) : _appointmentRepository = appointmentRepository;
+
+  final AppointmentRepository _appointmentRepository;
+
+  Future<Appointment> call(String appointmentId) async {
+    final appointment = await _appointmentRepository.findById(appointmentId);
+
+    if (appointment.status == AppointmentStatus.completed) {
+      throw const AppointmentCannotCancelCompletedException();
+    }
+
+    if (appointment.status == AppointmentStatus.canceled) {
+      return appointment;
+    }
+
+    return _appointmentRepository.cancel(appointmentId);
+  }
+}

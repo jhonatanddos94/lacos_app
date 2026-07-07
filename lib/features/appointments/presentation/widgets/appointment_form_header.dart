@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
@@ -26,10 +25,14 @@ class AppointmentBottomSheetHandle extends StatelessWidget {
 
 class AppointmentFormHeader extends StatelessWidget {
   const AppointmentFormHeader({
+    required this.title,
     required this.onClose,
+    this.subtitle,
     super.key,
   });
 
+  final String title;
+  final String? subtitle;
   final VoidCallback? onClose;
 
   @override
@@ -46,22 +49,24 @@ class AppointmentFormHeader extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                AppStrings.newAppointmentTitle,
+                title,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: AppColors.graphite,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxxs),
-              Text(
-                AppStrings.newAppointmentSubtitle,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.35,
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.xxxs),
+                Text(
+                  subtitle!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.35,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

@@ -1,3 +1,4 @@
+import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
 
@@ -37,12 +38,19 @@ class AppointmentAvailabilityCalculator {
       salonClosingHour,
     );
 
+    DateTime? notBefore;
+    final now = DateTime.now();
+    if (isSameAppointmentDate(normalizedDay, now)) {
+      notBefore = now;
+    }
+
     return _engine.calculateAvailableStartTimes(
       day: normalizedDay,
       durationMinutes: durationMinutes,
       existingAppointments: professionalAppointments,
       openingTime: openingTime,
       closingTime: closingTime,
+      notBefore: notBefore,
     );
   }
 

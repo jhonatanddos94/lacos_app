@@ -1,0 +1,4 @@
+enum AppointmentFormMode {
+  create,
+  edit,
+}

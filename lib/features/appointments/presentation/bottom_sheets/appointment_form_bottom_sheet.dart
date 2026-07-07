@@ -11,8 +11,10 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
+import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_selected_service_actions_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/appointment_availability_calculator.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_client_section.dart';
@@ -29,16 +31,26 @@ import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/services/presentation/bottom_sheets/service_picker_bottom_sheet.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
-class CreateAppointmentBottomSheet extends ConsumerStatefulWidget {
-  const CreateAppointmentBottomSheet({super.key});
+class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
+  const AppointmentFormBottomSheet({
+    this.mode = AppointmentFormMode.create,
+    this.initialData,
+    super.key,
+  }) : assert(
+         mode == AppointmentFormMode.create || initialData != null,
+         'initialData is required for edit mode',
+       );
+
+  final AppointmentFormMode mode;
+  final AppointmentDetails? initialData;
 
   @override
-  ConsumerState<CreateAppointmentBottomSheet> createState() =>
-      _CreateAppointmentBottomSheetState();
+  ConsumerState<AppointmentFormBottomSheet> createState() =>
+      _AppointmentFormBottomSheetState();
 }
 
-class _CreateAppointmentBottomSheetState
-    extends ConsumerState<CreateAppointmentBottomSheet> {
+class _AppointmentFormBottomSheetState
+    extends ConsumerState<AppointmentFormBottomSheet> {
   static const _emptyTimeLabel = '--:--';
   static const _availabilityCalculator = AppointmentAvailabilityCalculator();
 
@@ -62,12 +74,47 @@ class _CreateAppointmentBottomSheetState
   String? _startTimeError;
   String? _saveError;
 
+  bool get _isEditMode => widget.mode == AppointmentFormMode.edit;
+
+  String get _formTitle => _isEditMode
+      ? AppStrings.appointmentFormEditTitle
+      : AppStrings.appointmentFormCreateTitle;
+
+  String? get _formSubtitle =>
+      _isEditMode ? null : AppStrings.newAppointmentSubtitle;
+
+  String get _submitLabel => _isEditMode
+      ? AppStrings.appointmentFormEditAction
+      : AppStrings.appointmentFormCreateAction;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(createAppointmentControllerProvider.notifier).reset();
-    });
+
+    if (_isEditMode) {
+      _prefillFromInitialData(widget.initialData!);
+    }
+
+    if (!_isEditMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(createAppointmentControllerProvider.notifier).reset();
+      });
+    }
+  }
+
+  void _prefillFromInitialData(AppointmentDetails details) {
+    final startAt = details.appointment.startAt;
+
+    _selectedClient = details.client;
+    _selectedServices = List<Service>.from(details.services);
+    _selectedProfessional = details.professional;
+    _selectedDate = normalizeAppointmentDate(startAt);
+    _selectedStartTimeMinutes = startAt.hour * 60 + startAt.minute;
+
+    final notes = details.notes?.trim();
+    if (notes != null && notes.isNotEmpty) {
+      _notesController.text = notes;
+    }
   }
 
   @override
@@ -93,8 +140,14 @@ class _CreateAppointmentBottomSheetState
     );
   }
 
-  Future<void> _confirmAppointment() async {
+  Future<void> _submitForm() async {
     if (!_validateForm()) return;
+
+    if (_isEditMode) {
+      _showMessage(AppStrings.appointmentUpdateComingSoon);
+      return;
+    }
+
     if (ref.read(createAppointmentControllerProvider).isLoading) return;
 
     setState(() => _saveError = null);
@@ -124,6 +177,14 @@ class _CreateAppointmentBottomSheetState
       setState(() => _saveError = errorMessage);
       _showMessage(errorMessage);
     }
+  }
+
+  bool get _isSelectedStartTimeInPast {
+    if (_selectedDate == null || _selectedStartTimeMinutes == null) {
+      return false;
+    }
+
+    return _buildStartAt().isBefore(DateTime.now());
   }
 
   DateTime _buildStartAt() {
@@ -175,7 +236,9 @@ class _CreateAppointmentBottomSheetState
         : null;
     final startTimeError = _selectedStartTimeMinutes == null
         ? AppStrings.appointmentStartTimeRequired
-        : null;
+        : (!_isEditMode && _isSelectedStartTimeInPast)
+            ? AppStrings.appointmentStartAtInPast
+            : null;
 
     setState(() {
       _clientError = clientError;
@@ -499,6 +562,19 @@ class _CreateAppointmentBottomSheetState
     ref.invalidate(appointmentsByDayProvider(AgendaDay.from(date)));
   }
 
+  List<Appointment> _filterDayAppointmentsForAvailability(
+    List<Appointment> appointments,
+  ) {
+    if (!_isEditMode) return appointments;
+
+    final appointmentId = widget.initialData?.appointment.id;
+    if (appointmentId == null) return appointments;
+
+    return appointments
+        .where((appointment) => appointment.id != appointmentId)
+        .toList(growable: false);
+  }
+
   List<DateTime> _calculateAvailableStartTimes(
     List<Appointment> dayAppointments,
   ) {
@@ -508,7 +584,7 @@ class _CreateAppointmentBottomSheetState
     return _availabilityCalculator.calculateAvailableStartTimes(
       day: date,
       durationMinutes: _totalDurationMinutes,
-      dayAppointments: dayAppointments,
+      dayAppointments: _filterDayAppointmentsForAvailability(dayAppointments),
       professionalId: professional.id,
     );
   }
@@ -630,6 +706,8 @@ class _CreateAppointmentBottomSheetState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             AppointmentFormHeader(
+                              title: _formTitle,
+                              subtitle: _formSubtitle,
                               onClose: isSaving ? null : _close,
                             ),
                           const SizedBox(height: AppSpacing.lg),
@@ -710,10 +788,10 @@ class _CreateAppointmentBottomSheetState
                           ],
                           const SizedBox(height: AppSpacing.lg),
                           AppButton(
-                            label: AppStrings.appointmentConfirm,
+                            label: _submitLabel,
                             icon: Icons.check_circle_outline_rounded,
                             isLoading: isSaving,
-                            onPressed: isSaving ? null : _confirmAppointment,
+                            onPressed: isSaving ? null : _submitForm,
                           ),
                         ],
                       ),

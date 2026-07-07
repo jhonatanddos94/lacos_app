@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
+import 'package:lacos_app/features/appointments/application/controllers/cancel_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/create_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
+import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/create_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
@@ -34,6 +36,23 @@ final createAppointmentControllerProvider =
     >((ref) {
       final useCase = ref.watch(createAppointmentUseCaseProvider);
       return CreateAppointmentController(useCase);
+    });
+
+final cancelAppointmentUseCaseProvider = Provider<CancelAppointmentUseCase>((
+  ref,
+) {
+  return CancelAppointmentUseCase(
+    appointmentRepository: ref.watch(appointmentRepositoryProvider),
+  );
+});
+
+final cancelAppointmentControllerProvider =
+    StateNotifierProvider<
+      CancelAppointmentController,
+      AsyncValue<Appointment?>
+    >((ref) {
+      final useCase = ref.watch(cancelAppointmentUseCaseProvider);
+      return CancelAppointmentController(useCase);
     });
 
 final appointmentRepositoryProvider = Provider<AppointmentRepository>((ref) {

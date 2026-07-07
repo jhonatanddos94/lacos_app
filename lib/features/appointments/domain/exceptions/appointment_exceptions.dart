@@ -5,6 +5,7 @@ enum AppointmentValidationCode {
   invalidServiceId,
   invalidServiceDuration,
   invalidTimeRange,
+  startAtInPast,
   notesTooLong,
 }
 
@@ -26,4 +27,8 @@ class AppointmentPartialSaveException implements Exception {
 
   final String appointmentId;
   final Object? cause;
+}
+
+class AppointmentCannotCancelCompletedException implements Exception {
+  const AppointmentCannotCancelCompletedException();
 }

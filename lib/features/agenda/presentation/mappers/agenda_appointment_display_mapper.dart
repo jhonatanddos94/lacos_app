@@ -20,6 +20,7 @@ class AgendaAppointmentDisplayMapper {
             startTime: formatAppointmentClockTime(appointment.startAt),
             endTime: formatAppointmentClockTime(appointment.endAt),
             clientName: appointment.clientName,
+            clientPhotoUrl: appointment.clientPhotoUrl,
             serviceName: appointment.servicesSummary,
             durationLabel: formatAppointmentDuration(
               appointment.startAt,

@@ -142,6 +142,11 @@ abstract final class AppStrings {
   static const String newAppointmentTitle = 'Novo Agendamento';
   static const String newAppointmentSubtitle =
       'Preencha os dados do atendimento';
+  static const String appointmentFormCreateTitle = 'Novo agendamento';
+  static const String appointmentFormCreateAction = 'Salvar agendamento';
+  static const String appointmentFormEditTitle = 'Editar atendimento';
+  static const String appointmentFormEditAction = 'Salvar alterações';
+  static const String appointmentUpdateComingSoon = 'Atualização em breve.';
   static const String appointmentClientSection = 'Cliente';
   static const String appointmentClientSectionSubtitle =
       'Quem será atendida?';
@@ -260,10 +265,31 @@ abstract final class AppStrings {
       'O agendamento foi parcialmente salvo. Verifique a agenda antes de tentar novamente.';
   static const String appointmentCreatedSuccess =
       'Agendamento criado com sucesso.';
+  static const String appointmentDetailsTitle = 'Atendimento';
+  static const String appointmentEditAction = 'Editar atendimento';
+  static const String appointmentCancelAction = 'Cancelar atendimento';
+  static const String appointmentCancelTitle = 'Cancelar atendimento?';
+  static const String appointmentCancelMessage =
+      'Esse atendimento deixará de ocupar horário na agenda, '
+      'mas continuará salvo no histórico.';
+  static const String appointmentCancelBack = 'Voltar';
+  static const String appointmentCancelConfirm = 'Cancelar atendimento';
+  static const String appointmentCancelSuccess =
+      'Atendimento cancelado com sucesso.';
+  static const String appointmentCancelError =
+      'Não foi possível cancelar o atendimento. Tente novamente.';
+  static const String appointmentCannotCancelCompleted =
+      'Atendimentos concluídos não podem ser cancelados.';
+  static const String appointmentDetailsNotesSection = 'Observações';
+  static const String appointmentDetailsTotalPrefix = 'Total:';
+  static const String appointmentDetailsLoadError =
+      'Não foi possível carregar os detalhes do atendimento.';
   static const String appointmentServiceSaveError =
       'Não foi possível salvar os serviços do agendamento. Tente novamente.';
   static const String appointmentInvalidTimeRange =
       'O horário de término deve ser depois do horário de início.';
+  static const String appointmentStartAtInPast =
+      'Não é possível agendar em um horário que já passou.';
   static const String appointmentNotesMaxLengthError =
       'As observações devem ter no máximo 200 caracteres.';
   static const String clientNoNextAppointment = 'Nenhum atendimento agendado.';

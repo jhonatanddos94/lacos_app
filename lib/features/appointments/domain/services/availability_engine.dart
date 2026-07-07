@@ -12,6 +12,7 @@ class AvailabilityEngine {
     required List<Appointment> existingAppointments,
     required DateTime openingTime,
     required DateTime closingTime,
+    DateTime? notBefore,
   }) {
     if (durationMinutes <= 0) {
       return const [];
@@ -44,6 +45,13 @@ class AvailabilityEngine {
 
       if (candidateEnd.isAfter(closeAt)) {
         break;
+      }
+
+      if (notBefore != null && candidateStart.isBefore(notBefore)) {
+        candidateStart = candidateStart.add(
+          const Duration(minutes: slotIntervalMinutes),
+        );
+        continue;
       }
 
       if (!_hasConflict(

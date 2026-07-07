@@ -147,6 +147,12 @@ class CreateAppointmentUseCase {
       );
     }
 
+    if (startAt.isBefore(DateTime.now())) {
+      throw const AppointmentValidationException(
+        AppointmentValidationCode.startAtInPast,
+      );
+    }
+
     final trimmedNotes = notes?.trim();
     if (trimmedNotes != null &&
         trimmedNotes.length > AppFieldLimits.appointmentNotes) {

@@ -1,3 +1,5 @@
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+
 String formatAppointmentDateLabel(DateTime date) {
   const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   const months = [
@@ -64,4 +66,21 @@ String formatAppointmentDuration(DateTime startAt, DateTime endAt) {
 
 bool isSameAppointmentDate(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+String formatAppointmentStatusLabel(AppointmentStatus status) {
+  return switch (status) {
+    AppointmentStatus.pending => 'Pendente',
+    AppointmentStatus.confirmed => 'Confirmado',
+    AppointmentStatus.completed => 'Concluído',
+    AppointmentStatus.canceled => 'Cancelado',
+  };
+}
+
+String formatAppointmentDateTimeRange(DateTime startAt, DateTime endAt) {
+  final dateLabel = formatAppointmentDateLabel(startAt);
+  final startTime = formatAppointmentClockTime(startAt);
+  final endTime = formatAppointmentClockTime(endAt);
+
+  return '$dateLabel • $startTime – $endTime';
 }

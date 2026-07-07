@@ -195,6 +195,40 @@ void main() {
         expect(isAvailable, isFalse, reason: status.name);
       }
     });
+
+    test('notBefore remove horários passados do dia atual', () {
+      final notBefore = DateTime(2025, 7, 6, 14, 30);
+
+      final available = engine.calculateAvailableStartTimes(
+        day: day,
+        durationMinutes: 60,
+        existingAppointments: const [],
+        openingTime: openingTime,
+        closingTime: closingTime,
+        notBefore: notBefore,
+      );
+
+      expect(available, isNot(contains(DateTime(2025, 7, 6, 9))));
+      expect(available, isNot(contains(DateTime(2025, 7, 6, 14, 15))));
+      expect(available, contains(DateTime(2025, 7, 6, 14, 30)));
+      expect(available, contains(DateTime(2025, 7, 6, 15)));
+    });
+
+    test('notBefore mantém slots futuros quando informado', () {
+      final notBefore = DateTime(2025, 7, 6, 16);
+
+      final available = engine.calculateAvailableStartTimes(
+        day: day,
+        durationMinutes: 60,
+        existingAppointments: const [],
+        openingTime: openingTime,
+        closingTime: closingTime,
+        notBefore: notBefore,
+      );
+
+      expect(available.first, DateTime(2025, 7, 6, 16));
+      expect(available.last, DateTime(2025, 7, 6, 17));
+    });
   });
 }
 

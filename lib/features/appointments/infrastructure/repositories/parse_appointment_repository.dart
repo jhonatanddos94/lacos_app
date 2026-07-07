@@ -3,6 +3,7 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/infrastructure/errors/parse_appointment_error_mapper.dart';
 import 'package:lacos_app/features/appointments/infrastructure/mappers/appointment_mapper.dart';
@@ -135,6 +136,86 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
+  Future<Appointment> findById(String appointmentId) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final parseAppointment = await _fetchParseAppointment(appointmentId);
+      final appointment = _mapper.toDomain(parseAppointment);
+
+      if (appointment.salonId != salon.id) {
+        throw StateError(
+          'Não foi possível carregar o agendamento. Tente novamente.',
+        );
+      }
+
+      return appointment;
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback:
+              'Não foi possível carregar o agendamento. Tente novamente.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Appointment> cancel(String appointmentId) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final parseAppointment = await _fetchParseAppointment(appointmentId);
+      final appointment = _mapper.toDomain(parseAppointment);
+
+      if (appointment.salonId != salon.id) {
+        throw StateError(
+          'Não foi possível cancelar o agendamento. Tente novamente.',
+        );
+      }
+
+      parseAppointment
+        ..set<String>('status', AppointmentStatus.canceled.toParse())
+        ..set<bool>('isActive', true);
+
+      final response = await parseAppointment.save();
+      if (!response.success) {
+        throw FormatException(
+          _errorMapper.toMessage(response.error, forSave: true),
+        );
+      }
+
+      return _mapper.toDomain(parseAppointment);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForSaveThrowable(
+          error,
+          fallback: AppStrings.appointmentCancelError,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Appointment> update(Appointment appointment) {
     throw UnimplementedError('update() será implementado em etapa futura.');
   }
@@ -154,5 +235,24 @@ class ParseAppointmentRepository implements AppointmentRepository {
 
   ParseObject _salonPointer(String salonId) {
     return ParseObject(_salonClassName)..objectId = salonId;
+  }
+
+  Future<ParseObject> _fetchParseAppointment(String appointmentId) async {
+    final parseAppointment = ParseObject(_appointmentClassName)
+      ..objectId = appointmentId;
+
+    try {
+      await parseAppointment.fetch();
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback:
+              'Não foi possível carregar o agendamento. Tente novamente.',
+        ),
+      );
+    }
+
+    return parseAppointment;
   }
 }

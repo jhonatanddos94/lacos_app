@@ -5,17 +5,20 @@ import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
 
 class ScheduleItem extends StatelessWidget {
   const ScheduleItem({
     required this.appointment,
     this.showTimeColumn = true,
+    this.onTap,
     super.key,
   });
 
   final TodayScheduleAppointment appointment;
   final bool showTimeColumn;
+  final VoidCallback? onTap;
 
   bool get _hasServiceLabel {
     final serviceName = appointment.serviceName.trim();
@@ -26,9 +29,6 @@ class ScheduleItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final statusStyle = _StatusStyle.fromStatus(appointment.status);
-    final initial = appointment.clientName.isEmpty
-        ? 'L'
-        : appointment.clientName.substring(0, 1);
     final isNext = appointment.status == ScheduleStatus.next;
     final contentOpacity = switch (appointment.status) {
       ScheduleStatus.completed || ScheduleStatus.canceled => 0.78,
@@ -39,7 +39,7 @@ class ScheduleItem extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: AnimatedContainer(
           duration: AppDurations.normal,
           color: isNext ? AppColors.purple50 : AppColors.surface,
@@ -116,15 +116,14 @@ class ScheduleItem extends StatelessWidget {
                             ),
                             const SizedBox(width: AppSpacing.sm),
                           ],
-                          CircleAvatar(
+                          ClientAvatar(
+                            name: appointment.clientName,
+                            photoUrl: appointment.clientPhotoUrl,
                             radius: 18,
-                            backgroundColor: AppColors.purple100,
-                            child: Text(
-                              initial,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: AppColors.purple800,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            initialTextStyle:
+                                theme.textTheme.labelMedium?.copyWith(
+                              color: AppColors.purple800,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.xs),

@@ -113,6 +113,10 @@ class CreateAppointmentController
       return AppStrings.appointmentInvalidTimeRange;
     }
 
+    if (startAt.isBefore(DateTime.now())) {
+      return AppStrings.appointmentStartAtInPast;
+    }
+
     final trimmedNotes = notes?.trim();
     if (trimmedNotes != null &&
         trimmedNotes.length > AppFieldLimits.appointmentNotes) {
@@ -160,6 +164,8 @@ String _validationMessageForCode(AppointmentValidationCode code) {
       AppValidationMessages.serviceDurationRequired,
     AppointmentValidationCode.invalidTimeRange =>
       AppStrings.appointmentInvalidTimeRange,
+    AppointmentValidationCode.startAtInPast =>
+      AppStrings.appointmentStartAtInPast,
     AppointmentValidationCode.notesTooLong =>
       AppStrings.appointmentNotesMaxLengthError,
   };
