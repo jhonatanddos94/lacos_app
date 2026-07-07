@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lacos_app/features/appointments/application/models/cancel_appointment_params.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
@@ -15,21 +17,23 @@ void main() {
       useCase = CancelAppointmentUseCase(appointmentRepository: repository);
     });
 
-    test('cancela agendamento pendente', () async {
+    test('cancela agendamento pendente com contexto de CRM', () async {
       repository.appointment = _appointment(status: AppointmentStatus.pending);
 
-      final result = await useCase('appointment-1');
+      final result = await useCase(_params());
 
       expect(result.status, AppointmentStatus.canceled);
       expect(result.isActive, isTrue);
       expect(repository.cancelCalls, 1);
+      expect(repository.lastCanceledBy, AppointmentCanceledBy.client);
+      expect(repository.lastCancellationReason, 'Cliente desistiu');
     });
 
     test('bloqueia cancelamento de agendamento concluído', () {
       repository.appointment = _appointment(status: AppointmentStatus.completed);
 
       expect(
-        () => useCase('appointment-1'),
+        () => useCase(_params()),
         throwsA(isA<AppointmentCannotCancelCompletedException>()),
       );
       expect(repository.cancelCalls, 0);
@@ -38,18 +42,36 @@ void main() {
     test('retorna agendamento já cancelado sem chamar cancel novamente', () async {
       repository.appointment = _appointment(status: AppointmentStatus.canceled);
 
-      final result = await useCase('appointment-1');
+      final result = await useCase(_params());
 
       expect(result.status, AppointmentStatus.canceled);
       expect(repository.cancelCalls, 0);
     });
+
+    test('propaga AppointmentAlreadyCanceledException do repository', () {
+      repository.appointment = _appointment(status: AppointmentStatus.pending);
+      repository.shouldThrowAlreadyCanceled = true;
+
+      expect(
+        () => useCase(_params()),
+        throwsA(isA<AppointmentAlreadyCanceledException>()),
+      );
+    });
   });
+}
+
+CancelAppointmentParams _params() {
+  return const CancelAppointmentParams(
+    appointmentId: 'appointment-1',
+    canceledBy: AppointmentCanceledBy.client,
+    cancellationReason: 'Cliente desistiu',
+  );
 }
 
 Appointment _appointment({
   AppointmentStatus status = AppointmentStatus.pending,
 }) {
-  final now = DateTime(2025, 7, 6, 10);
+  final now = DateTime(2026, 7, 7, 10);
 
   return Appointment(
     id: 'appointment-1',
@@ -69,11 +91,30 @@ Appointment _appointment({
 class _FakeAppointmentRepository implements AppointmentRepository {
   Appointment? appointment;
   var cancelCalls = 0;
+  AppointmentCanceledBy? lastCanceledBy;
+  String? lastCancellationReason;
+  var shouldThrowAlreadyCanceled = false;
 
   @override
-  Future<Appointment> cancel(String appointmentId) async {
+  Future<Appointment> cancel({
+    required String appointmentId,
+    required AppointmentCanceledBy canceledBy,
+    String? cancellationReason,
+  }) async {
     cancelCalls++;
+    lastCanceledBy = canceledBy;
+    lastCancellationReason = cancellationReason;
+
+    if (shouldThrowAlreadyCanceled) {
+      throw const AppointmentAlreadyCanceledException();
+    }
+
     return _appointment(status: AppointmentStatus.canceled);
+  }
+
+  @override
+  Future<Appointment> complete(String appointmentId) {
+    throw UnimplementedError();
   }
 
   @override

@@ -1,9 +1,12 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:flutter/foundation.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/infrastructure/errors/parse_appointment_error_mapper.dart';
 import 'package:lacos_app/features/appointments/infrastructure/mappers/appointment_mapper.dart';
@@ -171,7 +174,11 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> cancel(String appointmentId) async {
+  Future<Appointment> cancel({
+    required String appointmentId,
+    required AppointmentCanceledBy canceledBy,
+    String? cancellationReason,
+  }) async {
     try {
       final salon = await _salonRepository.getCurrentSalon();
       if (salon == null) {
@@ -189,9 +196,20 @@ class ParseAppointmentRepository implements AppointmentRepository {
         );
       }
 
-      parseAppointment
-        ..set<String>('status', AppointmentStatus.canceled.toParse())
-        ..set<bool>('isActive', true);
+      if (appointment.status == AppointmentStatus.completed) {
+        throw const AppointmentCannotCancelCompletedException();
+      }
+
+      if (appointment.status == AppointmentStatus.canceled) {
+        throw const AppointmentAlreadyCanceledException();
+      }
+
+      _mapper.applyCancellation(
+        object: parseAppointment,
+        canceledBy: canceledBy,
+        canceledAt: DateTime.now(),
+        cancellationReason: cancellationReason,
+      );
 
       final response = await parseAppointment.save();
       if (!response.success) {
@@ -201,6 +219,10 @@ class ParseAppointmentRepository implements AppointmentRepository {
       }
 
       return _mapper.toDomain(parseAppointment);
+    } on AppointmentAlreadyCanceledException {
+      rethrow;
+    } on AppointmentCannotCancelCompletedException {
+      rethrow;
     } on StateError {
       rethrow;
     } on FormatException {
@@ -210,6 +232,67 @@ class ParseAppointmentRepository implements AppointmentRepository {
         ParseTemporaryErrorMapper.messageForSaveThrowable(
           error,
           fallback: AppStrings.appointmentCancelError,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Appointment> complete(String appointmentId) async {
+    try {
+      debugPrint('[AppointmentComplete] repository complete start');
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final parseAppointment = await _fetchParseAppointmentForComplete(
+        appointmentId,
+      );
+      final appointment = _mapper.toDomain(parseAppointment);
+
+      if (appointment.salonId != salon.id) {
+        throw const AppointmentNotFoundException();
+      }
+
+      if (appointment.status == AppointmentStatus.completed) {
+        debugPrint('[AppointmentComplete] repository complete already completed');
+        return appointment;
+      }
+
+      if (!appointment.status.canBeCompleted) {
+        throw const AppointmentCannotCompleteException();
+      }
+
+      final completedAt = DateTime.now();
+      parseAppointment
+        ..set<String>('status', AppointmentStatus.completed.toParse())
+        ..set<DateTime>('completedAt', completedAt);
+
+      final response = await parseAppointment.save();
+      if (!response.success) {
+        throw FormatException(
+          _errorMapper.toMessage(response.error, forSave: true),
+        );
+      }
+
+      debugPrint('[AppointmentComplete] repository complete saved');
+      return _mapper.toDomain(parseAppointment);
+    } on AppointmentNotFoundException {
+      rethrow;
+    } on AppointmentCannotCompleteException {
+      rethrow;
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForSaveThrowable(
+          error,
+          fallback: AppStrings.appointmentCompleteError,
         ),
       );
     }
@@ -238,6 +321,20 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   Future<ParseObject> _fetchParseAppointment(String appointmentId) async {
+    return _fetchParseAppointmentById(appointmentId);
+  }
+
+  Future<ParseObject> _fetchParseAppointmentForComplete(
+    String appointmentId,
+  ) async {
+    try {
+      return await _fetchParseAppointmentById(appointmentId);
+    } on FormatException {
+      throw const AppointmentNotFoundException();
+    }
+  }
+
+  Future<ParseObject> _fetchParseAppointmentById(String appointmentId) async {
     final parseAppointment = ParseObject(_appointmentClassName)
       ..objectId = appointmentId;
 

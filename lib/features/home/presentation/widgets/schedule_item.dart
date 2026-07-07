@@ -12,12 +12,14 @@ class ScheduleItem extends StatelessWidget {
   const ScheduleItem({
     required this.appointment,
     this.showTimeColumn = true,
+    this.isHighlighted = false,
     this.onTap,
     super.key,
   });
 
   final TodayScheduleAppointment appointment;
   final bool showTimeColumn;
+  final bool isHighlighted;
   final VoidCallback? onTap;
 
   bool get _hasServiceLabel {
@@ -29,7 +31,7 @@ class ScheduleItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final statusStyle = _StatusStyle.fromStatus(appointment.status);
-    final isNext = appointment.status == ScheduleStatus.next;
+    final isNext = !isHighlighted && appointment.status == ScheduleStatus.next;
     final contentOpacity = switch (appointment.status) {
       ScheduleStatus.completed || ScheduleStatus.canceled => 0.78,
       _ => 1.0,
@@ -42,7 +44,16 @@ class ScheduleItem extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: AppDurations.normal,
-          color: isNext ? AppColors.purple50 : AppColors.surface,
+          decoration: BoxDecoration(
+            color: isHighlighted
+                ? AppColors.purple50
+                : isNext
+                ? AppColors.purple50
+                : AppColors.surface,
+            border: isHighlighted
+                ? Border.all(color: AppColors.purple300, width: 1.5)
+                : null,
+          ),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,7 +62,11 @@ class ScheduleItem extends StatelessWidget {
                   duration: AppDurations.normal,
                   width: AppSpacing.xxxs,
                   decoration: BoxDecoration(
-                    color: isNext ? AppColors.purple700 : Colors.transparent,
+                    color: isHighlighted
+                        ? AppColors.purple500
+                        : isNext
+                        ? AppColors.purple700
+                        : Colors.transparent,
                     borderRadius: AppRadius.borderXs,
                   ),
                 ),

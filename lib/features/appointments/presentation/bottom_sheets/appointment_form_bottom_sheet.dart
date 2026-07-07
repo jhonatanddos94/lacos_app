@@ -17,6 +17,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_selected_service_actions_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/appointment_availability_calculator.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/appointment_form_initial_date.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_client_section.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_date_time_section.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_form_header.dart';
@@ -35,6 +36,7 @@ class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
   const AppointmentFormBottomSheet({
     this.mode = AppointmentFormMode.create,
     this.initialData,
+    this.initialDate,
     super.key,
   }) : assert(
          mode == AppointmentFormMode.create || initialData != null,
@@ -43,6 +45,7 @@ class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
 
   final AppointmentFormMode mode;
   final AppointmentDetails? initialData;
+  final DateTime? initialDate;
 
   @override
   ConsumerState<AppointmentFormBottomSheet> createState() =>
@@ -93,6 +96,11 @@ class _AppointmentFormBottomSheetState
 
     if (_isEditMode) {
       _prefillFromInitialData(widget.initialData!);
+    } else {
+      _selectedDate = resolveAppointmentFormInitialSelectedDate(
+        mode: widget.mode,
+        initialDate: widget.initialDate,
+      );
     }
 
     if (!_isEditMode) {

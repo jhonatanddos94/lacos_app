@@ -18,8 +18,11 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_status.
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/dialogs/appointment_cancel_dialog.dart';
+import 'package:lacos_app/features/appointments/presentation/dialogs/complete_appointment_dialog.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_service_mapper.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_form_header.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
@@ -41,12 +44,14 @@ class AppointmentDetailsBottomSheet extends ConsumerStatefulWidget {
 class _AppointmentDetailsBottomSheetState
     extends ConsumerState<AppointmentDetailsBottomSheet> {
   String? _cancelError;
+  String? _completeError;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cancelAppointmentControllerProvider.notifier).reset();
+      ref.read(completeAppointmentControllerProvider.notifier).reset();
     });
   }
 
@@ -58,6 +63,8 @@ class _AppointmentDetailsBottomSheetState
       ),
     );
     final isCanceling = ref.watch(cancelAppointmentControllerProvider).isLoading;
+    final isCompleting = ref.watch(completeAppointmentControllerProvider).isLoading;
+    final isBusy = isCanceling || isCompleting;
 
     return Material(
       color: Colors.transparent,
@@ -91,12 +98,16 @@ class _AppointmentDetailsBottomSheetState
                 ),
                 data: (details) => _AppointmentDetailsContent(
                   details: details,
-                  isBusy: isCanceling,
+                  isBusy: isBusy,
                   cancelError: _cancelError,
-                  onEdit: isCanceling
+                  completeError: _completeError,
+                  onEdit: isBusy
                       ? null
                       : () => _openEditAppointment(context, details),
-                  onCancel: isCanceling
+                  onComplete: isBusy
+                      ? null
+                      : () => _confirmCompleteAppointment(details),
+                  onCancel: isBusy
                       ? null
                       : () => _confirmCancelAppointment(details),
                 ),
@@ -108,6 +119,69 @@ class _AppointmentDetailsBottomSheetState
     );
   }
 
+  Future<void> _confirmCompleteAppointment(AppointmentDetails details) async {
+    if (!details.appointment.status.canBeCompleted) {
+      return;
+    }
+
+    if (details.services.isEmpty) {
+      _showMessage(AppStrings.appointmentCompleteServicesUnavailable);
+      return;
+    }
+
+    setState(() => _completeError = null);
+
+    ref.read(completeAppointmentControllerProvider.notifier)
+      ..reset()
+      ..setServices(mapPlannedServicesToCompletedParams(details.services));
+
+    final serviceRecord = await showDialog<ServiceRecord>(
+      context: context,
+      builder: (context) => CompleteAppointmentDialog(
+        appointmentId: details.appointment.id,
+        clientName: details.client.name,
+        services: details.services,
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (serviceRecord != null) {
+      final completedAppointment = _completedAppointmentFrom(details);
+      Navigator.of(context).pop(completedAppointment);
+      return;
+    }
+
+    final errorMessage =
+        ref.read(completeAppointmentControllerProvider).errorMessage;
+    if (errorMessage == null) return;
+
+    setState(() {
+      _completeError = errorMessage;
+    });
+  }
+
+  Appointment _completedAppointmentFrom(AppointmentDetails details) {
+    final appointment = details.appointment;
+    final now = DateTime.now();
+
+    return Appointment(
+      id: appointment.id,
+      salonId: appointment.salonId,
+      ownerId: appointment.ownerId,
+      clientId: appointment.clientId,
+      professionalId: appointment.professionalId,
+      startAt: appointment.startAt,
+      endAt: appointment.endAt,
+      status: AppointmentStatus.completed,
+      notes: appointment.notes,
+      completedAt: now,
+      isActive: appointment.isActive,
+      createdAt: appointment.createdAt,
+      updatedAt: now,
+    );
+  }
+
   Future<void> _confirmCancelAppointment(AppointmentDetails details) async {
     if (details.appointment.status == AppointmentStatus.completed) {
       _showMessage(AppStrings.appointmentCannotCancelCompleted);
@@ -115,11 +189,13 @@ class _AppointmentDetailsBottomSheetState
     }
 
     setState(() => _cancelError = null);
+    ref.read(cancelAppointmentControllerProvider.notifier).reset();
 
     final canceledAppointment = await showDialog<Appointment>(
       context: context,
       builder: (context) => AppointmentCancelDialog(
         appointmentId: details.appointment.id,
+        clientName: details.client.name,
       ),
     );
 
@@ -132,20 +208,13 @@ class _AppointmentDetailsBottomSheetState
 
     if (!mounted) return;
 
-    final error = ref.read(cancelAppointmentControllerProvider).error;
-    if (error == null) return;
+    final errorMessage =
+        ref.read(cancelAppointmentControllerProvider).errorMessage;
+    if (errorMessage == null) return;
 
     setState(() {
-      _cancelError = _resolveCancelErrorMessage(error);
+      _cancelError = errorMessage;
     });
-  }
-
-  String _resolveCancelErrorMessage(Object error) {
-    return switch (error) {
-      FormatException(message: final message) => message,
-      StateError(message: final message) => message,
-      _ => AppStrings.appointmentCancelError,
-    };
   }
 
   void _showMessage(String message) {
@@ -232,15 +301,25 @@ class _AppointmentDetailsContent extends StatelessWidget {
     required this.details,
     required this.onEdit,
     required this.onCancel,
+    this.onComplete,
     this.isBusy = false,
     this.cancelError,
+    this.completeError,
   });
 
   final AppointmentDetails details;
   final VoidCallback? onEdit;
   final VoidCallback? onCancel;
+  final VoidCallback? onComplete;
   final bool isBusy;
   final String? cancelError;
+  final String? completeError;
+
+  bool get _canComplete => details.appointment.status.canBeCompleted;
+
+  bool get _canCancel =>
+      details.appointment.status != AppointmentStatus.completed &&
+      details.appointment.status != AppointmentStatus.canceled;
 
   @override
   Widget build(BuildContext context) {
@@ -334,9 +413,11 @@ class _AppointmentDetailsContent extends StatelessWidget {
         ),
         _DetailsActionsFooter(
           onEdit: onEdit,
-          onCancel: onCancel,
+          onComplete: _canComplete ? onComplete : null,
+          onCancel: _canCancel ? onCancel : null,
           isBusy: isBusy,
           cancelError: cancelError,
+          completeError: completeError,
         ),
       ],
     );
@@ -708,15 +789,19 @@ class _CompactSectionCard extends StatelessWidget {
 class _DetailsActionsFooter extends StatelessWidget {
   const _DetailsActionsFooter({
     required this.onEdit,
-    required this.onCancel,
+    this.onComplete,
+    this.onCancel,
     this.isBusy = false,
     this.cancelError,
+    this.completeError,
   });
 
   final VoidCallback? onEdit;
+  final VoidCallback? onComplete;
   final VoidCallback? onCancel;
   final bool isBusy;
   final String? cancelError;
+  final String? completeError;
 
   @override
   Widget build(BuildContext context) {
@@ -739,6 +824,17 @@ class _DetailsActionsFooter extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (completeError != null) ...[
+                Text(
+                  completeError!,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+              ],
               if (cancelError != null) ...[
                 Text(
                   cancelError!,
@@ -750,17 +846,31 @@ class _DetailsActionsFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
               ],
+              if (onComplete != null) ...[
+                AppButton(
+                  label: AppStrings.appointmentCompleteAction,
+                  icon: Icons.check_circle_outline,
+                  isLoading: isBusy,
+                  onPressed: isBusy ? null : onComplete,
+                ),
+                const SizedBox(height: AppSpacing.xxxs),
+              ],
               AppButton(
                 label: AppStrings.appointmentEditAction,
                 icon: Icons.edit_outlined,
+                variant: onComplete != null
+                    ? AppButtonVariant.outline
+                    : AppButtonVariant.primary,
                 isLoading: isBusy,
                 onPressed: isBusy ? null : onEdit,
               ),
-              const SizedBox(height: AppSpacing.xxxs),
-              _CancelAppointmentButton(
-                onPressed: onCancel,
-                isLoading: isBusy,
-              ),
+              if (onCancel != null) ...[
+                const SizedBox(height: AppSpacing.xxxs),
+                _CancelAppointmentButton(
+                  onPressed: onCancel,
+                  isLoading: isBusy,
+                ),
+              ],
             ],
           ),
         ),

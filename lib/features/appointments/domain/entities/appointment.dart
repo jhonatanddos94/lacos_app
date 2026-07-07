@@ -1,3 +1,4 @@
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 
 class Appointment {
@@ -11,6 +12,10 @@ class Appointment {
     required this.endAt,
     required this.status,
     this.notes,
+    this.completedAt,
+    this.canceledAt,
+    this.canceledBy,
+    this.cancellationReason,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -25,6 +30,10 @@ class Appointment {
   final DateTime endAt;
   final AppointmentStatus status;
   final String? notes;
+  final DateTime? completedAt;
+  final DateTime? canceledAt;
+  final AppointmentCanceledBy? canceledBy;
+  final String? cancellationReason;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;

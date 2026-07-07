@@ -4,6 +4,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
@@ -115,7 +116,16 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> cancel(String appointmentId) {
+  Future<Appointment> cancel({
+    required String appointmentId,
+    required AppointmentCanceledBy canceledBy,
+    String? cancellationReason,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Appointment> complete(String appointmentId) {
     throw UnimplementedError();
   }
 

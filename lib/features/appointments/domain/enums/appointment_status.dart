@@ -22,4 +22,9 @@ enum AppointmentStatus {
       AppointmentStatus.canceled => 'canceled',
     };
   }
+
+  bool get canBeCompleted => switch (this) {
+    AppointmentStatus.pending || AppointmentStatus.confirmed => true,
+    _ => false,
+  };
 }

@@ -29,6 +29,18 @@ class AppointmentPartialSaveException implements Exception {
   final Object? cause;
 }
 
+class AppointmentAlreadyCanceledException implements Exception {
+  const AppointmentAlreadyCanceledException();
+}
+
 class AppointmentCannotCancelCompletedException implements Exception {
   const AppointmentCannotCancelCompletedException();
+}
+
+class AppointmentCannotCompleteException implements Exception {
+  const AppointmentCannotCompleteException();
+}
+
+class AppointmentNotFoundException implements Exception {
+  const AppointmentNotFoundException();
 }

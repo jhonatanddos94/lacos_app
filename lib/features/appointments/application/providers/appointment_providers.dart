@@ -2,9 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/appointments/application/controllers/cancel_appointment_controller.dart';
+import 'package:lacos_app/features/appointments/application/controllers/complete_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/create_appointment_controller.dart';
+import 'package:lacos_app/features/appointments/application/models/cancel_appointment_state.dart';
+import 'package:lacos_app/features/appointments/application/models/complete_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
+import 'package:lacos_app/features/appointments/application/use_cases/complete_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/create_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
@@ -14,6 +18,8 @@ import 'package:lacos_app/features/appointments/domain/services/availability_eng
 import 'package:lacos_app/features/appointments/infrastructure/repositories/parse_appointment_repository.dart';
 import 'package:lacos_app/features/appointments/infrastructure/repositories/parse_appointment_service_repository.dart';
 import 'package:lacos_app/features/salon/application/providers/salon_providers.dart';
+import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
+import 'package:lacos_app/features/service_records/application/providers/service_record_service_providers.dart';
 
 final availabilityEngineProvider = Provider<AvailabilityEngine>((ref) {
   return const AvailabilityEngine();
@@ -46,10 +52,31 @@ final cancelAppointmentUseCaseProvider = Provider<CancelAppointmentUseCase>((
   );
 });
 
+final completeAppointmentUseCaseProvider = Provider<CompleteAppointmentUseCase>((
+  ref,
+) {
+  return CompleteAppointmentUseCase(
+    appointmentRepository: ref.watch(appointmentRepositoryProvider),
+    serviceRecordRepository: ref.watch(serviceRecordRepositoryProvider),
+    serviceRecordServiceRepository: ref.watch(
+      serviceRecordServiceRepositoryProvider,
+    ),
+  );
+});
+
+final completeAppointmentControllerProvider =
+    StateNotifierProvider<
+      CompleteAppointmentController,
+      CompleteAppointmentState
+    >((ref) {
+      final useCase = ref.watch(completeAppointmentUseCaseProvider);
+      return CompleteAppointmentController(useCase);
+    });
+
 final cancelAppointmentControllerProvider =
     StateNotifierProvider<
       CancelAppointmentController,
-      AsyncValue<Appointment?>
+      CancelAppointmentState
     >((ref) {
       final useCase = ref.watch(cancelAppointmentUseCaseProvider);
       return CancelAppointmentController(useCase);

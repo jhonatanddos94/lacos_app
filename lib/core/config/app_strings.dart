@@ -138,6 +138,7 @@ abstract final class AppStrings {
   static const String agendaRefreshAfterCreateFailed =
       'Agendamento salvo, mas não foi possível atualizar a agenda agora.';
   static const String agendaRetryUpdate = 'Tentar atualizar';
+  static const String agendaFullCalendarSoon = 'Calendário completo em breve.';
   static const String agendaLoadError = temporaryLoadError;
   static const String newAppointmentTitle = 'Novo Agendamento';
   static const String newAppointmentSubtitle =
@@ -269,23 +270,63 @@ abstract final class AppStrings {
   static const String appointmentEditAction = 'Editar atendimento';
   static const String appointmentCancelAction = 'Cancelar atendimento';
   static const String appointmentCancelTitle = 'Cancelar atendimento?';
+  static const String appointmentCancelClientLabel = 'Cliente:';
+  static const String appointmentCancelWhoCanceled = 'Quem cancelou?';
+  static const String appointmentCancelByClient = 'Cliente';
+  static const String appointmentCancelBySalon = 'Salão';
+  static const String appointmentCancelReasonLabel = 'Motivo do cancelamento';
+  static const String appointmentCancelReasonHint = 'Opcional';
   static const String appointmentCancelMessage =
-      'Esse atendimento deixará de ocupar horário na agenda, '
-      'mas continuará salvo no histórico.';
+      'O atendimento será removido da agenda ativa, mas continuará salvo no histórico.';
   static const String appointmentCancelBack = 'Voltar';
-  static const String appointmentCancelConfirm = 'Cancelar atendimento';
+  static const String appointmentCancelConfirm = 'Confirmar cancelamento';
+  static const String appointmentCancelWhoCanceledRequired =
+      'Informe quem cancelou o atendimento.';
   static const String appointmentCancelSuccess =
       'Atendimento cancelado com sucesso.';
   static const String appointmentCancelError =
       'Não foi possível cancelar o atendimento. Tente novamente.';
+  static const String appointmentCancelSubmitError =
+      'Não foi possível cancelar o atendimento. Tente novamente.';
   static const String appointmentCannotCancelCompleted =
       'Atendimentos concluídos não podem ser cancelados.';
+  static const String appointmentAlreadyCanceled =
+      'Este atendimento já foi cancelado.';
+  static const String appointmentCannotComplete =
+      'Não é possível concluir um atendimento que não está agendado.';
+  static const String appointmentNotFound =
+      'Não foi possível encontrar o agendamento.';
+  static const String appointmentCompleteError =
+      'Não foi possível concluir o atendimento. Tente novamente.';
+  static const String appointmentCompleteSubmitError =
+      'Não foi possível finalizar o atendimento. Tente novamente.';
+  static const String appointmentCompleteAtLeastOneService =
+      'Informe ao menos um serviço realizado.';
+  static const String appointmentCompleteAction = 'Concluir atendimento';
+  static const String appointmentCompleteTitle = 'Concluir atendimento?';
+  static const String appointmentCompleteClientLabel = 'Cliente:';
+  static const String appointmentCompleteServicesLabel = 'Serviços:';
+  static const String appointmentCompleteMessage =
+      'Isso criará um registro no histórico da cliente.';
+  static const String appointmentCompleteConfirm = 'Concluir atendimento';
+  static const String appointmentCompleteSuccess =
+      'Atendimento concluído com sucesso.';
+  static const String appointmentCompleteServicesUnavailable =
+      'Não foi possível carregar os serviços deste atendimento.';
   static const String appointmentDetailsNotesSection = 'Observações';
   static const String appointmentDetailsTotalPrefix = 'Total:';
   static const String appointmentDetailsLoadError =
       'Não foi possível carregar os detalhes do atendimento.';
   static const String appointmentServiceSaveError =
       'Não foi possível salvar os serviços do agendamento. Tente novamente.';
+  static const String serviceRecordLoadError =
+      'Não foi possível carregar o histórico do atendimento. Tente novamente.';
+  static const String serviceRecordSaveError =
+      'Não foi possível salvar o histórico do atendimento. Tente novamente.';
+  static const String serviceRecordServiceLoadError =
+      'Não foi possível carregar os serviços do atendimento. Tente novamente.';
+  static const String serviceRecordServiceSaveError =
+      'Não foi possível salvar os serviços do atendimento. Tente novamente.';
   static const String appointmentInvalidTimeRange =
       'O horário de término deve ser depois do horário de início.';
   static const String appointmentStartAtInPast =

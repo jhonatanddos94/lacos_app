@@ -11,6 +11,8 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
 import 'package:lacos_app/features/agenda/application/providers/agenda_providers.dart';
+import 'package:lacos_app/features/agenda/presentation/helpers/agenda_appointment_highlight_controller.dart';
+import 'package:lacos_app/features/agenda/presentation/helpers/agenda_appointment_scroll.dart';
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_appointments_list.dart';
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_day_selector.dart';
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_error_state.dart';
@@ -22,6 +24,7 @@ import 'package:lacos_app/features/agenda/presentation/widgets/agenda_schedule_s
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_details_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 
@@ -40,11 +43,20 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   late DateTime _selectedDay;
   var _isRefreshingAfterCreate = false;
   var _refreshAfterCreateFailed = false;
+  final _appointmentsScrollController = ScrollController();
+  final _createdAppointmentHighlight = AgendaAppointmentHighlightController();
 
   @override
   void initState() {
     super.initState();
     _selectedDay = normalizeAppointmentDate(DateTime.now());
+  }
+
+  @override
+  void dispose() {
+    _appointmentsScrollController.dispose();
+    _createdAppointmentHighlight.dispose();
+    super.dispose();
   }
 
   DateTime get _normalizedSelectedDay => normalizeAppointmentDate(_selectedDay);
@@ -75,7 +87,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   Future<void> _openAppointmentDetails(
     AgendaAppointmentDisplay appointment,
   ) async {
-    final canceledAppointment = await showModalBottomSheet<Appointment>(
+    final updatedAppointment = await showModalBottomSheet<Appointment>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -87,16 +99,20 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       ),
     );
 
-    if (!mounted || canceledAppointment == null) return;
+    if (!mounted || updatedAppointment == null) return;
 
-    final canceledDay = AgendaDay.from(canceledAppointment.startAt);
+    final updatedDay = AgendaDay.from(updatedAppointment.startAt);
 
     try {
-      await _refreshAppointmentsForDay(canceledDay);
+      await _refreshAppointmentsForDay(updatedDay);
       if (!mounted) return;
 
+      final message = updatedAppointment.status == AppointmentStatus.completed
+          ? AppStrings.appointmentCompleteSuccess
+          : AppStrings.appointmentCancelSuccess;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.appointmentCancelSuccess)),
+        SnackBar(content: Text(message)),
       );
     } on Object {
       if (!mounted) return;
@@ -116,7 +132,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => const AppointmentFormBottomSheet(),
+      builder: (context) => AppointmentFormBottomSheet(
+        initialDate: _normalizedSelectedDay,
+      ),
     );
 
     if (!mounted || createdAppointment == null) return;
@@ -137,6 +155,30 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       if (!mounted) return;
 
       setState(() => _isRefreshingAfterCreate = false);
+
+      final refreshedAppointments =
+          ref.read(agendaAppointmentsDisplayProvider(createdDay)).value ??
+          const <AgendaAppointmentDisplay>[];
+      final createdIndex = AgendaAppointmentScroll.indexForAppointmentId(
+        refreshedAppointments,
+        createdAppointment.appointment.id,
+      );
+
+      _createdAppointmentHighlight.applyHighlight(
+        appointmentId: createdAppointment.appointment.id,
+        onChanged: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+      );
+
+      if (createdIndex != null) {
+        AgendaAppointmentScroll.animateToAppointmentIndex(
+          scrollController: _appointmentsScrollController,
+          index: createdIndex,
+        );
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AppStrings.appointmentCreatedSuccess)),
@@ -242,6 +284,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
         appointments: appointments,
         selectedDay: _normalizedSelectedDay,
         bottomPadding: _fabClearance,
+        highlightedAppointmentId:
+            _createdAppointmentHighlight.highlightedAppointmentId,
+        scrollController: _appointmentsScrollController,
         onAppointmentTap: _openAppointmentDetails,
       ),
     );

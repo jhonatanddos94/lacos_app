@@ -35,27 +35,14 @@ class AgendaHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Agenda',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: AppColors.graphite,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  const Icon(
-                    Icons.calendar_month_rounded,
-                    color: AppColors.purple700,
-                    size: AppIconSizes.md,
-                  ),
-                ],
+              Text(
+                'Agenda',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: AppColors.graphite,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
@@ -83,8 +70,14 @@ class AgendaHeader extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.xs),
         AgendaHeaderIconButton(
-          icon: Icons.tune_rounded,
-          onPressed: () {},
+          icon: Icons.calendar_month_rounded,
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(AppStrings.agendaFullCalendarSoon),
+              ),
+            );
+          },
         ),
       ],
     );
