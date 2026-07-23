@@ -31,60 +31,138 @@ class CompleteAppointmentUseCase {
     debugPrint('[AppointmentComplete] usecase start');
 
     final appointment = await _findAppointment(params.appointmentId);
-    final completedAppointment = await _resolveCompletedAppointment(
+    _validateAppointmentForCompletion(appointment, params);
+
+    final serviceRecord = await _resolveServiceRecord(
+      appointment: appointment,
+      params: params,
+    );
+
+    await _ensureServiceRecordServices(
+      serviceRecord: serviceRecord,
+      params: params,
+    );
+
+    await _completeAppointmentIfNeeded(
       appointment: appointment,
       appointmentId: params.appointmentId,
     );
 
     await _markMentionedMemories(params.mentionedMemoryIds);
 
+    debugPrint('[AppointmentComplete] success');
+    return serviceRecord;
+  }
+
+  void _validateAppointmentForCompletion(
+    Appointment appointment,
+    CompleteAppointmentParams params,
+  ) {
+    if (!appointment.isActive) {
+      throw const AppointmentCannotCompleteException();
+    }
+
+    if (appointment.status == AppointmentStatus.canceled) {
+      throw const AppointmentCannotCompleteException();
+    }
+
+    if (appointment.status != AppointmentStatus.completed &&
+        !appointment.status.canBeCompleted) {
+      throw const AppointmentCannotCompleteException();
+    }
+
+    if (appointment.clientId.trim().isEmpty ||
+        appointment.professionalId.trim().isEmpty) {
+      throw const AppointmentCannotCompleteException();
+    }
+
+    if (params.services.isEmpty) {
+      throw const AppointmentCannotCompleteException();
+    }
+
+    for (final service in params.services) {
+      if (service.serviceId.trim().isEmpty) {
+        throw const AppointmentCannotCompleteException();
+      }
+    }
+  }
+
+  Future<ServiceRecord> _resolveServiceRecord({
+    required Appointment appointment,
+    required CompleteAppointmentParams params,
+  }) async {
     final existingRecord = await _serviceRecordRepository.findByAppointmentId(
-      params.appointmentId,
+      appointment.id,
     );
     if (existingRecord != null) {
       debugPrint('[AppointmentComplete] service record already exists');
-      await _ensureServiceRecordServices(
-        serviceRecord: existingRecord,
-        params: params,
-      );
-      debugPrint('[AppointmentComplete] success');
       return existingRecord;
     }
 
     debugPrint('[AppointmentComplete] service record create start');
     final serviceRecordDraft = _buildServiceRecord(
-      appointment: completedAppointment,
+      appointment: appointment,
       params: params,
     );
 
-    final createdServiceRecord = await _serviceRecordRepository.create(
-      serviceRecordDraft,
-      legacyPrimaryServiceId: _legacyPrimaryServiceId(params),
-    );
-
-    await _ensureServiceRecordServices(
-      serviceRecord: createdServiceRecord,
-      params: params,
-    );
-
-    debugPrint('[AppointmentComplete] success');
-    return createdServiceRecord;
+    try {
+      return await _serviceRecordRepository.create(
+        serviceRecordDraft,
+        legacyPrimaryServiceId: _legacyPrimaryServiceId(params),
+      );
+    } on FormatException {
+      final recoveredRecord = await _serviceRecordRepository
+          .findByAppointmentId(appointment.id);
+      if (recoveredRecord != null) {
+        debugPrint(
+          '[AppointmentComplete] service record recovered after create',
+        );
+        return recoveredRecord;
+      }
+      rethrow;
+    }
   }
 
-  Future<void> _markMentionedMemories(List<String> memoryIds) async {
-    if (memoryIds.isEmpty) {
+  Future<void> _ensureServiceRecordServices({
+    required ServiceRecord serviceRecord,
+    required CompleteAppointmentParams params,
+  }) async {
+    final expectedServices = _buildServiceRecordServices(
+      serviceRecord: serviceRecord,
+      params: params,
+    );
+
+    if (expectedServices.isEmpty) {
       return;
     }
 
-    await _clientMemoryRepository.touchMentioned(memoryIds: memoryIds);
+    final existingServices = await _serviceRecordServiceRepository
+        .findByServiceRecord(serviceRecord.id);
+    final existingServiceIds = existingServices
+        .map((service) => service.serviceId)
+        .toSet();
+
+    final missingServices = expectedServices
+        .where((service) => !existingServiceIds.contains(service.serviceId))
+        .toList(growable: false);
+
+    if (missingServices.isEmpty) {
+      return;
+    }
+
+    debugPrint('[AppointmentComplete] service record services create start');
+    await _serviceRecordServiceRepository.createMany(
+      serviceRecordId: serviceRecord.id,
+      services: missingServices,
+    );
   }
 
-  Future<Appointment> _resolveCompletedAppointment({
+  Future<void> _completeAppointmentIfNeeded({
     required Appointment appointment,
     required String appointmentId,
   }) async {
     if (appointment.status == AppointmentStatus.completed) {
-      return appointment;
+      return;
     }
 
     if (!appointment.status.canBeCompleted) {
@@ -96,31 +174,20 @@ class CompleteAppointmentUseCase {
     // concluir Appointment e criar ServiceRecord
     // dentro de uma única transação.
     debugPrint('[AppointmentComplete] repository complete start');
-    final completedAppointment = await _appointmentRepository.complete(
-      appointmentId,
-    );
+    await _appointmentRepository.complete(appointmentId);
     debugPrint('[AppointmentComplete] repository complete saved');
-    return completedAppointment;
   }
 
-  Future<void> _ensureServiceRecordServices({
-    required ServiceRecord serviceRecord,
-    required CompleteAppointmentParams params,
-  }) async {
-    final serviceRecordServices = _buildServiceRecordServices(
-      serviceRecord: serviceRecord,
-      params: params,
-    );
-
-    if (serviceRecordServices.isEmpty) {
+  Future<void> _markMentionedMemories(List<String> memoryIds) async {
+    if (memoryIds.isEmpty) {
       return;
     }
 
-    debugPrint('[AppointmentComplete] service record services create start');
-    await _serviceRecordServiceRepository.createMany(
-      serviceRecordId: serviceRecord.id,
-      services: serviceRecordServices,
-    );
+    try {
+      await _clientMemoryRepository.touchMentioned(memoryIds: memoryIds);
+    } on Object catch (error) {
+      debugPrint('[AppointmentComplete] touchMentioned failed: $error');
+    }
   }
 
   Future<Appointment> _findAppointment(String appointmentId) async {

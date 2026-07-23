@@ -5,6 +5,7 @@ import 'package:lacos_app/features/agenda/application/providers/agenda_providers
 import 'package:lacos_app/features/appointments/application/models/appointment_details_query.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_details_providers.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
+import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 
 void invalidateAppointmentDetailsProviders(
   WidgetRef ref, {
@@ -49,6 +50,21 @@ void invalidateAppointmentAfterUpdate(
     );
     invalidateAppointmentAgendaProviders(ref, day: AgendaDay.from(originalDay));
   }
+}
+
+void invalidateAppointmentAfterCompletion(
+  WidgetRef ref, {
+  required String appointmentId,
+  required String clientId,
+  required DateTime day,
+}) {
+  invalidateAppointmentAfterUpdate(
+    ref,
+    appointmentId: appointmentId,
+    updatedDay: day,
+  );
+  ref.invalidate(serviceRecordByAppointmentProvider(appointmentId));
+  ref.invalidate(serviceRecordsByClientProvider(clientId));
 }
 
 bool _isSameDay(DateTime a, DateTime b) {

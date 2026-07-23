@@ -166,6 +166,12 @@ class _AppointmentDetailsBottomSheetState
     if (!mounted) return;
 
     if (serviceRecord != null) {
+      invalidateAppointmentAfterCompletion(
+        ref,
+        appointmentId: details.appointment.id,
+        clientId: details.client.id,
+        day: details.appointment.startAt,
+      );
       ref.invalidate(clientMemoriesProvider(details.client.id));
       ref
           .read(appointmentMemoryUsageProvider(details.appointment.id).notifier)

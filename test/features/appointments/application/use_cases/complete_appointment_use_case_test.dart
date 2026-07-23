@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_params.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/complete_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
-import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
@@ -34,19 +34,41 @@ void main() {
       );
     });
 
+    test(
+      'cria ServiceRecord e services antes de concluir Appointment',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+          completedAt: DateTime(2026, 7, 6, 15),
+        );
+
+        await useCase(_params());
+
+        expect(appointmentRepository.callLog, ['findById', 'complete']);
+        expect(serviceRecordRepository.callLog, [
+          'findByAppointmentId',
+          'create',
+        ]);
+        expect(serviceRecordServiceRepository.callLog, [
+          'findByServiceRecord',
+          'createMany',
+        ]);
+        expect(appointmentRepository.completeCalls, 1);
+        expect(serviceRecordRepository.createCalls, 1);
+        expect(serviceRecordServiceRepository.createManyCalls, 1);
+      },
+    );
+
     test('conclui appointment, cria service record e services', () async {
       appointmentRepository.appointment = _appointment();
-      final completedAt = DateTime(2026, 7, 6, 15);
       appointmentRepository.completedAppointment = _appointment(
         status: AppointmentStatus.completed,
-        completedAt: completedAt,
+        completedAt: DateTime(2026, 7, 6, 15),
       );
 
       final result = await useCase(_params());
 
-      expect(appointmentRepository.completeCalls, 1);
-      expect(serviceRecordRepository.createCalls, 1);
-      expect(serviceRecordServiceRepository.createManyCalls, 1);
       expect(result.id, 'service-record-1');
       expect(result.appointmentId, 'appointment-1');
       expect(result.clientId, 'client-1');
@@ -56,7 +78,7 @@ void main() {
       expect(result.result, 'Resultado positivo');
       expect(result.productsUsed, 'Máscara');
       expect(result.finalAmount, 180);
-      expect(result.serviceDate, completedAt);
+      expect(result.serviceDate, isNotNull);
       expect(serviceRecordServiceRepository.lastCreatedServices, hasLength(2));
       expect(
         serviceRecordServiceRepository.lastCreatedServices.first.serviceId,
@@ -111,7 +133,139 @@ void main() {
       },
     );
 
-    test('appointment já completed não chama complete novamente', () async {
+    test('falha ao criar ServiceRecord não chama complete', () async {
+      appointmentRepository.appointment = _appointment();
+      serviceRecordRepository.shouldFailOnCreate = true;
+
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
+
+      expect(appointmentRepository.completeCalls, 0);
+      expect(serviceRecordRepository.createCalls, 1);
+      expect(serviceRecordServiceRepository.createManyCalls, 0);
+      expect(memoryRepository.touchCalls, 0);
+    });
+
+    test('falha ao criar ServiceRecordService não chama complete', () async {
+      appointmentRepository.appointment = _appointment();
+      serviceRecordServiceRepository.shouldFailOnCreateMany = true;
+
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
+
+      expect(appointmentRepository.completeCalls, 0);
+      expect(serviceRecordRepository.createCalls, 1);
+      expect(serviceRecordServiceRepository.createManyCalls, 1);
+      expect(memoryRepository.touchCalls, 0);
+    });
+
+    test('falha ao complete mantém histórico para retry', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.shouldFailOnComplete = true;
+
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
+
+      expect(appointmentRepository.completeCalls, 1);
+      expect(serviceRecordRepository.createCalls, 1);
+      expect(serviceRecordServiceRepository.createManyCalls, 1);
+      expect(memoryRepository.touchCalls, 0);
+    });
+
+    test('retry após falha no complete reutiliza histórico', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.shouldFailOnComplete = true;
+
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
+
+      appointmentRepository.shouldFailOnComplete = false;
+      serviceRecordRepository.existingRecord = _serviceRecord();
+      serviceRecordServiceRepository.existingServices = [
+        _serviceRecordService(serviceId: 'service-1'),
+        _serviceRecordService(serviceId: 'service-2'),
+      ];
+
+      final result = await useCase(_params());
+
+      expect(result.id, 'service-record-1');
+      expect(serviceRecordRepository.createCalls, 1);
+      expect(serviceRecordRepository.findByAppointmentIdCalls, 2);
+      expect(serviceRecordServiceRepository.createManyCalls, 1);
+      expect(appointmentRepository.completeCalls, 2);
+    });
+
+    test('reutiliza ServiceRecord existente sem duplicar', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.completedAppointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
+      serviceRecordRepository.existingRecord = _serviceRecord();
+
+      final result = await useCase(_params());
+
+      expect(serviceRecordRepository.createCalls, 0);
+      expect(serviceRecordRepository.findByAppointmentIdCalls, 1);
+      expect(result.id, 'service-record-1');
+      expect(appointmentRepository.completeCalls, 1);
+    });
+
+    test('não duplica ServiceRecordServices em retry', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.completedAppointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
+      serviceRecordRepository.existingRecord = _serviceRecord();
+      serviceRecordServiceRepository.existingServices = [
+        _serviceRecordService(serviceId: 'service-1'),
+        _serviceRecordService(serviceId: 'service-2'),
+      ];
+
+      await useCase(_params());
+
+      expect(serviceRecordServiceRepository.createManyCalls, 0);
+      expect(serviceRecordServiceRepository.findByServiceRecordCalls, 1);
+    });
+
+    test('cria somente vínculos ausentes', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.completedAppointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
+      serviceRecordRepository.existingRecord = _serviceRecord();
+      serviceRecordServiceRepository.existingServices = [
+        _serviceRecordService(serviceId: 'service-1'),
+      ];
+
+      await useCase(_params());
+
+      expect(serviceRecordServiceRepository.createManyCalls, 1);
+      expect(serviceRecordServiceRepository.lastCreatedServices, hasLength(1));
+      expect(
+        serviceRecordServiceRepository.lastCreatedServices.first.serviceId,
+        'service-2',
+      );
+    });
+
+    test(
+      'appointment já completed com histórico completo retorna sucesso',
+      () async {
+        appointmentRepository.appointment = _appointment(
+          status: AppointmentStatus.completed,
+          completedAt: DateTime(2026, 7, 6, 15),
+        );
+        serviceRecordRepository.existingRecord = _serviceRecord();
+        serviceRecordServiceRepository.existingServices = [
+          _serviceRecordService(serviceId: 'service-1'),
+          _serviceRecordService(serviceId: 'service-2'),
+        ];
+
+        final result = await useCase(_params());
+
+        expect(appointmentRepository.completeCalls, 0);
+        expect(serviceRecordRepository.createCalls, 0);
+        expect(serviceRecordServiceRepository.createManyCalls, 0);
+        expect(result.id, 'service-record-1');
+      },
+    );
+
+    test('appointment completed sem histórico é reparado', () async {
       appointmentRepository.appointment = _appointment(
         status: AppointmentStatus.completed,
         completedAt: DateTime(2026, 7, 6, 15),
@@ -126,74 +280,40 @@ void main() {
     });
 
     test(
-      'chama appointmentRepository.complete exatamente uma vez no fluxo feliz',
+      'histórico existente com appointment pendente conclui o processo',
       () async {
         appointmentRepository.appointment = _appointment();
         appointmentRepository.completedAppointment = _appointment(
           status: AppointmentStatus.completed,
         );
+        serviceRecordRepository.existingRecord = _serviceRecord();
+        serviceRecordServiceRepository.existingServices = [
+          _serviceRecordService(serviceId: 'service-1'),
+          _serviceRecordService(serviceId: 'service-2'),
+        ];
 
         await useCase(_params());
 
+        expect(serviceRecordRepository.createCalls, 0);
         expect(appointmentRepository.completeCalls, 1);
       },
     );
 
-    test(
-      'retoma criação do histórico quando appointment já está completed',
-      () async {
-        appointmentRepository.appointment = _appointment(
-          status: AppointmentStatus.completed,
-          completedAt: DateTime(2026, 7, 6, 15),
-        );
-        serviceRecordRepository.existingRecord = null;
-
-        await useCase(_params());
-
-        expect(appointmentRepository.completeCalls, 0);
-        expect(serviceRecordRepository.createCalls, 1);
-      },
-    );
-
-    test('propaga falha ao criar ServiceRecord', () async {
+    test('recupera ServiceRecord após falha ambígua na criação', () async {
       appointmentRepository.appointment = _appointment();
       appointmentRepository.completedAppointment = _appointment(
         status: AppointmentStatus.completed,
       );
-      serviceRecordRepository.shouldFailOnCreate = true;
+      serviceRecordRepository.failCreateOnceThenRecover = true;
 
-      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
-      expect(appointmentRepository.completeCalls, 1);
+      final result = await useCase(_params());
+
       expect(serviceRecordRepository.createCalls, 1);
-      expect(serviceRecordServiceRepository.createManyCalls, 0);
+      expect(serviceRecordRepository.findByAppointmentIdCalls, 2);
+      expect(result.id, 'service-record-1');
     });
 
-    test('não consulta serviços existentes antes de criar', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.completedAppointment = _appointment(
-        status: AppointmentStatus.completed,
-      );
-
-      await useCase(_params());
-
-      expect(serviceRecordServiceRepository.findByServiceRecordCalls, 0);
-      expect(serviceRecordServiceRepository.createManyCalls, 1);
-    });
-
-    test('propaga falha ao criar ServiceRecordService', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.completedAppointment = _appointment(
-        status: AppointmentStatus.completed,
-      );
-      serviceRecordServiceRepository.shouldFailOnCreateMany = true;
-
-      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
-      expect(appointmentRepository.completeCalls, 1);
-      expect(serviceRecordRepository.createCalls, 1);
-      expect(serviceRecordServiceRepository.createManyCalls, 1);
-    });
-
-    test('marca memórias utilizadas antes de criar o ServiceRecord', () async {
+    test('marca memórias mencionadas após sucesso principal', () async {
       appointmentRepository.appointment = _appointment();
       appointmentRepository.completedAppointment = _appointment(
         status: AppointmentStatus.completed,
@@ -203,11 +323,40 @@ void main() {
         _params(mentionedMemoryIds: const ['memory-1', 'memory-2']),
       );
 
-      expect(appointmentRepository.completeCalls, 1);
       expect(memoryRepository.touchCalls, 1);
       expect(memoryRepository.touchedMemoryIds, ['memory-1', 'memory-2']);
-      expect(serviceRecordRepository.createCalls, 1);
+      expect(appointmentRepository.callLog.last, 'complete');
+      expect(memoryRepository.callLog.last, 'touchMentioned');
     });
+
+    test('nenhuma memória marcada não chama touch', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.completedAppointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
+
+      await useCase(_params());
+
+      expect(memoryRepository.touchCalls, 0);
+    });
+
+    test(
+      'falha de memória mencionada não transforma sucesso em erro',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+        );
+        memoryRepository.shouldFailTouch = true;
+
+        final result = await useCase(
+          _params(mentionedMemoryIds: const ['memory-1']),
+        );
+
+        expect(result.id, 'service-record-1');
+        expect(appointmentRepository.completeCalls, 1);
+      },
+    );
   });
 }
 
@@ -259,20 +408,58 @@ Appointment _appointment({
   );
 }
 
+ServiceRecord _serviceRecord() {
+  final now = DateTime(2026, 7, 6, 15);
+
+  return ServiceRecord(
+    id: 'service-record-1',
+    appointmentId: 'appointment-1',
+    clientId: 'client-1',
+    professionalId: 'professional-1',
+    salonId: 'salon-1',
+    ownerId: 'owner-1',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+ServiceRecordService _serviceRecordService({required String serviceId}) {
+  final now = DateTime(2026, 7, 6, 15);
+
+  return ServiceRecordService(
+    id: 'service-record-service-$serviceId',
+    serviceRecordId: 'service-record-1',
+    serviceId: serviceId,
+    salonId: 'salon-1',
+    ownerId: 'owner-1',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
 class _FakeAppointmentRepository implements AppointmentRepository {
   Appointment? appointment;
   Appointment? completedAppointment;
   var completeCalls = 0;
+  var shouldFailOnComplete = false;
+  final callLog = <String>[];
 
   @override
   Future<Appointment> complete(String appointmentId) async {
+    callLog.add('complete');
     completeCalls++;
+    if (shouldFailOnComplete) {
+      throw const FormatException('Falha ao concluir Appointment.');
+    }
     return completedAppointment ??
         _appointment(status: AppointmentStatus.completed);
   }
 
   @override
   Future<Appointment> findById(String appointmentId) async {
+    callLog.add('findById');
     final current = appointment;
     if (current == null) {
       throw StateError('Agendamento não encontrado.');
@@ -320,17 +507,28 @@ class _FakeAppointmentRepository implements AppointmentRepository {
 
 class _FakeServiceRecordRepository implements ServiceRecordRepository {
   var createCalls = 0;
+  var findByAppointmentIdCalls = 0;
   var shouldFailOnCreate = false;
+  var failCreateOnceThenRecover = false;
   ServiceRecord? existingRecord;
   String? lastLegacyPrimaryServiceId;
+  final callLog = <String>[];
 
   @override
   Future<ServiceRecord> create(
     ServiceRecord record, {
     String? legacyPrimaryServiceId,
   }) async {
+    callLog.add('create');
     createCalls++;
     lastLegacyPrimaryServiceId = legacyPrimaryServiceId;
+
+    if (failCreateOnceThenRecover) {
+      failCreateOnceThenRecover = false;
+      existingRecord = _serviceRecord();
+      throw const FormatException('Falha ambígua ao criar ServiceRecord.');
+    }
+
     if (shouldFailOnCreate) {
       throw const FormatException('Falha ao criar ServiceRecord.');
     }
@@ -358,6 +556,8 @@ class _FakeServiceRecordRepository implements ServiceRecordRepository {
 
   @override
   Future<ServiceRecord?> findByAppointmentId(String appointmentId) async {
+    callLog.add('findByAppointmentId');
+    findByAppointmentIdCalls++;
     return existingRecord;
   }
 
@@ -372,13 +572,16 @@ class _FakeServiceRecordServiceRepository
   var createManyCalls = 0;
   var findByServiceRecordCalls = 0;
   var shouldFailOnCreateMany = false;
+  List<ServiceRecordService> existingServices = const [];
   List<ServiceRecordService> lastCreatedServices = const [];
+  final callLog = <String>[];
 
   @override
   Future<List<ServiceRecordService>> createMany({
     required String serviceRecordId,
     required List<ServiceRecordService> services,
   }) async {
+    callLog.add('createMany');
     createManyCalls++;
     lastCreatedServices = services;
     if (shouldFailOnCreateMany) {
@@ -411,14 +614,17 @@ class _FakeServiceRecordServiceRepository
   Future<List<ServiceRecordService>> findByServiceRecord(
     String serviceRecordId,
   ) async {
+    callLog.add('findByServiceRecord');
     findByServiceRecordCalls++;
-    return const [];
+    return existingServices;
   }
 }
 
 class _SpyClientMemoryRepository implements ClientMemoryRepository {
   var touchCalls = 0;
+  var shouldFailTouch = false;
   List<String> touchedMemoryIds = const [];
+  final callLog = <String>[];
 
   @override
   Future<void> markMentioned(String memoryId) {
@@ -427,8 +633,12 @@ class _SpyClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<void> touchMentioned({required List<String> memoryIds}) async {
+    callLog.add('touchMentioned');
     touchCalls++;
     touchedMemoryIds = memoryIds;
+    if (shouldFailTouch) {
+      throw const FormatException('Falha ao marcar memória.');
+    }
   }
 
   @override
