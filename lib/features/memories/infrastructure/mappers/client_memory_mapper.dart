@@ -42,8 +42,8 @@ class ClientMemoryMapper {
   }) {
     object
       ..set<String>('content', memory.content)
-      ..set<String>('type', memory.type.toParse())
-      ..set<int>('priority', memory.priority.toParse())
+      ..set<String>('type', memory.type.parseValue)
+      ..set<String>('priority', memory.priority.parseValue)
       ..set<bool>('isPinned', memory.isPinned)
       ..set<bool>('isArchived', memory.isArchived)
       ..set<bool>('isActive', memory.isActive);

@@ -14,4 +14,11 @@ abstract class ClientMemoryRepository {
   Future<void> touchMentioned({
     required List<String> memoryIds,
   });
+
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  });
+
+  Future<ClientMemory> archive(String memoryId);
 }

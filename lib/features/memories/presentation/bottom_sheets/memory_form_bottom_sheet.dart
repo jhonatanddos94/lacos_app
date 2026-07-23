@@ -4,13 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lacos_app/core/config/app_field_limits.dart';
 import 'package:lacos_app/core/config/app_field_sizes.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
-import 'package:lacos_app/core/config/app_validation_messages.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/appointments/presentation/widgets/appointment_quick_choice_chip.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/domain/enums/client_memory_priority.dart';
+import 'package:lacos_app/features/memories/domain/enums/client_memory_type.dart';
+import 'package:lacos_app/features/memories/presentation/helpers/client_memory_labels.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
@@ -38,19 +41,17 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _initializeFields();
     _contentController.addListener(_handleContentChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(memoryFormControllerProvider.notifier).reset();
+      final notifier = ref.read(memoryFormControllerProvider.notifier);
+      if (widget.memory != null) {
+        notifier.initializeForEdit(widget.memory!);
+        _contentController.text = widget.memory!.content;
+      } else {
+        notifier.initializeForCreate();
+      }
       _focusNode.requestFocus();
     });
-  }
-
-  void _initializeFields() {
-    final memory = widget.memory;
-    if (memory == null) return;
-
-    _contentController.text = memory.content;
   }
 
   @override
@@ -63,7 +64,9 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
   }
 
   void _handleContentChanged() {
-    setState(() {});
+    ref
+        .read(memoryFormControllerProvider.notifier)
+        .setContent(_contentController.text);
   }
 
   void _dismissKeyboard() {
@@ -71,18 +74,20 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
   }
 
   void _cancel() {
-    if (ref.read(memoryFormControllerProvider).isLoading) return;
+    if (ref.read(memoryFormControllerProvider).isSubmitting) return;
     Navigator.of(context).pop();
   }
 
   Future<void> _saveMemory() async {
-    if (ref.read(memoryFormControllerProvider).isLoading) return;
+    if (ref.read(memoryFormControllerProvider).isSubmitting) return;
 
-    final memory = await ref.read(memoryFormControllerProvider.notifier).save(
-          clientId: widget.clientId,
-          content: _contentController.text,
-          initialMemory: widget.memory,
-        );
+    ref
+        .read(memoryFormControllerProvider.notifier)
+        .setContent(_contentController.text);
+
+    final memory = await ref
+        .read(memoryFormControllerProvider.notifier)
+        .save(clientId: widget.clientId);
 
     if (!mounted) return;
 
@@ -91,9 +96,9 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
       return;
     }
 
-    final error = ref.read(memoryFormControllerProvider).error;
-    if (error != null) {
-      _showMessage(_resolveErrorMessage(error));
+    final errorMessage = ref.read(memoryFormControllerProvider).errorMessage;
+    if (errorMessage != null) {
+      _showMessage(errorMessage);
     }
   }
 
@@ -104,25 +109,15 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
     );
   }
 
-  String _resolveErrorMessage(Object error) {
-    return switch (error) {
-      FormatException(message: final message) => message,
-      StateError(message: final message) => message,
-      _ =>
-        '${AppValidationMessages.unexpectedError} '
-            '${AppValidationMessages.tryAgain}',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final state = ref.watch(memoryFormControllerProvider);
-    final isLoading = state.isLoading;
+    final formState = ref.watch(memoryFormControllerProvider);
+    final isSubmitting = formState.isSubmitting;
     final contentLength = _contentController.text.characters.length;
 
     return PopScope(
-      canPop: !isLoading,
+      canPop: !isSubmitting,
       child: GestureDetector(
         onTap: _dismissKeyboard,
         behavior: HitTestBehavior.translucent,
@@ -161,7 +156,7 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
                                 controller: _contentController,
                                 focusNode: _focusNode,
                                 autofocus: true,
-                                enabled: !isLoading,
+                                enabled: !isSubmitting,
                                 label: AppStrings.memoryContentLabel,
                                 hint: AppStrings.memoryContentHint,
                                 keyboardType: TextInputType.multiline,
@@ -169,21 +164,61 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
                                 textCapitalization:
                                     TextCapitalization.sentences,
                                 maxLength: AppFieldLimits.memoryContent,
+                                errorText: formState.contentError,
                                 expands: true,
                               ),
                             ),
-                            Positioned(
-                              right: AppSpacing.xxs,
-                              bottom: AppSpacing.xxxs,
-                              child: Text(
-                                '$contentLength / ${AppFieldLimits.memoryContent}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: AppColors.textSecondary,
+                            if (formState.contentError == null)
+                              Positioned(
+                                right: AppSpacing.xxs,
+                                bottom: AppSpacing.xxxs,
+                                child: Text(
+                                  '$contentLength / ${AppFieldLimits.memoryContent}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
-                            ),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _MemoryChoiceSection(
+                        label: AppStrings.memoryTypeLabel,
+                        enabled: !isSubmitting,
+                        children: ClientMemoryType.values.map((type) {
+                          return AppointmentQuickChoiceChip(
+                            label: ClientMemoryLabels.typeLabel(type),
+                            selected: formState.type == type,
+                            enabled: !isSubmitting,
+                            onTap: () => ref
+                                .read(memoryFormControllerProvider.notifier)
+                                .setType(type),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MemoryChoiceSection(
+                        label: AppStrings.memoryPriorityLabel,
+                        enabled: !isSubmitting,
+                        children: ClientMemoryPriority.values.map((priority) {
+                          return AppointmentQuickChoiceChip(
+                            label: ClientMemoryLabels.priorityLabel(priority),
+                            selected: formState.priority == priority,
+                            enabled: !isSubmitting,
+                            onTap: () => ref
+                                .read(memoryFormControllerProvider.notifier)
+                                .setPriority(priority),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MemoryPinToggle(
+                        value: formState.isPinned,
+                        enabled: !isSubmitting,
+                        onChanged: (value) => ref
+                            .read(memoryFormControllerProvider.notifier)
+                            .setPinned(value),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const _MemoryTipCard(),
@@ -192,14 +227,14 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
                         label: _isEditing
                             ? AppStrings.saveChanges
                             : AppStrings.saveMemory,
-                        isLoading: isLoading,
-                        onPressed: isLoading ? null : _saveMemory,
+                        isLoading: isSubmitting,
+                        onPressed: isSubmitting ? null : _saveMemory,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       AppButton(
                         label: AppStrings.cancel,
                         variant: AppButtonVariant.text,
-                        onPressed: isLoading ? null : _cancel,
+                        onPressed: isSubmitting ? null : _cancel,
                       ),
                     ],
                   ),
@@ -209,6 +244,92 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MemoryPinToggle extends StatelessWidget {
+  const _MemoryPinToggle({
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.memoryPinLabel,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.graphite,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxxs),
+              Text(
+                AppStrings.memoryPinHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Switch.adaptive(
+          value: value,
+          onChanged: enabled ? onChanged : null,
+          activeThumbColor: AppColors.lacosPurple,
+        ),
+      ],
+    );
+  }
+}
+
+class _MemoryChoiceSection extends StatelessWidget {
+  const _MemoryChoiceSection({
+    required this.label,
+    required this.children,
+    this.enabled = true,
+  });
+
+  final String label;
+  final List<Widget> children;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: AppColors.graphite,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxxs),
+        Wrap(
+          spacing: AppSpacing.xxxs,
+          runSpacing: AppSpacing.xxxs,
+          children: children,
+        ),
+      ],
     );
   }
 }
@@ -244,7 +365,9 @@ class _MemoryFormHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEditing ? AppStrings.editMemory : AppStrings.newMemory,
+                isEditing
+                    ? AppStrings.editMemory
+                    : AppStrings.memoryRegisterTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: AppColors.graphite,
                   fontWeight: FontWeight.w800,

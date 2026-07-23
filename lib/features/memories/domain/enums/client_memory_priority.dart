@@ -1,25 +1,43 @@
 enum ClientMemoryPriority {
-  normal(0),
-  high(1),
-  critical(2);
+  low,
+  normal,
+  high;
 
-  const ClientMemoryPriority(this.weight);
+  String get parseValue => name;
 
-  final int weight;
+  /// Peso interno para ordenação; não é persistido no Parse.
+  int get sortWeight => switch (this) {
+    ClientMemoryPriority.low => 0,
+    ClientMemoryPriority.normal => 1,
+    ClientMemoryPriority.high => 2,
+  };
 
   static ClientMemoryPriority fromParse(dynamic value) {
-    final intValue = switch (value) {
-      final int v => v,
-      final String v => int.tryParse(v) ?? 0,
-      _ => 0,
-    };
+    if (value == null) {
+      return ClientMemoryPriority.normal;
+    }
 
-    return switch (intValue) {
-      >= 2 => ClientMemoryPriority.critical,
-      1 => ClientMemoryPriority.high,
+    if (value is String) {
+      return switch (value) {
+        'low' => ClientMemoryPriority.low,
+        'normal' => ClientMemoryPriority.normal,
+        'high' => ClientMemoryPriority.high,
+        _ => _fromLegacyNumeric(int.tryParse(value)),
+      };
+    }
+
+    if (value is int) {
+      return _fromLegacyNumeric(value);
+    }
+
+    return ClientMemoryPriority.normal;
+  }
+
+  static ClientMemoryPriority _fromLegacyNumeric(int? value) {
+    return switch (value) {
+      0 => ClientMemoryPriority.normal,
+      1 || 2 => ClientMemoryPriority.high,
       _ => ClientMemoryPriority.normal,
     };
   }
-
-  int toParse() => weight;
 }

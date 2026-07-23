@@ -18,7 +18,7 @@ class ClientMemoryRankResolver {
   static ClientMemoryRank resolve(ClientMemory memory) {
     return ClientMemoryRank(
       isPinned: memory.isPinned,
-      priorityWeight: memory.priority.weight,
+      priorityWeight: memory.priority.sortWeight,
       sortAt:
           memory.lastMentionedAt ??
           memory.updatedAt ??

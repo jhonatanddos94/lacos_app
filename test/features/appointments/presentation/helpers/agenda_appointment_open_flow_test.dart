@@ -198,4 +198,17 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<void> touchMentioned({required List<String> memoryIds}) async {}
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> archive(String memoryId) {
+    throw UnimplementedError();
+  }
 }

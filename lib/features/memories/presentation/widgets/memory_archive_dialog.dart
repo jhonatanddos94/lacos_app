@@ -6,29 +6,37 @@ import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 
-class MemoryDeleteDialog extends ConsumerStatefulWidget {
-  const MemoryDeleteDialog({required this.memory, super.key});
+class MemoryArchiveDialog extends ConsumerStatefulWidget {
+  const MemoryArchiveDialog({required this.memory, super.key});
 
   final ClientMemory memory;
 
   @override
-  ConsumerState<MemoryDeleteDialog> createState() => _MemoryDeleteDialogState();
+  ConsumerState<MemoryArchiveDialog> createState() =>
+      _MemoryArchiveDialogState();
 }
 
-class _MemoryDeleteDialogState extends ConsumerState<MemoryDeleteDialog> {
-  Future<void> _confirmDelete() async {
-    final success = await ref
-        .read(memoryFormControllerProvider.notifier)
-        .delete(widget.memory);
+class _MemoryArchiveDialogState extends ConsumerState<MemoryArchiveDialog> {
+  Future<void> _confirmArchive() async {
+    final memoryId = widget.memory.id;
+    if (memoryId == null || memoryId.isEmpty) {
+      _showMessage(AppStrings.memoryArchiveError);
+      return;
+    }
+
+    final archived = await ref
+        .read(clientMemoryActionsControllerProvider.notifier)
+        .archive(memoryId);
 
     if (!mounted) return;
 
-    if (success) {
+    if (archived != null) {
       Navigator.of(context).pop(true);
       return;
     }
 
-    final errorMessage = ref.read(memoryFormControllerProvider).errorMessage;
+    final errorMessage =
+        ref.read(clientMemoryActionsControllerProvider).errorMessage;
     if (errorMessage != null) {
       _showMessage(errorMessage);
     }
@@ -44,12 +52,12 @@ class _MemoryDeleteDialogState extends ConsumerState<MemoryDeleteDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLoading = ref.watch(memoryFormControllerProvider).isSubmitting;
+    final isLoading = ref.watch(clientMemoryActionsControllerProvider).isLoading;
 
     return AlertDialog(
-      title: const Text(AppStrings.deleteMemoryTitle),
+      title: const Text(AppStrings.memoryArchiveTitle),
       content: Text(
-        AppStrings.deleteMemoryMessage,
+        AppStrings.memoryArchiveMessage,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: AppColors.textSecondary,
           height: 1.4,
@@ -61,13 +69,7 @@ class _MemoryDeleteDialogState extends ConsumerState<MemoryDeleteDialog> {
           child: const Text(AppStrings.cancel),
         ),
         FilledButton(
-          onPressed: isLoading ? null : _confirmDelete,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.softRose,
-            foregroundColor: AppColors.onPrimary,
-            disabledBackgroundColor: AppColors.softRose.withValues(alpha: 0.5),
-            disabledForegroundColor: AppColors.onPrimary.withValues(alpha: 0.7),
-          ),
+          onPressed: isLoading ? null : _confirmArchive,
           child: isLoading
               ? const SizedBox.square(
                   dimension: 20,
@@ -76,7 +78,7 @@ class _MemoryDeleteDialogState extends ConsumerState<MemoryDeleteDialog> {
                     color: AppColors.onPrimary,
                   ),
                 )
-              : const Text(AppStrings.deleteMemory),
+              : const Text(AppStrings.memoryArchiveAction),
         ),
       ],
     );

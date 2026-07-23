@@ -9,7 +9,7 @@ class ClientMemory {
     this.professionalId,
     required this.ownerId,
     required this.content,
-    this.type = ClientMemoryType.general,
+    this.type = ClientMemoryType.other,
     this.priority = ClientMemoryPriority.normal,
     this.isPinned = false,
     this.lastMentionedAt,

@@ -5,6 +5,47 @@ import 'package:lacos_app/features/memories/domain/enums/client_memory_type.dart
 import 'package:lacos_app/features/memories/domain/services/client_memory_rank_resolver.dart';
 
 void main() {
+  group('ClientMemoryType', () {
+    test('valor ausente retorna other', () {
+      expect(ClientMemoryType.fromParse(null), ClientMemoryType.other);
+      expect(ClientMemoryType.fromParse(''), ClientMemoryType.other);
+    });
+
+    test('valor desconhecido retorna other', () {
+      expect(ClientMemoryType.fromParse('invalid'), ClientMemoryType.other);
+    });
+
+    test('healthAttention usa snake_case no Parse', () {
+      expect(
+        ClientMemoryType.healthAttention.parseValue,
+        'health_attention',
+      );
+      expect(
+        ClientMemoryType.fromParse('health_attention'),
+        ClientMemoryType.healthAttention,
+      );
+    });
+  });
+
+  group('ClientMemoryPriority', () {
+    test('valor ausente retorna normal', () {
+      expect(ClientMemoryPriority.fromParse(null), ClientMemoryPriority.normal);
+    });
+
+    test('valor desconhecido retorna normal', () {
+      expect(
+        ClientMemoryPriority.fromParse('invalid'),
+        ClientMemoryPriority.normal,
+      );
+    });
+
+    test('legado numérico mapeia para normal ou high', () {
+      expect(ClientMemoryPriority.fromParse(0), ClientMemoryPriority.normal);
+      expect(ClientMemoryPriority.fromParse(1), ClientMemoryPriority.high);
+      expect(ClientMemoryPriority.fromParse(2), ClientMemoryPriority.high);
+    });
+  });
+
   group('ClientMemoryRankResolver', () {
     ClientMemory memory({
       bool isPinned = false,
@@ -32,12 +73,12 @@ void main() {
       final rank = ClientMemoryRankResolver.resolve(
         memory(
           isPinned: true,
-          priority: ClientMemoryPriority.critical,
+          priority: ClientMemoryPriority.high,
         ),
       );
 
       expect(rank.isPinned, isTrue);
-      expect(rank.priorityWeight, ClientMemoryPriority.critical.weight);
+      expect(rank.priorityWeight, ClientMemoryPriority.high.sortWeight);
     });
 
     test('prioriza lastMentionedAt para relevância temporal', () {
@@ -104,7 +145,7 @@ void main() {
         content: 'Prefere água com gás',
       );
 
-      expect(memory.type, ClientMemoryType.general);
+      expect(memory.type, ClientMemoryType.other);
       expect(memory.priority, ClientMemoryPriority.normal);
       expect(memory.isPinned, isFalse);
       expect(memory.isArchived, isFalse);

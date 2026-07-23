@@ -24,6 +24,9 @@ void main() {
       WidgetTester tester, {
       required CompleteAppointmentFlowResult result,
     }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -65,7 +68,7 @@ void main() {
       );
 
       expect(find.byType(MemoryFormBottomSheet), findsOneWidget);
-      expect(find.text(AppStrings.newMemory), findsOneWidget);
+      expect(find.text(AppStrings.memoryRegisterTitle), findsOneWidget);
       expect(
         find.text('Cadastro de memórias será implementado na próxima Sprint.'),
         findsNothing,
@@ -205,4 +208,17 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<void> touchMentioned({required List<String> memoryIds}) async {}
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> archive(String memoryId) {
+    throw UnimplementedError();
+  }
 }

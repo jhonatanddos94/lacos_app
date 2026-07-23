@@ -20,6 +20,9 @@ void main() {
       WidgetTester tester, {
       required String clientId,
     }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -65,7 +68,7 @@ void main() {
       );
       expect(sheet.clientId, clientId);
       expect(sheet.memory, isNull);
-      expect(find.text(AppStrings.newMemory), findsOneWidget);
+      expect(find.text(AppStrings.memoryRegisterTitle), findsOneWidget);
     });
 
     testWidgets('fluxo pelo perfil da cliente continua usando o mesmo host', (
@@ -113,4 +116,17 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<void> touchMentioned({required List<String> memoryIds}) async {}
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> archive(String memoryId) {
+    throw UnimplementedError();
+  }
 }

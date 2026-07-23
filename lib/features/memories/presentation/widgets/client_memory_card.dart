@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
-import 'package:lacos_app/core/constants/app_assets.dart';
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/formatters/client_form_formatters.dart';
+import 'package:lacos_app/core/constants/app_assets.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/domain/enums/client_memory_priority.dart';
+import 'package:lacos_app/features/memories/presentation/helpers/client_memory_labels.dart';
 
 class ClientMemoryCard extends StatelessWidget {
   const ClientMemoryCard({
@@ -24,6 +27,7 @@ class ClientMemoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final displayDate = memory.updatedAt ?? memory.createdAt;
 
     return Container(
       width: double.infinity,
@@ -31,12 +35,14 @@ class ClientMemoryCard extends StatelessWidget {
         AppSpacing.sm,
         AppSpacing.xxs,
         AppSpacing.xxxs,
-        AppSpacing.lg,
+        AppSpacing.sm,
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.borderMd,
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(
+          color: memory.isPinned ? AppColors.purple200 : AppColors.divider,
+        ),
         boxShadow: AppShadows.level1,
       ),
       child: Column(
@@ -56,13 +62,21 @@ class ClientMemoryCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xxxs),
               Expanded(
                 child: Text(
-                  _formatMemoryDate(memory.createdAt),
+                  _formatMemoryDate(displayDate),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
+              if (memory.isPinned) ...[
+                Icon(
+                  Icons.push_pin_rounded,
+                  size: AppIconSizes.sm,
+                  color: AppColors.purple400,
+                ),
+                const SizedBox(width: AppSpacing.xxxs),
+              ],
               IconButton(
                 onPressed: onMenuTap,
                 icon: const Icon(Icons.more_vert_rounded),
@@ -79,8 +93,29 @@ class ClientMemoryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.xxxs),
-          const Divider(height: 1, thickness: 1, color: AppColors.divider),
-          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xxxs,
+            runSpacing: AppSpacing.xxxs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _MemoryMetaChip(
+                label: ClientMemoryLabels.typeLabel(memory.type),
+              ),
+              if (ClientMemoryLabels.shouldHighlightPriority(memory.priority))
+                _MemoryMetaChip(
+                  label: ClientMemoryLabels.priorityLabel(memory.priority),
+                  foregroundColor: _priorityColor(memory.priority),
+                  backgroundColor: _priorityBackground(memory.priority),
+                ),
+              if (memory.isPinned)
+                _MemoryMetaChip(
+                  label: AppStrings.memoryPinnedBadge,
+                  foregroundColor: AppColors.purple700,
+                  backgroundColor: AppColors.purple50,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             memory.content,
             maxLines: 3,
@@ -95,6 +130,57 @@ class ClientMemoryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MemoryMetaChip extends StatelessWidget {
+  const _MemoryMetaChip({
+    required this.label,
+    this.foregroundColor = AppColors.purple700,
+    this.backgroundColor = AppColors.purple50,
+  });
+
+  final String label;
+  final Color foregroundColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xxs,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppRadius.borderSm,
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: foregroundColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+Color _priorityColor(ClientMemoryPriority priority) {
+  return switch (priority) {
+    ClientMemoryPriority.high => AppColors.warmAmber,
+    ClientMemoryPriority.low => AppColors.textSecondary,
+    ClientMemoryPriority.normal => AppColors.graphite,
+  };
+}
+
+Color _priorityBackground(ClientMemoryPriority priority) {
+  return switch (priority) {
+    ClientMemoryPriority.high => AppColors.warmAmber.withValues(alpha: 0.12),
+    ClientMemoryPriority.low => AppColors.divider.withValues(alpha: 0.65),
+    ClientMemoryPriority.normal => AppColors.purple50,
+  };
 }
 
 String _formatMemoryDate(DateTime? date) {

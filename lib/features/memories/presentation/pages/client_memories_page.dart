@@ -18,7 +18,7 @@ import 'package:lacos_app/features/memories/presentation/widgets/client_memories
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_header.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_summary_card.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memory_card.dart';
-import 'package:lacos_app/features/memories/presentation/widgets/memory_delete_dialog.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/memory_archive_dialog.dart';
 
 class ClientMemoriesPage extends ConsumerStatefulWidget {
   const ClientMemoriesPage({required this.client, super.key});
@@ -87,7 +87,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
       context: context,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => const MemoryActionsBottomSheet(),
+      builder: (context) => MemoryActionsBottomSheet(isPinned: memory.isPinned),
     );
 
     if (!mounted || action == null) return;
@@ -95,21 +95,55 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
     switch (action) {
       case MemoryAction.edit:
         await _openEditMemorySheet(memory);
-      case MemoryAction.delete:
-        await _confirmDeleteMemory(memory);
+      case MemoryAction.pin:
+        await _togglePin(memory, isPinned: true);
+      case MemoryAction.unpin:
+        await _togglePin(memory, isPinned: false);
+      case MemoryAction.archive:
+        await _confirmArchiveMemory(memory);
     }
   }
 
-  Future<void> _confirmDeleteMemory(ClientMemory memory) async {
-    final deleted = await showDialog<bool>(
+  Future<void> _togglePin(ClientMemory memory, {required bool isPinned}) async {
+    final memoryId = memory.id;
+    if (memoryId == null || memoryId.isEmpty) return;
+
+    final actionsState = ref.read(clientMemoryActionsControllerProvider);
+    if (actionsState.isLoading) return;
+
+    final updated = await ref
+        .read(clientMemoryActionsControllerProvider.notifier)
+        .setPinned(memoryId: memoryId, isPinned: isPinned);
+
+    if (!mounted) return;
+
+    if (updated != null) {
+      ref.invalidate(clientMemoriesProvider(_client.id));
+      _showMessage(
+        isPinned
+            ? AppStrings.memoryPinnedSuccess
+            : AppStrings.memoryUnpinnedSuccess,
+      );
+      return;
+    }
+
+    final errorMessage =
+        ref.read(clientMemoryActionsControllerProvider).errorMessage;
+    if (errorMessage != null) {
+      _showMessage(errorMessage);
+    }
+  }
+
+  Future<void> _confirmArchiveMemory(ClientMemory memory) async {
+    final archived = await showDialog<bool>(
       context: context,
-      builder: (context) => MemoryDeleteDialog(memory: memory),
+      builder: (context) => MemoryArchiveDialog(memory: memory),
     );
 
-    if (!mounted || deleted != true) return;
+    if (!mounted || archived != true) return;
 
     ref.invalidate(clientMemoriesProvider(_client.id));
-    _showMessage(AppStrings.memoryDeletedSuccess);
+    _showMessage(AppStrings.memoryArchivedSuccess);
   }
 
   void _showMessage(String message) {

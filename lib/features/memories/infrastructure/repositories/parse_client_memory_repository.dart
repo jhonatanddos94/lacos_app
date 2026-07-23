@@ -226,6 +226,82 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
     return ParseObject(_professionalClassName)..objectId = professionalId;
   }
 
+  Future<ParseObject> _findActiveMemory(String memoryId) async {
+    if (memoryId.isEmpty) {
+      throw FormatException(AppStrings.memoryUpdateError);
+    }
+
+    final salon = await _salonRepository.getCurrentSalon();
+    if (salon == null) {
+      throw StateError(
+        'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+      );
+    }
+
+    final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
+      ..whereEqualTo('objectId', memoryId)
+      ..whereEqualTo('salon', _salonPointer(salon.id))
+      ..whereEqualTo('isActive', true)
+      ..whereNotEqualTo('isArchived', true);
+
+    final fetchResponse = await query.query<ParseObject>();
+    if (!fetchResponse.success) {
+      throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+    }
+
+    final results = fetchResponse.results;
+    if (results == null || results.isEmpty) {
+      throw FormatException(AppStrings.memoryUpdateError);
+    }
+
+    return results.first as ParseObject;
+  }
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) async {
+    try {
+      final parseMemory = await _findActiveMemory(memoryId);
+      parseMemory.set<bool>('isPinned', isPinned);
+
+      final response = await parseMemory.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      return _mapper.toDomain(parseMemory);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.memoryPinError);
+    }
+  }
+
+  @override
+  Future<ClientMemory> archive(String memoryId) async {
+    try {
+      final parseMemory = await _findActiveMemory(memoryId);
+      parseMemory.set<bool>('isArchived', true);
+
+      final response = await parseMemory.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      return _mapper.toDomain(parseMemory);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.memoryArchiveError);
+    }
+  }
+
   @override
   Future<void> touchMentioned({
     required List<String> memoryIds,

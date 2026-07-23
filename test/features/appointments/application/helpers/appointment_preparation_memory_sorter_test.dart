@@ -56,7 +56,7 @@ void main() {
           memory(
             id: '2',
             content: 'Prioridade alta',
-            priority: ClientMemoryPriority.critical,
+            priority: ClientMemoryPriority.high,
             createdAt: DateTime(2026, 7, 2),
           ),
           memory(

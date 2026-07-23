@@ -6,10 +6,12 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 
-enum MemoryAction { edit, delete }
+enum MemoryAction { edit, pin, unpin, archive }
 
 class MemoryActionsBottomSheet extends StatelessWidget {
-  const MemoryActionsBottomSheet({super.key});
+  const MemoryActionsBottomSheet({required this.isPinned, super.key});
+
+  final bool isPinned;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +62,21 @@ class MemoryActionsBottomSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxxs),
                 _MemoryActionTile(
-                  icon: Icons.delete_outline_rounded,
-                  label: AppStrings.deleteMemory,
-                  iconColor: AppColors.softRose,
-                  labelColor: AppColors.softRose,
-                  onTap: () => Navigator.of(context).pop(MemoryAction.delete),
+                  icon: isPinned
+                      ? Icons.push_pin_outlined
+                      : Icons.push_pin_rounded,
+                  label: isPinned
+                      ? AppStrings.memoryUnpinAction
+                      : AppStrings.memoryPinAction,
+                  onTap: () => Navigator.of(context).pop(
+                    isPinned ? MemoryAction.unpin : MemoryAction.pin,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxxs),
+                _MemoryActionTile(
+                  icon: Icons.inventory_2_outlined,
+                  label: AppStrings.memoryArchiveAction,
+                  onTap: () => Navigator.of(context).pop(MemoryAction.archive),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 TextButton(
@@ -91,15 +103,11 @@ class _MemoryActionTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.iconColor = AppColors.purple700,
-    this.labelColor = AppColors.graphite,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final Color iconColor;
-  final Color labelColor;
 
   @override
   Widget build(BuildContext context) {
@@ -119,13 +127,13 @@ class _MemoryActionTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: iconColor, size: AppSpacing.sm),
+              Icon(icon, color: AppColors.purple700, size: AppSpacing.sm),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
                   label,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: labelColor,
+                    color: AppColors.graphite,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

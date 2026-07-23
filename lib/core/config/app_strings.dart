@@ -73,6 +73,7 @@ abstract final class AppStrings {
   static const String talk = 'Conversar';
   static const String schedule = 'Agendar';
   static const String newMemory = 'Nova memória';
+  static const String memoryRegisterTitle = 'Registrar memória';
   static const String newMemorySubtitle =
       'Tudo que ajudar você a lembrar dessa cliente.';
   static const String memoryContentLabel =
@@ -97,6 +98,34 @@ abstract final class AppStrings {
       'Ajuste essa lembrança para manter tudo atualizado.';
   static const String memoryActions = 'Ações da memória';
   static const String memoryActionsSubtitle = 'Escolha o que deseja fazer.';
+  static const String memoryTypeLabel = 'Categoria';
+  static const String memoryPriorityLabel = 'Prioridade';
+  static const String memoryPinLabel = 'Fixar esta memória';
+  static const String memoryPinHint = 'Memórias fixadas aparecem primeiro';
+  static const String memoryTypePersonal = 'Pessoal';
+  static const String memoryTypePreference = 'Preferência';
+  static const String memoryTypeFamily = 'Família';
+  static const String memoryTypeWork = 'Trabalho';
+  static const String memoryTypeEvent = 'Evento';
+  static const String memoryTypeHealthAttention = 'Atenção à saúde';
+  static const String memoryTypeOther = 'Outro';
+  static const String memoryPriorityLow = 'Baixa';
+  static const String memoryPriorityNormal = 'Normal';
+  static const String memoryPriorityHigh = 'Alta';
+  static const String memoryPinnedBadge = 'Fixada';
+  static const String memoryPinAction = 'Fixar memória';
+  static const String memoryUnpinAction = 'Desafixar memória';
+  static const String memoryArchiveAction = 'Arquivar memória';
+  static const String memoryArchiveTitle = 'Arquivar memória?';
+  static const String memoryArchiveMessage =
+      'Ela sairá da lista ativa, mas continuará salva para consulta futura.';
+  static const String memoryArchivedSuccess = 'Memória arquivada com sucesso.';
+  static const String memoryPinnedSuccess = 'Memória fixada.';
+  static const String memoryUnpinnedSuccess = 'Memória desafixada.';
+  static const String memoryArchiveError =
+      'Não foi possível arquivar a memória. Tente novamente.';
+  static const String memoryPinError =
+      'Não foi possível atualizar a memória. Tente novamente.';
   static const String deleteMemory = 'Excluir memória';
   static const String deleteMemoryTitle = 'Excluir memória?';
   static const String deleteMemoryMessage =
