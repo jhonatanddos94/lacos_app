@@ -28,7 +28,8 @@ class AgendaAppointmentDisplay {
   final AppointmentCanceledBy? canceledBy;
   final String? cancellationReason;
 
-  static const _operationalStateResolver = AppointmentOperationalStateResolver();
+  static const _operationalStateResolver =
+      AppointmentOperationalStateResolver();
 
   AppointmentOperationalState operationalState({DateTime? now}) {
     return _operationalStateResolver.resolve(

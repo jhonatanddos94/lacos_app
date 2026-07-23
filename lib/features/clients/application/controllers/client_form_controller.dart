@@ -46,8 +46,9 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
     state = const AsyncLoading();
 
     try {
-      final normalizedInstagram =
-          clientInstagram?.isEmpty == true ? null : clientInstagram;
+      final normalizedInstagram = clientInstagram?.isEmpty == true
+          ? null
+          : clientInstagram;
 
       if (initialClient != null) {
         final updatedClient = Client(
@@ -110,7 +111,8 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
 
 String _resolveErrorMessage(Object error) {
   return switch (error) {
-    ClientPhotoUploadException() => AppValidationMessages.clientPhotoUploadFailed,
+    ClientPhotoUploadException() =>
+      AppValidationMessages.clientPhotoUploadFailed,
     FormatException(message: final message) => message,
     StateError(message: final message) => message,
     _ =>

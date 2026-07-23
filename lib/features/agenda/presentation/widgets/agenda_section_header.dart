@@ -4,10 +4,7 @@ import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 
 class AgendaSectionHeader extends StatelessWidget {
-  const AgendaSectionHeader({
-    required this.title,
-    super.key,
-  });
+  const AgendaSectionHeader({required this.title, super.key});
 
   final String title;
 

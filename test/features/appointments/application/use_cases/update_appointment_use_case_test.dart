@@ -35,7 +35,9 @@ void main() {
         startAt: startAt,
         endAt: endAt,
       );
-      appointmentRepository.dayAppointments = [appointmentRepository.appointment!];
+      appointmentRepository.dayAppointments = [
+        appointmentRepository.appointment!,
+      ];
 
       final result = await useCase(
         UpdateAppointmentParams(
@@ -57,32 +59,35 @@ void main() {
       expect(result.services, isNotEmpty);
     });
 
-    test('permite manter o mesmo horário ignorando o próprio appointment', () async {
-      final startAt = DateTime(2026, 8, 21, 10);
-      final endAt = startAt.add(const Duration(minutes: 60));
-      final existing = _appointment(
-        status: AppointmentStatus.confirmed,
-        startAt: startAt,
-        endAt: endAt,
-      );
-
-      appointmentRepository.appointment = existing;
-      appointmentRepository.dayAppointments = [existing];
-
-      final result = await useCase(
-        UpdateAppointmentParams(
-          appointmentId: existing.id,
-          clientId: existing.clientId,
-          professionalId: existing.professionalId,
-          services: [_service()],
+    test(
+      'permite manter o mesmo horário ignorando o próprio appointment',
+      () async {
+        final startAt = DateTime(2026, 8, 21, 10);
+        final endAt = startAt.add(const Duration(minutes: 60));
+        final existing = _appointment(
+          status: AppointmentStatus.confirmed,
           startAt: startAt,
           endAt: endAt,
-        ),
-      );
+        );
 
-      expect(result.appointment.id, existing.id);
-      expect(appointmentRepository.updateCalls, 1);
-    });
+        appointmentRepository.appointment = existing;
+        appointmentRepository.dayAppointments = [existing];
+
+        final result = await useCase(
+          UpdateAppointmentParams(
+            appointmentId: existing.id,
+            clientId: existing.clientId,
+            professionalId: existing.professionalId,
+            services: [_service()],
+            startAt: startAt,
+            endAt: endAt,
+          ),
+        );
+
+        expect(result.appointment.id, existing.id);
+        expect(appointmentRepository.updateCalls, 1);
+      },
+    );
 
     test('bloqueia edição de appointment concluído', () async {
       appointmentRepository.appointment = _appointment(
@@ -179,69 +184,80 @@ void main() {
       expect(appointmentServiceRepository.deactivateCalls, 2);
       expect(appointmentServiceRepository.createManyCalls, 2);
       expect(appointmentServiceRepository.activeServices.length, 1);
-      expect(appointmentServiceRepository.activeServices.first.isActive, isTrue);
+      expect(
+        appointmentServiceRepository.activeServices.first.isActive,
+        isTrue,
+      );
       expect(secondResult.services, isNotEmpty);
     });
 
-    test('findByAppointment retorna apenas serviços ativos após sync', () async {
-      final startAt = DateTime(2026, 8, 21, 10);
-      final endAt = startAt.add(const Duration(minutes: 60));
-      final existing = _appointment(startAt: startAt, endAt: endAt);
+    test(
+      'findByAppointment retorna apenas serviços ativos após sync',
+      () async {
+        final startAt = DateTime(2026, 8, 21, 10);
+        final endAt = startAt.add(const Duration(minutes: 60));
+        final existing = _appointment(startAt: startAt, endAt: endAt);
 
-      appointmentRepository.appointment = existing;
-      appointmentRepository.dayAppointments = [existing];
-      appointmentServiceRepository.seedActive(
-        _appointmentServiceLine(displayOrder: 0, label: 'old'),
-      );
+        appointmentRepository.appointment = existing;
+        appointmentRepository.dayAppointments = [existing];
+        appointmentServiceRepository.seedActive(
+          _appointmentServiceLine(displayOrder: 0, label: 'old'),
+        );
 
-      await useCase(
-        UpdateAppointmentParams(
-          appointmentId: existing.id,
-          clientId: existing.clientId,
-          professionalId: existing.professionalId,
-          services: [_service(name: 'Novo')],
-          startAt: startAt,
-          endAt: endAt,
-        ),
-      );
-
-      final activeServices =
-          await appointmentServiceRepository.findByAppointment(existing.id);
-
-      expect(activeServices.length, 1);
-      expect(activeServices.every((service) => service.isActive), isTrue);
-      expect(
-        appointmentServiceRepository.deactivatedServices.every(
-          (service) => !service.isActive,
-        ),
-        isTrue,
-      );
-    });
-
-    test('falha clara quando createMany falha após desativar antigos', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.dayAppointments = [appointmentRepository.appointment!];
-      appointmentServiceRepository.shouldFailCreateMany = true;
-
-      await expectLater(
-        useCase(
+        await useCase(
           UpdateAppointmentParams(
-            appointmentId: 'appointment-1',
-            clientId: 'client-1',
-            professionalId: 'professional-1',
-            services: [_service()],
-            startAt: DateTime(2026, 8, 21, 10),
-            endAt: DateTime(2026, 8, 21, 11),
+            appointmentId: existing.id,
+            clientId: existing.clientId,
+            professionalId: existing.professionalId,
+            services: [_service(name: 'Novo')],
+            startAt: startAt,
+            endAt: endAt,
           ),
-        ),
-        throwsA(isA<AppointmentServicesUpdateException>()),
-      );
+        );
 
-      expect(appointmentRepository.updateCalls, 1);
-      expect(appointmentServiceRepository.deactivateCalls, 1);
-      expect(appointmentServiceRepository.createManyCalls, 1);
-      expect(appointmentServiceRepository.activeServices, isEmpty);
-    });
+        final activeServices = await appointmentServiceRepository
+            .findByAppointment(existing.id);
+
+        expect(activeServices.length, 1);
+        expect(activeServices.every((service) => service.isActive), isTrue);
+        expect(
+          appointmentServiceRepository.deactivatedServices.every(
+            (service) => !service.isActive,
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'falha clara quando createMany falha após desativar antigos',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.dayAppointments = [
+          appointmentRepository.appointment!,
+        ];
+        appointmentServiceRepository.shouldFailCreateMany = true;
+
+        await expectLater(
+          useCase(
+            UpdateAppointmentParams(
+              appointmentId: 'appointment-1',
+              clientId: 'client-1',
+              professionalId: 'professional-1',
+              services: [_service()],
+              startAt: DateTime(2026, 8, 21, 10),
+              endAt: DateTime(2026, 8, 21, 11),
+            ),
+          ),
+          throwsA(isA<AppointmentServicesUpdateException>()),
+        );
+
+        expect(appointmentRepository.updateCalls, 1);
+        expect(appointmentServiceRepository.deactivateCalls, 1);
+        expect(appointmentServiceRepository.createManyCalls, 1);
+        expect(appointmentServiceRepository.activeServices, isEmpty);
+      },
+    );
 
     test('bloqueia horário indisponível de outro appointment', () async {
       final startAt = DateTime(2026, 8, 21, 10);
@@ -349,8 +365,7 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> cancel({
@@ -377,7 +392,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 }
 
-class _FakeAppointmentServiceRepository implements AppointmentServiceRepository {
+class _FakeAppointmentServiceRepository
+    implements AppointmentServiceRepository {
   var deactivateCalls = 0;
   var createManyCalls = 0;
   var shouldFailCreateMany = false;
@@ -450,8 +466,12 @@ class _FakeAppointmentServiceRepository implements AppointmentServiceRepository 
   }
 
   @override
-  Future<List<AppointmentService>> findByAppointment(String appointmentId) async {
-    return activeServices.where((service) => service.isActive).toList(growable: false);
+  Future<List<AppointmentService>> findByAppointment(
+    String appointmentId,
+  ) async {
+    return activeServices
+        .where((service) => service.isActive)
+        .toList(growable: false);
   }
 
   @override

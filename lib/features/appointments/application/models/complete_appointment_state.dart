@@ -38,7 +38,9 @@ class CompleteAppointmentState {
   }) {
     return CompleteAppointmentState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
       success: success ?? this.success,
       procedureSummary: procedureSummary ?? this.procedureSummary,
       technicalNotes: technicalNotes ?? this.technicalNotes,

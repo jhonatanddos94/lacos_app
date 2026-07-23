@@ -53,11 +53,7 @@ class AgendaScheduleSkeleton extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.xxs),
-          _SkeletonBlock(
-            width: 58,
-            height: 22,
-            borderRadius: _chipRadius,
-          ),
+          _SkeletonBlock(width: 58, height: 22, borderRadius: _chipRadius),
           const SizedBox(width: AppSpacing.xxxs),
           _SkeletonBlock(
             width: AppIconSizes.md,

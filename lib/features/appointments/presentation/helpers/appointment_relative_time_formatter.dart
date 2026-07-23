@@ -3,10 +3,7 @@ import 'package:lacos_app/core/config/app_strings.dart';
 class AppointmentRelativeTimeFormatter {
   const AppointmentRelativeTimeFormatter();
 
-  String formatSince({
-    required DateTime reference,
-    DateTime? now,
-  }) {
+  String formatSince({required DateTime reference, DateTime? now}) {
     final moment = now ?? DateTime.now();
     if (!moment.isAfter(reference)) {
       return '';
@@ -37,10 +34,7 @@ class AppointmentRelativeTimeFormatter {
     return days == 1 ? 'há 1 dia' : 'há $days dias';
   }
 
-  String formatOverdueWaitingSince({
-    required DateTime endAt,
-    DateTime? now,
-  }) {
+  String formatOverdueWaitingSince({required DateTime endAt, DateTime? now}) {
     final relative = formatSince(reference: endAt, now: now);
     if (relative.isEmpty) {
       return '';

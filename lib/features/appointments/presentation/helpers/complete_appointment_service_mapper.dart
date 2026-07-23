@@ -5,10 +5,6 @@ List<CompletedServiceParams> mapPlannedServicesToCompletedParams(
   List<Service> services,
 ) {
   return services
-      .map(
-        (service) => CompletedServiceParams(
-          serviceId: service.id,
-        ),
-      )
+      .map((service) => CompletedServiceParams(serviceId: service.id))
       .toList(growable: false);
 }

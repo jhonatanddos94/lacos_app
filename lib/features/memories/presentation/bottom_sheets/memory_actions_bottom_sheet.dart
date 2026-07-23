@@ -68,9 +68,9 @@ class MemoryActionsBottomSheet extends StatelessWidget {
                   label: isPinned
                       ? AppStrings.memoryUnpinAction
                       : AppStrings.memoryPinAction,
-                  onTap: () => Navigator.of(context).pop(
-                    isPinned ? MemoryAction.unpin : MemoryAction.pin,
-                  ),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pop(isPinned ? MemoryAction.unpin : MemoryAction.pin),
                 ),
                 const SizedBox(height: AppSpacing.xxxs),
                 _MemoryActionTile(

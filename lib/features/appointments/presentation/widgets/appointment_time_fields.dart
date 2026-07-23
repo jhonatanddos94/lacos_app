@@ -85,8 +85,8 @@ class _TimeFieldTile extends StatelessWidget {
     final borderColor = hasError
         ? theme.colorScheme.error
         : highlighted
-            ? AppColors.purple100
-            : AppColors.divider;
+        ? AppColors.purple100
+        : AppColors.divider;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,9 +108,7 @@ class _TimeFieldTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: highlighted ? AppColors.purple50 : AppColors.surface,
                 borderRadius: AppRadius.borderMd,
-                border: Border.all(
-                  color: borderColor,
-                ),
+                border: Border.all(color: borderColor),
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,

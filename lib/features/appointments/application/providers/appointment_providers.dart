@@ -33,7 +33,9 @@ final createAppointmentUseCaseProvider = Provider<CreateAppointmentUseCase>((
 ) {
   return CreateAppointmentUseCase(
     appointmentRepository: ref.watch(appointmentRepositoryProvider),
-    appointmentServiceRepository: ref.watch(appointmentServiceRepositoryProvider),
+    appointmentServiceRepository: ref.watch(
+      appointmentServiceRepositoryProvider,
+    ),
     availabilityEngine: ref.watch(availabilityEngineProvider),
   );
 });
@@ -52,7 +54,9 @@ final updateAppointmentUseCaseProvider = Provider<UpdateAppointmentUseCase>((
 ) {
   return UpdateAppointmentUseCase(
     appointmentRepository: ref.watch(appointmentRepositoryProvider),
-    appointmentServiceRepository: ref.watch(appointmentServiceRepositoryProvider),
+    appointmentServiceRepository: ref.watch(
+      appointmentServiceRepositoryProvider,
+    ),
     availabilityEngine: ref.watch(availabilityEngineProvider),
   );
 });
@@ -74,17 +78,17 @@ final cancelAppointmentUseCaseProvider = Provider<CancelAppointmentUseCase>((
   );
 });
 
-final completeAppointmentUseCaseProvider = Provider<CompleteAppointmentUseCase>((
-  ref,
-) {
-  return CompleteAppointmentUseCase(
-    appointmentRepository: ref.watch(appointmentRepositoryProvider),
-    serviceRecordRepository: ref.watch(serviceRecordRepositoryProvider),
-    serviceRecordServiceRepository: ref.watch(
-      serviceRecordServiceRepositoryProvider,
-    ),
-  );
-});
+final completeAppointmentUseCaseProvider = Provider<CompleteAppointmentUseCase>(
+  (ref) {
+    return CompleteAppointmentUseCase(
+      appointmentRepository: ref.watch(appointmentRepositoryProvider),
+      serviceRecordRepository: ref.watch(serviceRecordRepositoryProvider),
+      serviceRecordServiceRepository: ref.watch(
+        serviceRecordServiceRepositoryProvider,
+      ),
+    );
+  },
+);
 
 final completeAppointmentControllerProvider =
     StateNotifierProvider<
@@ -96,10 +100,9 @@ final completeAppointmentControllerProvider =
     });
 
 final cancelAppointmentControllerProvider =
-    StateNotifierProvider<
-      CancelAppointmentController,
-      CancelAppointmentState
-    >((ref) {
+    StateNotifierProvider<CancelAppointmentController, CancelAppointmentState>((
+      ref,
+    ) {
       final useCase = ref.watch(cancelAppointmentUseCaseProvider);
       return CancelAppointmentController(useCase);
     });
@@ -122,7 +125,10 @@ final appointmentsByDayProvider =
     });
 
 final appointmentServicesByAppointmentProvider =
-    FutureProvider.family<List<AppointmentService>, String>((ref, appointmentId) {
+    FutureProvider.family<List<AppointmentService>, String>((
+      ref,
+      appointmentId,
+    ) {
       final repository = ref.watch(appointmentServiceRepositoryProvider);
       return repository.findByAppointment(appointmentId);
     });

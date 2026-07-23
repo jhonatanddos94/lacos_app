@@ -8,7 +8,8 @@ import 'package:lacos_app/features/appointments/infrastructure/errors/parse_appo
 import 'package:lacos_app/features/appointments/infrastructure/mappers/appointment_service_mapper.dart';
 import 'package:lacos_app/features/salon/domain/repositories/salon_repository.dart';
 
-class ParseAppointmentServiceRepository implements AppointmentServiceRepository {
+class ParseAppointmentServiceRepository
+    implements AppointmentServiceRepository {
   ParseAppointmentServiceRepository(
     this._salonRepository, {
     AppointmentServiceMapper? mapper,
@@ -37,13 +38,12 @@ class ParseAppointmentServiceRepository implements AppointmentServiceRepository 
         );
       }
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_appointmentServiceClassName),
-      )
-        ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..orderByAscending('displayOrder');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentServiceClassName))
+            ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByAscending('displayOrder');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -95,13 +95,12 @@ class ParseAppointmentServiceRepository implements AppointmentServiceRepository 
           .map(_appointmentPointer)
           .toList(growable: false);
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_appointmentServiceClassName),
-      )
-        ..whereContainedIn('appointment', appointmentPointers)
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..orderByAscending('displayOrder');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentServiceClassName))
+            ..whereContainedIn('appointment', appointmentPointers)
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByAscending('displayOrder');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -157,18 +156,22 @@ class ParseAppointmentServiceRepository implements AppointmentServiceRepository 
       final createdServices = <AppointmentService>[];
 
       for (final service in services) {
-        final parseAppointmentService = ParseObject(_appointmentServiceClassName)
-          ..set<ParseObject>('appointment', _appointmentPointer(appointmentId))
-          ..set<ParseObject>('service', _servicePointer(service.serviceId))
-          ..set<ParseObject>('salon', _salonPointer(salon.id))
-          ..set<ParseUser>('owner', owner)
-          ..set<num>('priceAtBooking', service.priceAtBooking ?? 0)
-          ..set<int>(
-            'durationMinutesAtBooking',
-            service.durationMinutesAtBooking,
-          )
-          ..set<int>('displayOrder', service.displayOrder)
-          ..set<bool>('isActive', true);
+        final parseAppointmentService =
+            ParseObject(_appointmentServiceClassName)
+              ..set<ParseObject>(
+                'appointment',
+                _appointmentPointer(appointmentId),
+              )
+              ..set<ParseObject>('service', _servicePointer(service.serviceId))
+              ..set<ParseObject>('salon', _salonPointer(salon.id))
+              ..set<ParseUser>('owner', owner)
+              ..set<num>('priceAtBooking', service.priceAtBooking ?? 0)
+              ..set<int>(
+                'durationMinutesAtBooking',
+                service.durationMinutesAtBooking,
+              )
+              ..set<int>('displayOrder', service.displayOrder)
+              ..set<bool>('isActive', true);
 
         final response = await parseAppointmentService.save();
         if (!response.success) {
@@ -205,12 +208,11 @@ class ParseAppointmentServiceRepository implements AppointmentServiceRepository 
         );
       }
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_appointmentServiceClassName),
-      )
-        ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true);
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentServiceClassName))
+            ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true);
 
       final response = await query.query<ParseObject>();
       if (!response.success) {

@@ -46,9 +46,7 @@ class AgendaAppointmentsList extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      return AgendaEmptyState(
-        isPastDay: isPastDay,
-      );
+      return AgendaEmptyState(isPastDay: isPastDay);
     }
 
     final listView = AgendaScheduleListView(
@@ -64,9 +62,7 @@ class AgendaAppointmentsList extends StatelessWidget {
       return listView;
     }
 
-    return AgendaListCard(
-      child: listView,
-    );
+    return AgendaListCard(child: listView);
   }
 }
 
@@ -139,9 +135,7 @@ class AgendaScheduleListView extends StatelessWidget {
   }
 
   String? _nextAppointmentId() {
-    final pendingAndConfirmed = [
-      ...sections.pending,
-    ];
+    final pendingAndConfirmed = [...sections.pending];
     final mapped = AgendaAppointmentDisplayMapper.toScheduleItems(
       pendingAndConfirmed,
       selectedDay,

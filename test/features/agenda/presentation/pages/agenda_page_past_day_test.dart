@@ -21,9 +21,7 @@ void main() {
               (ref, view) async => const {},
             ),
           ],
-          child: const MaterialApp(
-            home: AgendaPage(),
-          ),
+          child: const MaterialApp(home: AgendaPage()),
         ),
       );
 
@@ -43,7 +41,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('oculta botão Novo em dia passado', (WidgetTester tester) async {
+    testWidgets('oculta botão Novo em dia passado', (
+      WidgetTester tester,
+    ) async {
       await pumpAgendaPage(tester);
 
       expect(find.text('Novo'), findsOneWidget);
@@ -64,10 +64,15 @@ void main() {
 
       expect(find.text(AppStrings.agendaEmptyPastDay), findsOneWidget);
       expect(find.text(AppStrings.agendaEmptyDay), findsNothing);
-      expect(find.textContaining(AppStrings.agendaHistoricalDayLabel), findsWidgets);
+      expect(
+        find.textContaining(AppStrings.agendaHistoricalDayLabel),
+        findsWidgets,
+      );
     });
 
-    testWidgets('mantém botão Novo em dia operacional', (WidgetTester tester) async {
+    testWidgets('mantém botão Novo em dia operacional', (
+      WidgetTester tester,
+    ) async {
       await pumpAgendaPage(tester);
 
       expect(find.text('Novo'), findsOneWidget);

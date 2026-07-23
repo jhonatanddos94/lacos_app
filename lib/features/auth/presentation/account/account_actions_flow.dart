@@ -7,10 +7,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/features/auth/presentation/bottom_sheets/account_actions_bottom_sheet.dart';
 import 'package:lacos_app/features/auth/presentation/widgets/logout_confirm_dialog.dart';
 
-Future<void> showAccountActionsFlow(
-  BuildContext context,
-  WidgetRef ref,
-) async {
+Future<void> showAccountActionsFlow(BuildContext context, WidgetRef ref) async {
   final action = await showModalBottomSheet<AccountAction>(
     context: context,
     backgroundColor: Colors.transparent,

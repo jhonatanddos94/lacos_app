@@ -16,8 +16,7 @@ class LogoutConfirmDialog extends ConsumerStatefulWidget {
 
 class _LogoutConfirmDialogState extends ConsumerState<LogoutConfirmDialog> {
   Future<void> _confirmLogout() async {
-    final success =
-        await ref.read(authControllerProvider.notifier).signOut();
+    final success = await ref.read(authControllerProvider.notifier).signOut();
 
     if (!mounted) return;
 
@@ -34,9 +33,9 @@ class _LogoutConfirmDialogState extends ConsumerState<LogoutConfirmDialog> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

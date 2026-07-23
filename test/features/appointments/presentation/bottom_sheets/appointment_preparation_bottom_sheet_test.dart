@@ -81,12 +81,12 @@ void main() {
     testWidgets('exibe dados da cliente e memórias', (tester) async {
       await openSheet(tester, dataWithMemories);
 
+      expect(find.text(AppStrings.appointmentPreparationTitle), findsOneWidget);
+      expect(find.text('Maria Silva'), findsOneWidget);
       expect(
-        find.text(AppStrings.appointmentPreparationTitle),
+        find.text(AppStrings.appointmentPreparationMemoriesSection),
         findsOneWidget,
       );
-      expect(find.text('Maria Silva'), findsOneWidget);
-      expect(find.text(AppStrings.appointmentPreparationMemoriesSection), findsOneWidget);
       expect(find.text('Vai casar em novembro.'), findsOneWidget);
       expect(find.text('Prefere café sem açúcar.'), findsOneWidget);
     });
@@ -114,14 +114,17 @@ void main() {
                 return Center(
                   child: ElevatedButton(
                     onPressed: () async {
-                      result = await showModalBottomSheet<
-                          AppointmentPreparationAction>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => AppointmentPreparationBottomSheet(
-                          data: dataWithMemories,
-                        ),
-                      );
+                      result =
+                          await showModalBottomSheet<
+                            AppointmentPreparationAction
+                          >(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) =>
+                                AppointmentPreparationBottomSheet(
+                                  data: dataWithMemories,
+                                ),
+                          );
                     },
                     child: const Text('open'),
                   ),
@@ -157,14 +160,17 @@ void main() {
                 return Center(
                   child: ElevatedButton(
                     onPressed: () async {
-                      result = await showModalBottomSheet<
-                          AppointmentPreparationAction>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => AppointmentPreparationBottomSheet(
-                          data: dataWithMemories,
-                        ),
-                      );
+                      result =
+                          await showModalBottomSheet<
+                            AppointmentPreparationAction
+                          >(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) =>
+                                AppointmentPreparationBottomSheet(
+                                  data: dataWithMemories,
+                                ),
+                          );
                     },
                     child: const Text('open'),
                   ),

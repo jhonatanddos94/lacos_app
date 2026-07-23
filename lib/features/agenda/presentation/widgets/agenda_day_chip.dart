@@ -31,7 +31,9 @@ class AgendaDayChip extends StatelessWidget {
         : AppColors.surface;
     final borderColor = isSelected
         ? (isPast ? AppColors.graphite : AppColors.lacosPurple)
-        : (isPast ? AppColors.divider.withValues(alpha: 0.7) : AppColors.divider);
+        : (isPast
+              ? AppColors.divider.withValues(alpha: 0.7)
+              : AppColors.divider);
     final textColor = isSelected
         ? AppColors.onPrimary
         : (isPast ? AppColors.textSecondary : AppColors.graphite);
@@ -76,7 +78,9 @@ class AgendaDayChip extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.onPrimary : AppColors.lacosPurple,
+                    color: isSelected
+                        ? AppColors.onPrimary
+                        : AppColors.lacosPurple,
                     shape: BoxShape.circle,
                   ),
                 ),

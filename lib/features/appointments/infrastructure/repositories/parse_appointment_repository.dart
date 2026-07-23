@@ -42,14 +42,13 @@ class ParseAppointmentRepository implements AppointmentRepository {
       final dayStart = DateTime(day.year, day.month, day.day);
       final dayEnd = dayStart.add(const Duration(days: 1));
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_appointmentClassName),
-      )
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..whereGreaterThanOrEqualsTo('startAt', dayStart)
-        ..whereLessThan('startAt', dayEnd)
-        ..orderByAscending('startAt');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentClassName))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..whereGreaterThanOrEqualsTo('startAt', dayStart)
+            ..whereLessThan('startAt', dayEnd)
+            ..orderByAscending('startAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -100,14 +99,13 @@ class ParseAppointmentRepository implements AppointmentRepository {
         end.day,
       ).add(const Duration(days: 1));
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_appointmentClassName),
-      )
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..whereGreaterThanOrEqualsTo('startAt', rangeStart)
-        ..whereLessThan('startAt', rangeEnd)
-        ..orderByAscending('startAt');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentClassName))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..whereGreaterThanOrEqualsTo('startAt', rangeStart)
+            ..whereLessThan('startAt', rangeEnd)
+            ..orderByAscending('startAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -237,8 +235,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
       throw FormatException(
         ParseTemporaryErrorMapper.messageForThrowable(
           error,
-          fallback:
-              'Não foi possível carregar o agendamento. Tente novamente.',
+          fallback: 'Não foi possível carregar o agendamento. Tente novamente.',
         ),
       );
     }
@@ -329,7 +326,9 @@ class ParseAppointmentRepository implements AppointmentRepository {
       }
 
       if (appointment.status == AppointmentStatus.completed) {
-        debugPrint('[AppointmentComplete] repository complete already completed');
+        debugPrint(
+          '[AppointmentComplete] repository complete already completed',
+        );
         return appointment;
       }
 
@@ -472,8 +471,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
       throw FormatException(
         ParseTemporaryErrorMapper.messageForThrowable(
           error,
-          fallback:
-              'Não foi possível carregar o agendamento. Tente novamente.',
+          fallback: 'Não foi possível carregar o agendamento. Tente novamente.',
         ),
       );
     }

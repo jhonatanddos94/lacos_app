@@ -49,10 +49,7 @@ class AgendaRefreshingAfterCreateState extends StatelessWidget {
 }
 
 class AgendaRefreshingBanner extends StatelessWidget {
-  const AgendaRefreshingBanner({
-    required this.theme,
-    super.key,
-  });
+  const AgendaRefreshingBanner({required this.theme, super.key});
 
   final ThemeData theme;
 

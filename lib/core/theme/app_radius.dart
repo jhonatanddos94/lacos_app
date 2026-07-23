@@ -12,15 +12,11 @@ abstract final class AppRadius {
   static BorderRadius get borderMd => BorderRadius.circular(md);
   static BorderRadius get borderLg => BorderRadius.circular(lg);
 
-  static BorderRadius get borderTopLg => const BorderRadius.vertical(
-        top: Radius.circular(lg),
-      );
+  static BorderRadius get borderTopLg =>
+      const BorderRadius.vertical(top: Radius.circular(lg));
 
   /// Borda outline padrão para campos de texto e inputs.
-  static OutlineInputBorder inputBorder(
-    Color color, {
-    double width = 1,
-  }) {
+  static OutlineInputBorder inputBorder(Color color, {double width = 1}) {
     return OutlineInputBorder(
       borderRadius: borderSm,
       borderSide: BorderSide(color: color, width: width),

@@ -26,10 +26,7 @@ class AppointmentPresentationMapper {
     return AppStrings.appointmentOperationalOverdueDetailsMessage;
   }
 
-  String? overdueBannerRelativeTime({
-    required DateTime endAt,
-    DateTime? now,
-  }) {
+  String? overdueBannerRelativeTime({required DateTime endAt, DateTime? now}) {
     final relativeTime = _relativeTimeFormatter.formatOverdueWaitingSince(
       endAt: endAt,
       now: now,

@@ -5,10 +5,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 
 class AgendaListCard extends StatelessWidget {
-  const AgendaListCard({
-    required this.child,
-    super.key,
-  });
+  const AgendaListCard({required this.child, super.key});
 
   final Widget child;
 

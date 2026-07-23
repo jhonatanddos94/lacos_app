@@ -18,11 +18,7 @@ import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
 class MemoryFormBottomSheet extends ConsumerStatefulWidget {
-  const MemoryFormBottomSheet({
-    required this.clientId,
-    this.memory,
-    super.key,
-  });
+  const MemoryFormBottomSheet({required this.clientId, this.memory, super.key});
 
   final String clientId;
   final ClientMemory? memory;
@@ -104,9 +100,9 @@ class _MemoryFormBottomSheetState extends ConsumerState<MemoryFormBottomSheet> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

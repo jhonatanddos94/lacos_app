@@ -125,7 +125,8 @@ class AvailabilityEngine {
     required List<Appointment> appointments,
   }) {
     for (final appointment in appointments) {
-      final overlaps = newStart.isBefore(appointment.endAt) &&
+      final overlaps =
+          newStart.isBefore(appointment.endAt) &&
           newEnd.isAfter(appointment.startAt);
 
       if (overlaps) {

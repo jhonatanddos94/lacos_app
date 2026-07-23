@@ -2,11 +2,7 @@ import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 
 /// Chave estável para providers da Agenda indexados por dia.
 class AgendaDay {
-  const AgendaDay({
-    required this.year,
-    required this.month,
-    required this.day,
-  });
+  const AgendaDay({required this.year, required this.month, required this.day});
 
   factory AgendaDay.from(DateTime date) {
     final normalized = normalizeAppointmentDate(date);

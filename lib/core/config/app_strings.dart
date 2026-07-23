@@ -59,8 +59,7 @@ abstract final class AppStrings {
   static const String clientDetailsTitle = 'Ficha da cliente';
   static const String clientData = 'Dados da cliente';
   static const String clientMemories = 'Memórias';
-  static const String clientMemoriesSubtitle =
-      'Todas as memórias da cliente';
+  static const String clientMemoriesSubtitle = 'Todas as memórias da cliente';
   static const String clientMemoriesEmptyTitle =
       'Ainda não há memórias cadastradas';
   static const String clientMemoriesEmptyMessage =
@@ -126,6 +125,22 @@ abstract final class AppStrings {
       'Não foi possível arquivar a memória. Tente novamente.';
   static const String memoryPinError =
       'Não foi possível atualizar a memória. Tente novamente.';
+  static const String memoryFiltersTitle = 'Filtrar memórias';
+  static const String memoryFilterShowLabel = 'Exibir';
+  static const String memoryFilterAll = 'Todas';
+  static const String memoryFilterPinnedOnly = 'Apenas fixadas';
+  static const String memoryFilterArchivedOnly = 'Apenas arquivadas';
+  static const String memoryFilterSortLabel = 'Ordenação';
+  static const String memoryFilterNewest = 'Mais recentes';
+  static const String memoryFilterOldest = 'Mais antigas';
+  static const String memoryFilterRecentlyMentioned =
+      'Mencionadas recentemente';
+  static const String memoryFilterClear = 'Limpar';
+  static const String memoryFilterApply = 'Aplicar';
+  static const String memoryFilterEmptyTitle = 'Nenhuma memória encontrada';
+  static const String memoryFilterEmptyMessage =
+      'Tente alterar ou limpar os filtros.';
+  static const String memoryFilterClearAction = 'Limpar filtros';
   static const String deleteMemory = 'Excluir memória';
   static const String deleteMemoryTitle = 'Excluir memória?';
   static const String deleteMemoryMessage =
@@ -143,8 +158,7 @@ abstract final class AppStrings {
       'Não foi possível atualizar a memória. Tente novamente.';
   static const String memoryDeleteError =
       'Não foi possível excluir a memória. Tente novamente.';
-  static const String memoryRequired =
-      'Escreva uma memória antes de salvar.';
+  static const String memoryRequired = 'Escreva uma memória antes de salvar.';
   static const String memoryMaxLengthError =
       'A memória pode ter no máximo 300 caracteres.';
   static const String copiedToClipboard =
@@ -207,16 +221,17 @@ abstract final class AppStrings {
   static const String appointmentFormEditAction = 'Salvar alterações';
   static const String appointmentUpdateComingSoon = 'Atualização em breve.';
   static const String appointmentClientSection = 'Cliente';
-  static const String appointmentClientSectionSubtitle =
-      'Quem será atendida?';
+  static const String appointmentClientSectionSubtitle = 'Quem será atendida?';
   static const String appointmentServiceSection = 'Serviços';
   static const String appointmentServiceSectionSubtitle =
       'Escolha um ou mais serviços para este atendimento';
   static const String appointmentAddServicePrompt = 'Adicionar serviço';
   static const String appointmentAddServiceHint =
       'Escolha um ou mais serviços para este atendimento';
-  static const String appointmentAddAnotherService = '+ Adicionar outro serviço';
-  static const String appointmentNoServicesSelected = 'Nenhum serviço selecionado';
+  static const String appointmentAddAnotherService =
+      '+ Adicionar outro serviço';
+  static const String appointmentNoServicesSelected =
+      'Nenhum serviço selecionado';
   static const String appointmentServiceAlreadyAdded =
       'Esse serviço já foi adicionado.';
   static const String appointmentReplaceService = 'Trocar serviço';
@@ -317,7 +332,8 @@ abstract final class AppStrings {
       'Seleção de data em breve.';
   static const String appointmentSelectTimeComingSoon =
       'Seleção de horário em breve.';
-  static const String appointmentSaveComingSoon = 'Salvar agendamento em breve.';
+  static const String appointmentSaveComingSoon =
+      'Salvar agendamento em breve.';
   static const String appointmentSaveError =
       'Não foi possível salvar o agendamento. Tente novamente.';
   static const String appointmentPartialSaveError =
@@ -399,8 +415,7 @@ abstract final class AppStrings {
   static const String appointmentPreparationServicesLabel =
       'Serviços agendados';
   static const String appointmentPreparationScheduleLabel = 'Horário';
-  static const String appointmentPreparationMemoriesSection =
-      '✨ O que lembrar';
+  static const String appointmentPreparationMemoriesSection = '✨ O que lembrar';
   static const String appointmentPreparationMemoriesEmpty =
       'Ainda não existem memórias cadastradas para esta cliente.';
   static const String appointmentPreparationContinue =

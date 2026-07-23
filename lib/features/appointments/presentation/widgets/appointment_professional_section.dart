@@ -31,15 +31,13 @@ class AppointmentProfessionalSection extends StatelessWidget {
       subtitle: AppStrings.appointmentProfessionalSectionSubtitle,
       errorText: errorText,
       child: AppointmentFormSelectTile(
-        title: professional?.name ??
+        title:
+            professional?.name ??
             AppStrings.appointmentChooseProfessionalPrompt,
         subtitle: subtitle,
         leading: professional == null
             ? const AppointmentFormIconCircle(icon: Icons.search_rounded)
-            : ClientAvatar(
-                name: professional.name,
-                radius: 22,
-              ),
+            : ClientAvatar(name: professional.name, radius: 22),
         hasError: errorText != null,
         onTap: onTap,
       ),

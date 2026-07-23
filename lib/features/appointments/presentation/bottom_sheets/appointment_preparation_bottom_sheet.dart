@@ -14,10 +14,7 @@ import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.da
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class AppointmentPreparationBottomSheet extends StatelessWidget {
-  const AppointmentPreparationBottomSheet({
-    required this.data,
-    super.key,
-  });
+  const AppointmentPreparationBottomSheet({required this.data, super.key});
 
   final AppointmentPreparationData data;
 
@@ -82,17 +79,17 @@ class AppointmentPreparationBottomSheet extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
                   label: AppStrings.appointmentPreparationContinue,
-                  onPressed: () => Navigator.of(context).pop(
-                    AppointmentPreparationAction.continueToAppointment,
-                  ),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(AppointmentPreparationAction.continueToAppointment),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 AppButton(
                   label: AppStrings.appointmentPreparationNotNow,
                   variant: AppButtonVariant.text,
-                  onPressed: () => Navigator.of(context).pop(
-                    AppointmentPreparationAction.dismiss,
-                  ),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(AppointmentPreparationAction.dismiss),
                 ),
               ],
             ),
@@ -164,10 +161,7 @@ class _ClientSection extends StatelessWidget {
 }
 
 class _InfoLine extends StatelessWidget {
-  const _InfoLine({
-    required this.label,
-    required this.value,
-  });
+  const _InfoLine({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -258,10 +252,7 @@ class _MemoryCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            memory.displayEmoji,
-            style: theme.textTheme.titleSmall,
-          ),
+          Text(memory.displayEmoji, style: theme.textTheme.titleSmall),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(

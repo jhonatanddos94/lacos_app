@@ -80,7 +80,9 @@ class UpdateAppointmentController
       return null;
     } on Object catch (error, stackTrace) {
       debugPrint('[AppointmentUpdate] failed: $error');
-      final friendlyError = FormatException(resolveUpdateAppointmentErrorMessage(error));
+      final friendlyError = FormatException(
+        resolveUpdateAppointmentErrorMessage(error),
+      );
       state = AsyncError(friendlyError, stackTrace);
       return null;
     }

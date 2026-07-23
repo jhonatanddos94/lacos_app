@@ -7,10 +7,7 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 
 class AgendaEmptyState extends StatelessWidget {
-  const AgendaEmptyState({
-    this.isPastDay = false,
-    super.key,
-  });
+  const AgendaEmptyState({this.isPastDay = false, super.key});
 
   final bool isPastDay;
 

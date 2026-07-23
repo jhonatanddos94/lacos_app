@@ -14,11 +14,7 @@ class AppointmentOperationalStateResolver {
       AppointmentStatus.completed => AppointmentOperationalState.completed,
       AppointmentStatus.canceled => AppointmentOperationalState.canceled,
       AppointmentStatus.pending || AppointmentStatus.confirmed =>
-        _resolveActiveState(
-          startAt: startAt,
-          endAt: endAt,
-          now: now,
-        ),
+        _resolveActiveState(startAt: startAt, endAt: endAt, now: now),
     };
   }
 

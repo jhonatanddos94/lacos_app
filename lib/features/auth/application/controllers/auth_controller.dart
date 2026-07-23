@@ -54,17 +54,13 @@ class AuthController extends Notifier<AuthState> {
     return const AuthUnauthenticated();
   }
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     state = const AuthLoading();
 
     try {
-      final user = await ref.read(authRepositoryProvider).signIn(
-            email: email,
-            password: password,
-          );
+      final user = await ref
+          .read(authRepositoryProvider)
+          .signIn(email: email, password: password);
       await ref.read(sessionRepositoryProvider).syncAuthenticatedUser();
       state = AuthAuthenticated(user);
     } on Object catch (error) {
@@ -83,9 +79,9 @@ class AuthController extends Notifier<AuthState> {
       final sessionRepository = ref.read(sessionRepositoryProvider);
 
       final user = await authRepository.createAccount(
-            email: email,
-            password: password,
-          );
+        email: email,
+        password: password,
+      );
 
       try {
         await sessionRepository.syncAuthenticatedUser();

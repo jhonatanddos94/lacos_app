@@ -23,7 +23,8 @@ class AppointmentCancelDialog extends ConsumerStatefulWidget {
       _AppointmentCancelDialogState();
 }
 
-class _AppointmentCancelDialogState extends ConsumerState<AppointmentCancelDialog> {
+class _AppointmentCancelDialogState
+    extends ConsumerState<AppointmentCancelDialog> {
   var _isConfirming = false;
 
   Future<void> _confirmCancel() async {

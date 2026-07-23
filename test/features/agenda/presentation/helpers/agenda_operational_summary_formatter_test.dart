@@ -15,8 +15,8 @@ void main() {
           ),
         ),
         '2 ${AppStrings.agendaOperationalSummaryOverdue} • '
-            '1 ${AppStrings.agendaOperationalSummaryCurrent} • '
-            '4 ${AppStrings.agendaOperationalSummaryUpcoming}',
+        '1 ${AppStrings.agendaOperationalSummaryCurrent} • '
+        '4 ${AppStrings.agendaOperationalSummaryUpcoming}',
       );
     });
 
@@ -32,13 +32,10 @@ void main() {
     test('mostra overdue e upcoming sem current', () {
       expect(
         formatAgendaOperationalSummaryLine(
-          const AgendaOperationalSummary(
-            overdueCount: 2,
-            upcomingCount: 3,
-          ),
+          const AgendaOperationalSummary(overdueCount: 2, upcomingCount: 3),
         ),
         '2 ${AppStrings.agendaOperationalSummaryOverdue} • '
-            '3 ${AppStrings.agendaOperationalSummaryUpcoming}',
+        '3 ${AppStrings.agendaOperationalSummaryUpcoming}',
       );
     });
 
@@ -50,10 +47,7 @@ void main() {
 
       expect(
         formatAgendaOperationalSummaryLine(
-          const AgendaOperationalSummary(
-            completedCount: 2,
-            canceledCount: 1,
-          ),
+          const AgendaOperationalSummary(completedCount: 2, canceledCount: 1),
         ),
         AppStrings.agendaOperationalSummaryNone,
       );

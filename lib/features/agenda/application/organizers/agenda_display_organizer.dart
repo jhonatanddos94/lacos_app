@@ -29,9 +29,7 @@ class AgendaDisplayOrganizer {
       }
     }
 
-    pending.sort(
-      (a, b) => _comparePendingAppointments(a, b, referenceNow),
-    );
+    pending.sort((a, b) => _comparePendingAppointments(a, b, referenceNow));
 
     return AgendaDisplaySections(
       pending: pending,

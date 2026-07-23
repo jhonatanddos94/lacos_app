@@ -31,7 +31,11 @@ class ParseServiceRecordErrorMapper {
       ParseError.objectNotFound ||
       ParseError.invalidQuery ||
       ParseError.invalidClassName => fallback,
-      _ => _messageFromErrorText(error.message, forSave: forSave, fallback: fallback),
+      _ => _messageFromErrorText(
+        error.message,
+        forSave: forSave,
+        fallback: fallback,
+      ),
     };
   }
 

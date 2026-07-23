@@ -51,21 +51,24 @@ void main() {
       expect(details.services.first.id, 'service-1');
     });
 
-    test('resolve serviços via snapshot quando catálogo não contém o item', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentServiceRepository.activeServices = [
-        _appointmentService(id: 'line-1', serviceId: 'missing-service'),
-      ];
+    test(
+      'resolve serviços via snapshot quando catálogo não contém o item',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentServiceRepository.activeServices = [
+          _appointmentService(id: 'line-1', serviceId: 'missing-service'),
+        ];
 
-      final details = await loader.load(
-        appointmentId: 'appointment-1',
-        day: DateTime(2026, 8, 21),
-      );
+        final details = await loader.load(
+          appointmentId: 'appointment-1',
+          day: DateTime(2026, 8, 21),
+        );
 
-      expect(details.services.length, 1);
-      expect(details.services.first.id, 'missing-service');
-      expect(details.services.first.durationMinutes, 60);
-    });
+        expect(details.services.length, 1);
+        expect(details.services.first.id, 'missing-service');
+        expect(details.services.first.durationMinutes, 60);
+      },
+    );
   });
 }
 
@@ -120,8 +123,7 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> cancel({
@@ -153,11 +155,14 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 }
 
-class _FakeAppointmentServiceRepository implements AppointmentServiceRepository {
+class _FakeAppointmentServiceRepository
+    implements AppointmentServiceRepository {
   List<AppointmentService> activeServices = const [];
 
   @override
-  Future<List<AppointmentService>> findByAppointment(String appointmentId) async {
+  Future<List<AppointmentService>> findByAppointment(
+    String appointmentId,
+  ) async {
     return activeServices;
   }
 

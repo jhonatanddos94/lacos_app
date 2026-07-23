@@ -8,10 +8,7 @@ import 'package:lacos_app/features/appointments/presentation/widgets/appointment
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
 class AppointmentNotesSection extends StatelessWidget {
-  const AppointmentNotesSection({
-    required this.controller,
-    super.key,
-  });
+  const AppointmentNotesSection({required this.controller, super.key});
 
   final TextEditingController controller;
 

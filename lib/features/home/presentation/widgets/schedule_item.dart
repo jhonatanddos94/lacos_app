@@ -39,13 +39,16 @@ class ScheduleItem extends StatelessWidget {
       operationalState: appointment.operationalState,
       status: appointment.status,
     );
-    final isNext = !isHighlighted &&
+    final isNext =
+        !isHighlighted &&
         appointment.status == ScheduleStatus.next &&
         appointment.operationalState != AppointmentOperationalState.overdue &&
         appointment.operationalState != AppointmentOperationalState.current;
-    final isCompleted = appointment.status == ScheduleStatus.completed ||
+    final isCompleted =
+        appointment.status == ScheduleStatus.completed ||
         appointment.operationalState == AppointmentOperationalState.completed;
-    final isCanceled = appointment.status == ScheduleStatus.canceled ||
+    final isCanceled =
+        appointment.status == ScheduleStatus.canceled ||
         appointment.operationalState == AppointmentOperationalState.canceled;
     final isOverdue =
         appointment.operationalState == AppointmentOperationalState.overdue;
@@ -127,8 +130,7 @@ class ScheduleItem extends StatelessWidget {
                                 children: [
                                   Text(
                                     appointment.startTime,
-                                    style:
-                                        theme.textTheme.titleSmall?.copyWith(
+                                    style: theme.textTheme.titleSmall?.copyWith(
                                       color: AppColors.graphite,
                                       fontWeight: FontWeight.w800,
                                       height: 1.1,
@@ -138,10 +140,10 @@ class ScheduleItem extends StatelessWidget {
                                   const SizedBox(height: 1),
                                   Text(
                                     appointment.endTime,
-                                    style:
-                                        theme.textTheme.labelSmall?.copyWith(
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.62),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.textSecondary.withValues(
+                                        alpha: 0.62,
+                                      ),
                                       fontWeight: FontWeight.w400,
                                       height: 1.05,
                                     ),
@@ -151,14 +153,14 @@ class ScheduleItem extends StatelessWidget {
                                     const SizedBox(height: 2),
                                     Text(
                                       durationLabel,
-                                      style:
-                                          theme.textTheme.labelSmall?.copyWith(
-                                        color: AppColors.textSecondary
-                                            .withValues(alpha: 0.48),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 10,
-                                        height: 1,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: AppColors.textSecondary
+                                                .withValues(alpha: 0.48),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 10,
+                                            height: 1,
+                                          ),
                                     ),
                                   ],
                                 ],
@@ -170,11 +172,11 @@ class ScheduleItem extends StatelessWidget {
                             name: appointment.clientName,
                             photoUrl: appointment.clientPhotoUrl,
                             radius: 18,
-                            initialTextStyle:
-                                theme.textTheme.labelMedium?.copyWith(
-                              color: AppColors.purple800,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            initialTextStyle: theme.textTheme.labelMedium
+                                ?.copyWith(
+                                  color: AppColors.purple800,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
                           const SizedBox(width: AppSpacing.xs),
                           Expanded(
@@ -198,10 +200,10 @@ class ScheduleItem extends StatelessWidget {
                                     appointment.serviceName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.graphite
-                                          .withValues(alpha: 0.68),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.graphite.withValues(
+                                        alpha: 0.68,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                       height: 1.2,
                                     ),
@@ -213,8 +215,7 @@ class ScheduleItem extends StatelessWidget {
                                     appointment.statusSubtitle!,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.w600,
                                       height: 1.2,
@@ -227,10 +228,10 @@ class ScheduleItem extends StatelessWidget {
                                     appointment.statusDetail!,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style:
-                                        theme.textTheme.labelSmall?.copyWith(
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.88),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.textSecondary.withValues(
+                                        alpha: 0.88,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                       height: 1.25,
                                     ),
@@ -247,8 +248,9 @@ class ScheduleItem extends StatelessWidget {
                           Icon(
                             Icons.chevron_right_rounded,
                             size: AppIconSizes.md,
-                            color: AppColors.textSecondary
-                                .withValues(alpha: 0.55),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.55,
+                            ),
                           ),
                         ],
                       ),

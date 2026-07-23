@@ -81,8 +81,7 @@ class ClientMemoriesSummaryCard extends StatelessWidget {
                       photoUrl: client.photoUrl,
                       radius: avatarRadius,
                       backgroundColor: AppColors.purple100,
-                      initialTextStyle:
-                          theme.textTheme.headlineSmall?.copyWith(
+                      initialTextStyle: theme.textTheme.headlineSmall?.copyWith(
                         color: AppColors.purple800,
                         fontWeight: FontWeight.w800,
                       ),
@@ -116,9 +115,7 @@ class ClientMemoriesSummaryCard extends StatelessWidget {
                         _ClientSinceChip(
                           label:
                               '${AppStrings.clientSince} '
-                              '${_formatMonthYear(
-                                client.clientSince ?? client.createdAt,
-                              )}',
+                              '${_formatMonthYear(client.clientSince ?? client.createdAt)}',
                         ),
                       ],
                     ),

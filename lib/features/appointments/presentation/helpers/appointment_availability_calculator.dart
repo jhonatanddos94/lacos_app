@@ -3,9 +3,8 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
 
 class AppointmentAvailabilityCalculator {
-  const AppointmentAvailabilityCalculator({
-    AvailabilityEngine? engine,
-  }) : _engine = engine ?? const AvailabilityEngine();
+  const AppointmentAvailabilityCalculator({AvailabilityEngine? engine})
+    : _engine = engine ?? const AvailabilityEngine();
 
   // TODO: futuro: substituir por horário de funcionamento do salão.
   static const salonOpeningHour = 9;

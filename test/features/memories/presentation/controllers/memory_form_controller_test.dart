@@ -54,7 +54,10 @@ void main() {
       final saved = await controller.save(clientId: 'client-1');
 
       expect(saved, isNotNull);
-      expect(repository.lastCreated?.content, 'Cliente gosta de conversar sobre família');
+      expect(
+        repository.lastCreated?.content,
+        'Cliente gosta de conversar sobre família',
+      );
       expect(repository.lastCreated?.type, ClientMemoryType.family);
       expect(repository.lastCreated?.priority, ClientMemoryPriority.low);
       expect(repository.lastCreated?.isPinned, isTrue);
@@ -162,7 +165,10 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
   Future<void> delete(String memoryId) async {}
 
   @override
-  Future<List<ClientMemory>> findByClient({required String clientId}) async {
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) async {
     return [];
   }
 

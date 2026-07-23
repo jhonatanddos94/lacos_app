@@ -5,7 +5,9 @@ import 'package:lacos_app/features/service_records/domain/entities/service_recor
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
 import 'package:lacos_app/features/service_records/infrastructure/repositories/parse_service_record_repository.dart';
 
-final serviceRecordRepositoryProvider = Provider<ServiceRecordRepository>((ref) {
+final serviceRecordRepositoryProvider = Provider<ServiceRecordRepository>((
+  ref,
+) {
   final salonRepository = ref.watch(salonRepositoryProvider);
   return ParseServiceRecordRepository(salonRepository);
 });

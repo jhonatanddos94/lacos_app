@@ -8,10 +8,14 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 class ClientMemoriesHeader extends StatelessWidget {
   const ClientMemoriesHeader({
     required this.onBack,
+    required this.onFilterTap,
+    this.showFilterIndicator = false,
     super.key,
   });
 
   final VoidCallback onBack;
+  final VoidCallback onFilterTap;
+  final bool showFilterIndicator;
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +58,8 @@ class ClientMemoriesHeader extends StatelessWidget {
             ),
             MemoryHeaderIconButton(
               icon: Icons.tune_rounded,
-              onPressed: () {
-                // TODO(filtros de memórias)
-              },
+              onPressed: onFilterTap,
+              showIndicator: showFilterIndicator,
             ),
           ],
         ),
@@ -69,25 +72,47 @@ class MemoryHeaderIconButton extends StatelessWidget {
   const MemoryHeaderIconButton({
     required this.icon,
     required this.onPressed,
+    this.showIndicator = false,
     super.key,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final bool showIndicator;
+
+  static const _indicatorSize = 8.0;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.onPrimary.withValues(alpha: 0.14),
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        color: AppColors.onPrimary,
-        iconSize: AppIconSizes.md,
-        tooltip: '',
-      ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: AppColors.onPrimary.withValues(alpha: 0.14),
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            onPressed: onPressed,
+            icon: Icon(icon),
+            color: AppColors.onPrimary,
+            iconSize: AppIconSizes.md,
+            tooltip: '',
+          ),
+        ),
+        if (showIndicator)
+          Positioned(
+            top: AppSpacing.xxxs,
+            right: AppSpacing.xxxs,
+            child: Container(
+              width: _indicatorSize,
+              height: _indicatorSize,
+              decoration: const BoxDecoration(
+                color: AppColors.warmAmber,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -9,11 +9,10 @@ abstract class ClientMemoryRepository {
 
   Future<List<ClientMemory>> findByClient({
     required String clientId,
+    bool includeArchived = false,
   });
 
-  Future<void> touchMentioned({
-    required List<String> memoryIds,
-  });
+  Future<void> touchMentioned({required List<String> memoryIds});
 
   Future<ClientMemory> setPinned({
     required String memoryId,

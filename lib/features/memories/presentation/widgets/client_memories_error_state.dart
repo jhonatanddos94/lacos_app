@@ -6,10 +6,7 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class ClientMemoriesErrorState extends StatelessWidget {
-  const ClientMemoriesErrorState({
-    required this.onRetry,
-    super.key,
-  });
+  const ClientMemoriesErrorState({required this.onRetry, super.key});
 
   final VoidCallback onRetry;
 
@@ -31,10 +28,7 @@ class ClientMemoriesErrorState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          AppButton(
-            label: AppStrings.tryAgain,
-            onPressed: onRetry,
-          ),
+          AppButton(label: AppStrings.tryAgain, onPressed: onRetry),
         ],
       ),
     );

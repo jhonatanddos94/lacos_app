@@ -1,4 +1,1 @@
-enum AppointmentFormMode {
-  create,
-  edit,
-}
+enum AppointmentFormMode { create, edit }

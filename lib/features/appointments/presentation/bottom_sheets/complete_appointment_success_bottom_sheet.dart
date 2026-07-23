@@ -88,17 +88,17 @@ class CompleteAppointmentSuccessBottomSheet extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               AppButton(
                 label: AppStrings.appointmentCompleteSuccessRegisterMemory,
-                onPressed: () => Navigator.of(context).pop(
-                  CompleteAppointmentSuccessAction.addMemory,
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(CompleteAppointmentSuccessAction.addMemory),
               ),
               const SizedBox(height: AppSpacing.xs),
               AppButton(
                 label: AppStrings.appointmentCompleteSuccessNotNow,
                 variant: AppButtonVariant.text,
-                onPressed: () => Navigator.of(context).pop(
-                  CompleteAppointmentSuccessAction.dismiss,
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(CompleteAppointmentSuccessAction.dismiss),
               ),
             ],
           ),

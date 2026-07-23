@@ -11,6 +11,6 @@ final salonRepositoryProvider = Provider<SalonRepository>((ref) {
 
 final createSalonControllerProvider =
     StateNotifierProvider<CreateSalonController, AsyncValue<Salon?>>((ref) {
-  final repository = ref.watch(salonRepositoryProvider);
-  return CreateSalonController(repository);
-});
+      final repository = ref.watch(salonRepositoryProvider);
+      return CreateSalonController(repository);
+    });

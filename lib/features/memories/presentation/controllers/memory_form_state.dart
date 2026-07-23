@@ -41,10 +41,12 @@ class MemoryFormState {
       isPinned: isPinned ?? this.isPinned,
       isEditing: isEditing ?? this.isEditing,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      contentError:
-          clearContentError ? null : (contentError ?? this.contentError),
-      errorMessage:
-          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      contentError: clearContentError
+          ? null
+          : (contentError ?? this.contentError),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
     );
   }
 }

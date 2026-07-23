@@ -127,29 +127,32 @@ void main() {
       expect(serviceRecordServiceRepository.createManyCalls, 1);
     });
 
-    test('ignora segunda chamada enquanto submission está em andamento', () async {
-      final completer = Completer<void>();
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.completeDelay = completer;
-      appointmentRepository.completedAppointment = _appointment(
-        status: AppointmentStatus.completed,
-      );
-      controller.setServices(const [
-        CompletedServiceParams(serviceId: 'service-1'),
-      ]);
+    test(
+      'ignora segunda chamada enquanto submission está em andamento',
+      () async {
+        final completer = Completer<void>();
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completeDelay = completer;
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+        );
+        controller.setServices(const [
+          CompletedServiceParams(serviceId: 'service-1'),
+        ]);
 
-      final firstCall = controller.complete('appointment-1');
-      final secondCall = controller.complete('appointment-1');
+        final firstCall = controller.complete('appointment-1');
+        final secondCall = controller.complete('appointment-1');
 
-      expect(controller.state.isLoading, isTrue);
+        expect(controller.state.isLoading, isTrue);
 
-      completer.complete();
-      await firstCall;
-      final secondResult = await secondCall;
+        completer.complete();
+        await firstCall;
+        final secondResult = await secondCall;
 
-      expect(secondResult, isNull);
-      expect(appointmentRepository.completeCalls, 1);
-    });
+        expect(secondResult, isNull);
+        expect(appointmentRepository.completeCalls, 1);
+      },
+    );
 
     test('mantém loading durante submit', () async {
       final completer = Completer<void>();
@@ -200,9 +203,7 @@ void main() {
         ..setResult('Resultado')
         ..setProductsUsed('Produto')
         ..setFinalAmount(90)
-        ..setServices(const [
-          CompletedServiceParams(serviceId: 'service-1'),
-        ]);
+        ..setServices(const [CompletedServiceParams(serviceId: 'service-1')]);
 
       controller.reset();
 
@@ -274,7 +275,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
     if (completeDelay != null) {
       await completeDelay!.future;
     }
-    return completedAppointment ?? _appointment(status: AppointmentStatus.completed);
+    return completedAppointment ??
+        _appointment(status: AppointmentStatus.completed);
   }
 
   @override

@@ -54,19 +54,13 @@ void main() {
 
   group('calendarDayHasAppointments', () {
     test('identifica dias normalizados no conjunto', () {
-      final days = {
-        DateTime(2026, 7, 14),
-        DateTime(2026, 7, 17),
-      };
+      final days = {DateTime(2026, 7, 14), DateTime(2026, 7, 17)};
 
       expect(
         calendarDayHasAppointments(DateTime(2026, 7, 14, 18), days),
         isTrue,
       );
-      expect(
-        calendarDayHasAppointments(DateTime(2026, 7, 16), days),
-        isFalse,
-      );
+      expect(calendarDayHasAppointments(DateTime(2026, 7, 16), days), isFalse);
     });
   });
 
@@ -80,10 +74,7 @@ void main() {
         isTrue,
       );
       expect(
-        isSameCalendarDay(
-          DateTime(2026, 9, 21),
-          DateTime(2026, 9, 22),
-        ),
+        isSameCalendarDay(DateTime(2026, 9, 21), DateTime(2026, 9, 22)),
         isFalse,
       );
     });

@@ -54,12 +54,7 @@ void main() {
 
     test('permite agendamento em data futura', () async {
       final tomorrow = DateTime.now().add(const Duration(days: 1));
-      final startAt = DateTime(
-        tomorrow.year,
-        tomorrow.month,
-        tomorrow.day,
-        10,
-      );
+      final startAt = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 10);
       final endAt = startAt.add(const Duration(minutes: 60));
 
       final result = await useCase(
@@ -148,8 +143,7 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> update(Appointment appointment) {

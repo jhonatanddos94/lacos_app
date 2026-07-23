@@ -67,11 +67,7 @@ class UpdateAppointmentUseCase {
     );
 
     final freshDayAppointments = await _appointmentRepository.findByDay(
-      DateTime(
-        params.startAt.year,
-        params.startAt.month,
-        params.startAt.day,
-      ),
+      DateTime(params.startAt.year, params.startAt.month, params.startAt.day),
     );
 
     _ensureIntervalIsAvailable(

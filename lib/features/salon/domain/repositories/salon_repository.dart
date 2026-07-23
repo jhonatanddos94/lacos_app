@@ -4,8 +4,5 @@ import 'package:lacos_app/features/salon/domain/entities/salon.dart';
 abstract interface class SalonRepository {
   Future<Salon?> getCurrentSalon();
 
-  Future<Salon> create({
-    required String name,
-    required String responsibleName,
-  });
+  Future<Salon> create({required String name, required String responsibleName});
 }

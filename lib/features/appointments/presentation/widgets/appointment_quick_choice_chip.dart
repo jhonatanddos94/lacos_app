@@ -24,8 +24,8 @@ class AppointmentQuickChoiceChip extends StatelessWidget {
     final foregroundColor = !enabled
         ? AppColors.textSecondary.withValues(alpha: 0.45)
         : selected
-            ? AppColors.purple700
-            : AppColors.graphite;
+        ? AppColors.purple700
+        : AppColors.graphite;
 
     return Opacity(
       opacity: enabled ? 1 : 0.55,

@@ -15,7 +15,8 @@ class ParseServiceRecordServiceRepository
     ServiceRecordServiceMapper? mapper,
     ParseServiceRecordServiceErrorMapper? errorMapper,
   }) : _mapper = mapper ?? const ServiceRecordServiceMapper(),
-       _errorMapper = errorMapper ?? const ParseServiceRecordServiceErrorMapper();
+       _errorMapper =
+           errorMapper ?? const ParseServiceRecordServiceErrorMapper();
 
   static const _serviceRecordServiceClassName = 'ServiceRecordService';
   static const _serviceRecordClassName = 'ServiceRecord';
@@ -37,13 +38,15 @@ class ParseServiceRecordServiceRepository
         );
       }
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_serviceRecordServiceClassName),
-      )
-        ..whereEqualTo('serviceRecord', _serviceRecordPointer(serviceRecordId))
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..orderByAscending('createdAt');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_serviceRecordServiceClassName))
+            ..whereEqualTo(
+              'serviceRecord',
+              _serviceRecordPointer(serviceRecordId),
+            )
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByAscending('createdAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {

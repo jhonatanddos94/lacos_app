@@ -165,7 +165,10 @@ void main() {
 
       expect(object.get<ParseObject>('appointment')?.objectId, 'appointment-1');
       expect(object.get<ParseObject>('client')?.objectId, 'client-1');
-      expect(object.get<ParseObject>('professional')?.objectId, 'professional-1');
+      expect(
+        object.get<ParseObject>('professional')?.objectId,
+        'professional-1',
+      );
       expect(object.get<ParseObject>('salon')?.objectId, 'salon-1');
       expect(object.get<ParseUser>('owner')?.objectId, 'owner-1');
       expect(object.get<DateTime>('serviceDate'), serviceDate);
@@ -204,29 +207,32 @@ void main() {
       expect(object.get<ParseObject>('service'), isNull);
     });
 
-    test('escreve service legado quando legacyPrimaryServiceId é informado', () {
-      final object = ParseObject('ServiceRecord');
-      final owner = ParseUser.forQuery()..objectId = 'owner-1';
+    test(
+      'escreve service legado quando legacyPrimaryServiceId é informado',
+      () {
+        final object = ParseObject('ServiceRecord');
+        final owner = ParseUser.forQuery()..objectId = 'owner-1';
 
-      mapper.applyToParse(
-        object: object,
-        record: ServiceRecord(
-          id: '',
-          clientId: 'client-1',
-          professionalId: 'professional-1',
+        mapper.applyToParse(
+          object: object,
+          record: ServiceRecord(
+            id: '',
+            clientId: 'client-1',
+            professionalId: 'professional-1',
+            salonId: 'salon-1',
+            ownerId: 'owner-1',
+            isActive: true,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
           salonId: 'salon-1',
-          ownerId: 'owner-1',
-          isActive: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        salonId: 'salon-1',
-        owner: owner,
-        legacyPrimaryServiceId: 'service-1',
-      );
+          owner: owner,
+          legacyPrimaryServiceId: 'service-1',
+        );
 
-      expect(object.get<ParseObject>('service')?.objectId, 'service-1');
-    });
+        expect(object.get<ParseObject>('service')?.objectId, 'service-1');
+      },
+    );
 
     test('remove appointment quando appointmentId é nulo', () {
       final object = ParseObject('ServiceRecord')

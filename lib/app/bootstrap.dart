@@ -12,9 +12,5 @@ Future<void> bootstrap() async {
   await initializeFirebase();
   await initializeParse();
 
-  runApp(
-    const ProviderScope(
-      child: LacosApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: LacosApp()));
 }

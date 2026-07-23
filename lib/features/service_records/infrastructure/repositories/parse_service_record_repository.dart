@@ -92,13 +92,12 @@ class ParseServiceRecordRepository implements ServiceRecordRepository {
         );
       }
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_serviceRecordClassName),
-      )
-        ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..orderByDescending('createdAt');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_serviceRecordClassName))
+            ..whereEqualTo('appointment', _appointmentPointer(appointmentId))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByDescending('createdAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -139,14 +138,13 @@ class ParseServiceRecordRepository implements ServiceRecordRepository {
         );
       }
 
-      final query = QueryBuilder<ParseObject>(
-        ParseObject(_serviceRecordClassName),
-      )
-        ..whereEqualTo('client', _clientPointer(clientId))
-        ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..orderByDescending('serviceDate')
-        ..orderByDescending('createdAt');
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_serviceRecordClassName))
+            ..whereEqualTo('client', _clientPointer(clientId))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('isActive', true)
+            ..orderByDescending('serviceDate')
+            ..orderByDescending('createdAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {

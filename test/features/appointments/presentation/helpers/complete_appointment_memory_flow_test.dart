@@ -197,7 +197,10 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
   }
 
   @override
-  Future<List<ClientMemory>> findByClient({required String clientId}) {
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) {
     throw UnimplementedError();
   }
 

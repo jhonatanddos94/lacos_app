@@ -26,9 +26,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ClientMemoryCard(memory: memory),
-          ),
+          home: Scaffold(body: ClientMemoryCard(memory: memory)),
         ),
       );
 
@@ -54,9 +52,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ClientMemoryCard(memory: memory),
-          ),
+          home: Scaffold(body: ClientMemoryCard(memory: memory)),
         ),
       );
 

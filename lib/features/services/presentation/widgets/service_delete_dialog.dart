@@ -12,7 +12,8 @@ class ServiceDeleteDialog extends ConsumerStatefulWidget {
   final Service service;
 
   @override
-  ConsumerState<ServiceDeleteDialog> createState() => _ServiceDeleteDialogState();
+  ConsumerState<ServiceDeleteDialog> createState() =>
+      _ServiceDeleteDialogState();
 }
 
 class _ServiceDeleteDialogState extends ConsumerState<ServiceDeleteDialog> {
@@ -36,9 +37,9 @@ class _ServiceDeleteDialogState extends ConsumerState<ServiceDeleteDialog> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _resolveErrorMessage(Object error) {

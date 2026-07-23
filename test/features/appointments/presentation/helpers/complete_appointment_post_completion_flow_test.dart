@@ -54,8 +54,9 @@ void main() {
                   body: Center(
                     child: ElevatedButton(
                       onPressed: () async {
-                        final notifier = ProviderScope.containerOf(context)
-                            .read(completeAppointmentControllerProvider.notifier);
+                        final notifier = ProviderScope.containerOf(
+                          context,
+                        ).read(completeAppointmentControllerProvider.notifier);
                         notifier
                           ..reset()
                           ..setServices(
@@ -112,8 +113,8 @@ void main() {
                     onPressed: () async {
                       final successAction =
                           await showCompleteAppointmentSuccessBottomSheet(
-                        context: context,
-                      );
+                            context: context,
+                          );
 
                       flowResult = CompleteAppointmentFlowResult(
                         appointment: _appointment(
@@ -241,7 +242,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> complete(String appointmentId) async {
     completeCalls++;
-    return completedAppointment ?? _appointment(status: AppointmentStatus.completed);
+    return completedAppointment ??
+        _appointment(status: AppointmentStatus.completed);
   }
 
   @override

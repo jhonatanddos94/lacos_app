@@ -67,22 +67,22 @@ class _ServicesContent extends StatelessWidget {
         switchInCurve: Curves.easeInOut,
         switchOutCurve: Curves.easeInOut,
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: hasServices
             ? Column(
                 key: const ValueKey('services-list'),
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (var index = 0; index < selectedServices.length; index++) ...[
+                  for (
+                    var index = 0;
+                    index < selectedServices.length;
+                    index++
+                  ) ...[
                     if (index > 0) const SizedBox(height: AppSpacing.xs),
                     AppointmentSelectedServiceTile(
                       service: selectedServices[index],
-                      onTap: () =>
-                          onServiceTap(selectedServices[index], index),
+                      onTap: () => onServiceTap(selectedServices[index], index),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.xs),
@@ -111,7 +111,9 @@ class _ServicesContent extends StatelessWidget {
                 key: const ValueKey('services-empty'),
                 title: AppStrings.appointmentAddServicePrompt,
                 subtitle: AppStrings.appointmentAddServiceHint,
-                leading: const AppointmentFormIconCircle(icon: Icons.add_rounded),
+                leading: const AppointmentFormIconCircle(
+                  icon: Icons.add_rounded,
+                ),
                 hasError: hasError,
                 onTap: onAddService,
               ),

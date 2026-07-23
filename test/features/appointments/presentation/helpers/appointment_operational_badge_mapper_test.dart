@@ -53,24 +53,27 @@ void main() {
       expect(badge.label, AppStrings.appointmentOperationalStateOverdueLabel);
     });
 
-    test('resolveFromSchedule converte status legado para linguagem operacional', () {
-      final pendingBadge = mapper.resolveFromSchedule(
-        operationalState: null,
-        status: ScheduleStatus.pending,
-      );
-      final confirmedBadge = mapper.resolveFromSchedule(
-        operationalState: null,
-        status: ScheduleStatus.confirmed,
-      );
+    test(
+      'resolveFromSchedule converte status legado para linguagem operacional',
+      () {
+        final pendingBadge = mapper.resolveFromSchedule(
+          operationalState: null,
+          status: ScheduleStatus.pending,
+        );
+        final confirmedBadge = mapper.resolveFromSchedule(
+          operationalState: null,
+          status: ScheduleStatus.confirmed,
+        );
 
-      expect(
-        pendingBadge.label,
-        AppStrings.appointmentOperationalStateUpcomingLabel,
-      );
-      expect(
-        confirmedBadge.label,
-        AppStrings.appointmentOperationalStateUpcomingLabel,
-      );
-    });
+        expect(
+          pendingBadge.label,
+          AppStrings.appointmentOperationalStateUpcomingLabel,
+        );
+        expect(
+          confirmedBadge.label,
+          AppStrings.appointmentOperationalStateUpcomingLabel,
+        );
+      },
+    );
   });
 }

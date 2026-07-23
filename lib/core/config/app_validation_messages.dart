@@ -8,8 +8,7 @@ abstract final class AppValidationMessages {
   static const String clientPhoneInvalid = 'Informe um telefone válido.';
   static const String clientBirthDateInvalid =
       'Informe uma data de nascimento válida.';
-  static const String clientInstagramInvalid =
-      'Informe um Instagram válido.';
+  static const String clientInstagramInvalid = 'Informe um Instagram válido.';
   static const String clientPhotoPickerUnavailable =
       'Não foi possível abrir a câmera ou galeria. Feche e abra o app novamente.';
   static const String clientPhotoUploadFailed =
@@ -24,6 +23,5 @@ abstract final class AppValidationMessages {
   static const String serviceNameRequired = 'Informe o nome do serviço.';
   static const String serviceDurationRequired = 'Informe a duração do serviço.';
 
-  static const String memoryTitleRequired =
-      'Informe um título para a memória.';
+  static const String memoryTitleRequired = 'Informe um título para a memória.';
 }

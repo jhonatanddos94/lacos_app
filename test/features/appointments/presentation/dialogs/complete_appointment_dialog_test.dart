@@ -42,7 +42,9 @@ void main() {
       AppointmentStatus appointmentStatus = AppointmentStatus.pending,
     }) async {
       appointmentRepository.completeDelay = completeDelay;
-      appointmentRepository.appointment = _appointment(status: appointmentStatus);
+      appointmentRepository.appointment = _appointment(
+        status: appointmentStatus,
+      );
       appointmentRepository.completedAppointment = _appointment(
         status: AppointmentStatus.completed,
       );
@@ -59,8 +61,9 @@ void main() {
                   body: Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        final notifier = ProviderScope.containerOf(context)
-                            .read(completeAppointmentControllerProvider.notifier);
+                        final notifier = ProviderScope.containerOf(
+                          context,
+                        ).read(completeAppointmentControllerProvider.notifier);
                         notifier
                           ..reset()
                           ..setServices(
@@ -100,7 +103,9 @@ void main() {
       expect(find.text(AppStrings.appointmentCompleteMessage), findsOneWidget);
     });
 
-    testWidgets('confirmar chama complete com serviços copiados', (tester) async {
+    testWidgets('confirmar chama complete com serviços copiados', (
+      tester,
+    ) async {
       await pumpDialog(tester);
 
       await tester.tap(find.text(AppStrings.appointmentCompleteConfirm));
@@ -109,10 +114,7 @@ void main() {
       expect(appointmentRepository.completeCalls, 1);
       expect(serviceRecordRepository.createCalls, 1);
       expect(serviceRecordServiceRepository.createManyCalls, 1);
-      expect(
-        serviceRecordServiceRepository.lastCreatedServices,
-        hasLength(2),
-      );
+      expect(serviceRecordServiceRepository.lastCreatedServices, hasLength(2));
       expect(
         serviceRecordServiceRepository.lastCreatedServices.first.serviceId,
         'service-1',
@@ -141,19 +143,13 @@ void main() {
     });
 
     testWidgets('erro mantém dialog aberto e exibe mensagem', (tester) async {
-      await pumpDialog(
-        tester,
-        appointmentStatus: AppointmentStatus.canceled,
-      );
+      await pumpDialog(tester, appointmentStatus: AppointmentStatus.canceled);
 
       await tester.tap(find.text(AppStrings.appointmentCompleteConfirm));
       await tester.pumpAndSettle();
 
       expect(find.byType(CompleteAppointmentDialog), findsOneWidget);
-      expect(
-        find.text(AppStrings.appointmentCannotComplete),
-        findsOneWidget,
-      );
+      expect(find.text(AppStrings.appointmentCannotComplete), findsOneWidget);
     });
 
     testWidgets('cancelar fecha o dialog', (tester) async {
@@ -272,7 +268,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
     if (completeDelay != null) {
       await completeDelay!.future;
     }
-    return completedAppointment ?? _appointment(status: AppointmentStatus.completed);
+    return completedAppointment ??
+        _appointment(status: AppointmentStatus.completed);
   }
 
   @override

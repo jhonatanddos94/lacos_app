@@ -9,11 +9,7 @@ void main() {
   group('AgendaListEntriesBuilder', () {
     test('monta entradas com cabeçalhos de seção', () {
       final entries = AgendaListEntriesBuilder.build(
-        const AgendaDisplaySections(
-          pending: [],
-          completed: [],
-          canceled: [],
-        ),
+        const AgendaDisplaySections(pending: [], completed: [], canceled: []),
       );
 
       expect(entries, isEmpty);
@@ -26,36 +22,26 @@ void main() {
             _display('pending-1', AppointmentStatus.pending),
             _display('pending-2', AppointmentStatus.confirmed),
           ],
-          completed: [
-            _display('completed-1', AppointmentStatus.completed),
-          ],
-          canceled: [
-            _display('canceled-1', AppointmentStatus.canceled),
-          ],
+          completed: [_display('completed-1', AppointmentStatus.completed)],
+          canceled: [_display('canceled-1', AppointmentStatus.canceled)],
         ),
       );
 
       expect(
         entries.any(
-          (entry) =>
-              entry.title ==
-              '${AppStrings.agendaSectionPending} (2)',
+          (entry) => entry.title == '${AppStrings.agendaSectionPending} (2)',
         ),
         isTrue,
       );
       expect(
         entries.any(
-          (entry) =>
-              entry.title ==
-              '${AppStrings.agendaSectionCompleted} (1)',
+          (entry) => entry.title == '${AppStrings.agendaSectionCompleted} (1)',
         ),
         isTrue,
       );
       expect(
         entries.any(
-          (entry) =>
-              entry.title ==
-              '${AppStrings.agendaSectionCanceled} (1)',
+          (entry) => entry.title == '${AppStrings.agendaSectionCanceled} (1)',
         ),
         isTrue,
       );
@@ -64,9 +50,7 @@ void main() {
     test('inclui seção cancelados quando houver itens', () {
       final entries = AgendaListEntriesBuilder.build(
         AgendaDisplaySections(
-          canceled: [
-            _display('canceled-1', AppointmentStatus.canceled),
-          ],
+          canceled: [_display('canceled-1', AppointmentStatus.canceled)],
         ),
       );
 

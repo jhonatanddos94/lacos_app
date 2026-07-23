@@ -69,8 +69,9 @@ class AppointmentSelectedServiceActionsBottomSheet extends StatelessWidget {
                 _SelectedServiceActionTile(
                   icon: Icons.swap_horiz_rounded,
                   label: AppStrings.appointmentReplaceService,
-                  onTap: () => Navigator.of(context)
-                      .pop(AppointmentSelectedServiceAction.replace),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pop(AppointmentSelectedServiceAction.replace),
                 ),
                 const SizedBox(height: AppSpacing.xxxs),
                 _SelectedServiceActionTile(
@@ -78,8 +79,9 @@ class AppointmentSelectedServiceActionsBottomSheet extends StatelessWidget {
                   label: AppStrings.appointmentRemoveSelectedService,
                   iconColor: AppColors.softRose,
                   labelColor: AppColors.softRose,
-                  onTap: () => Navigator.of(context)
-                      .pop(AppointmentSelectedServiceAction.remove),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pop(AppointmentSelectedServiceAction.remove),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 TextButton(

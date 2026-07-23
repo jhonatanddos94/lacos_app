@@ -7,10 +7,7 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class ClientMemoriesEmptyState extends StatelessWidget {
-  const ClientMemoriesEmptyState({
-    required this.onAddMemory,
-    super.key,
-  });
+  const ClientMemoriesEmptyState({required this.onAddMemory, super.key});
 
   final VoidCallback onAddMemory;
 
@@ -49,10 +46,7 @@ class ClientMemoriesEmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          AppButton(
-            label: AppStrings.addMemory,
-            onPressed: onAddMemory,
-          ),
+          AppButton(label: AppStrings.addMemory, onPressed: onAddMemory),
         ],
       ),
     );

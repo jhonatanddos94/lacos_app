@@ -1,8 +1,5 @@
 class ServiceDurationOption {
-  const ServiceDurationOption({
-    required this.label,
-    required this.minutes,
-  });
+  const ServiceDurationOption({required this.label, required this.minutes});
 
   final String label;
   final int minutes;

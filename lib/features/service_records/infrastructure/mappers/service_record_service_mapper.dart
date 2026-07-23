@@ -41,7 +41,10 @@ class ServiceRecordServiceMapper {
     required ParseUser owner,
   }) {
     object
-      ..set<ParseObject>('serviceRecord', _serviceRecordPointer(serviceRecordId))
+      ..set<ParseObject>(
+        'serviceRecord',
+        _serviceRecordPointer(serviceRecordId),
+      )
       ..set<ParseObject>('service', _servicePointer(service.serviceId))
       ..set<ParseObject>('salon', _salonPointer(salonId))
       ..set<ParseUser>('owner', owner)

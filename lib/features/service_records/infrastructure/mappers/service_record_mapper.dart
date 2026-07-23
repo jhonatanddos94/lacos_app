@@ -50,7 +50,10 @@ class ServiceRecordMapper {
   }) {
     final appointmentId = record.appointmentId?.trim();
     if (appointmentId != null && appointmentId.isNotEmpty) {
-      object.set<ParseObject>('appointment', _appointmentPointer(appointmentId));
+      object.set<ParseObject>(
+        'appointment',
+        _appointmentPointer(appointmentId),
+      );
     } else {
       object.unset('appointment');
     }

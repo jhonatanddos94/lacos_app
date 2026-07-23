@@ -27,7 +27,10 @@ void main() {
       );
 
       expect(find.text('Cancelado'), findsOneWidget);
-      expect(find.text(AppStrings.appointmentCanceledByClientLabel), findsOneWidget);
+      expect(
+        find.text(AppStrings.appointmentCanceledByClientLabel),
+        findsOneWidget,
+      );
       expect(find.text('Cliente desistiu'), findsOneWidget);
     });
 
@@ -119,7 +122,9 @@ void main() {
       );
     });
 
-    testWidgets('exibe badge aguardando conclusão para overdue', (tester) async {
+    testWidgets('exibe badge aguardando conclusão para overdue', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

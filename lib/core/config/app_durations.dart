@@ -10,6 +10,7 @@ abstract final class AppDurations {
   static const Duration carousel = Duration(seconds: 5);
   static const Duration memoryPreviewRotation = Duration(seconds: 4);
   static const Duration agendaHighlight = Duration(milliseconds: 2500);
-  static const Duration appointmentPreparationBeforeStart =
-      Duration(minutes: 30);
+  static const Duration appointmentPreparationBeforeStart = Duration(
+    minutes: 30,
+  );
 }

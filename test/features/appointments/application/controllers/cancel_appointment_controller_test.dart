@@ -48,7 +48,9 @@ void main() {
 
     test('loading impede duplo clique', () async {
       repository.appointment = _appointment();
-      repository.cancelDelay = Future<void>.delayed(const Duration(milliseconds: 50));
+      repository.cancelDelay = Future<void>.delayed(
+        const Duration(milliseconds: 50),
+      );
       controller.setCanceledBy(AppointmentCanceledBy.salon);
 
       final first = controller.cancel('appointment-1');
@@ -69,7 +71,9 @@ void main() {
     });
 
     test('mapeia AppointmentCannotCancelCompletedException', () async {
-      repository.appointment = _appointment(status: AppointmentStatus.completed);
+      repository.appointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
       controller.setCanceledBy(AppointmentCanceledBy.client);
 
       final result = await controller.cancel('appointment-1');

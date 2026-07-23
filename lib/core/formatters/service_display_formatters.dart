@@ -26,10 +26,7 @@ String formatServicePrice(double price) {
   return 'R\$ $integerPart,$decimalPart';
 }
 
-String formatServiceDetails({
-  int? durationMinutes,
-  double? price,
-}) {
+String formatServiceDetails({int? durationMinutes, double? price}) {
   final parts = <String>[];
 
   if (durationMinutes != null && durationMinutes > 0) {

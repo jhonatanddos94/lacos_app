@@ -90,11 +90,7 @@ class AgendaAppointmentDisplayMapper {
     final referenceNow = now ?? DateTime.now();
     final sorted = [...appointments]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
-    final nextId = _findNextAppointmentId(
-      sorted,
-      day,
-      now: referenceNow,
-    );
+    final nextId = _findNextAppointmentId(sorted, day, now: referenceNow);
     if (nextId == null) return null;
 
     final nextAppointment = sorted.firstWhere(
@@ -109,7 +105,9 @@ class AgendaAppointmentDisplayMapper {
     DateTime selectedDay, {
     required DateTime now,
   }) {
-    if (normalizeAppointmentDate(selectedDay).isBefore(normalizeAppointmentDate(now))) {
+    if (normalizeAppointmentDate(
+      selectedDay,
+    ).isBefore(normalizeAppointmentDate(now))) {
       return null;
     }
 

@@ -91,7 +91,9 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
       return;
     }
 
-    final client = await ref.read(clientFormControllerProvider.notifier).save(
+    final client = await ref
+        .read(clientFormControllerProvider.notifier)
+        .save(
           initialClient: widget.client,
           name: _nameController.text,
           phone: _phoneController.text,
@@ -115,7 +117,9 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _resolveErrorMessage(Object error) {
@@ -133,10 +137,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
   Future<void> _choosePhoto() async {
     if (ref.read(clientFormControllerProvider).isLoading) return;
 
-    final photo = await pickClientPhoto(
-      context,
-      onMessage: _showMessage,
-    );
+    final photo = await pickClientPhoto(context, onMessage: _showMessage);
 
     if (photo == null || !mounted) return;
 
@@ -152,152 +153,154 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     return PopScope(
       canPop: !isLoading,
       child: Material(
-      color: AppColors.surface,
-      borderRadius: AppRadius.borderTopLg,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.borderTopLg,
-          boxShadow: AppShadows.level2,
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: AppSpacing.sm,
-              right: AppSpacing.sm,
-              top: AppSpacing.md,
-              bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.sm,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    _isEditing
-                        ? AppStrings.editClientTitle
-                        : AppStrings.newClientTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppColors.graphite,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ClientAvatar(
-                          name: widget.client?.name ?? _nameController.text,
-                          photoUrl: widget.client?.photoUrl,
-                          localPhotoPath: _selectedPhoto?.path,
-                          radius: _photoAvatarRadius,
-                          showCameraBadge: true,
-                          onTap: _choosePhoto,
-                          enabled: !isLoading,
-                        ),
-                        if (_selectedPhoto == null &&
-                            (widget.client?.photoUrl == null ||
-                                widget.client!.photoUrl!.isEmpty)) ...[
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            AppStrings.tapAvatarToAddPhoto,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppTextField(
-                    label: AppStrings.clientName,
-                    hint: AppStrings.clientNameHint,
-                    helperText: AppStrings.required,
-                    controller: _nameController,
-                    enabled: !isLoading,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.words,
-                    maxLength: AppFieldLimits.clientName,
-                    autofillHints: const [AutofillHints.name],
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  AppTextField(
-                    label: AppStrings.clientPhone,
-                    hint: AppStrings.clientPhoneHint,
-                    helperText: AppStrings.required,
-                    controller: _phoneController,
-                    enabled: !isLoading,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    inputFormatters: const [BrazilianPhoneInputFormatter()],
-                    autofillHints: const [AutofillHints.telephoneNumber],
-                    prefixIcon: const Icon(Icons.phone_outlined),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  AppTextField(
-                    label: AppStrings.clientBirthDate,
-                    hint: AppDateFormats.brazilianDateInput,
-                    controller: _birthDateController,
-                    enabled: !isLoading,
-                    keyboardType: TextInputType.datetime,
-                    textInputAction: TextInputAction.next,
-                    inputFormatters: const [BirthDateInputFormatter()],
-                    prefixIcon: const Icon(Icons.cake_outlined),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  AppTextField(
-                    label: AppStrings.clientInstagram,
-                    hint: AppStrings.clientInstagramHint,
-                    controller: _instagramController,
-                    enabled: !isLoading,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
-                    maxLength: AppFieldLimits.clientInstagram,
-                    inputFormatters: const [InstagramInputFormatter()],
-                    prefixIcon: const Icon(Icons.alternate_email_rounded),
-                    prefixText: '@',
-                    onFieldSubmitted: (_) => _saveClient(),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  DropdownButtonFormField<String>(
-                    initialValue: 'comingSoon',
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.preferredProfessional,
-                      prefixIcon: Icon(Icons.badge_outlined),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'comingSoon',
-                        child: Text(AppStrings.comingSoon),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderTopLg,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppRadius.borderTopLg,
+            boxShadow: AppShadows.level2,
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: AppSpacing.sm,
+                right: AppSpacing.sm,
+                top: AppSpacing.md,
+                bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.sm,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      _isEditing
+                          ? AppStrings.editClientTitle
+                          : AppStrings.newClientTitle,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: AppColors.graphite,
+                        fontWeight: FontWeight.w800,
                       ),
-                    ],
-                    onChanged: null,
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    AppStrings.preferredProfessionalUnavailable,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondary,
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: _isEditing ? AppStrings.saveChanges : AppStrings.save,
-                    isLoading: isLoading,
-                    onPressed: isLoading ? null : _saveClient,
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.lg),
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClientAvatar(
+                            name: widget.client?.name ?? _nameController.text,
+                            photoUrl: widget.client?.photoUrl,
+                            localPhotoPath: _selectedPhoto?.path,
+                            radius: _photoAvatarRadius,
+                            showCameraBadge: true,
+                            onTap: _choosePhoto,
+                            enabled: !isLoading,
+                          ),
+                          if (_selectedPhoto == null &&
+                              (widget.client?.photoUrl == null ||
+                                  widget.client!.photoUrl!.isEmpty)) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              AppStrings.tapAvatarToAddPhoto,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
+                      label: AppStrings.clientName,
+                      hint: AppStrings.clientNameHint,
+                      helperText: AppStrings.required,
+                      controller: _nameController,
+                      enabled: !isLoading,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      maxLength: AppFieldLimits.clientName,
+                      autofillHints: const [AutofillHints.name],
+                      prefixIcon: const Icon(Icons.person_outline),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppTextField(
+                      label: AppStrings.clientPhone,
+                      hint: AppStrings.clientPhoneHint,
+                      helperText: AppStrings.required,
+                      controller: _phoneController,
+                      enabled: !isLoading,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: const [BrazilianPhoneInputFormatter()],
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppTextField(
+                      label: AppStrings.clientBirthDate,
+                      hint: AppDateFormats.brazilianDateInput,
+                      controller: _birthDateController,
+                      enabled: !isLoading,
+                      keyboardType: TextInputType.datetime,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: const [BirthDateInputFormatter()],
+                      prefixIcon: const Icon(Icons.cake_outlined),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppTextField(
+                      label: AppStrings.clientInstagram,
+                      hint: AppStrings.clientInstagramHint,
+                      controller: _instagramController,
+                      enabled: !isLoading,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.done,
+                      maxLength: AppFieldLimits.clientInstagram,
+                      inputFormatters: const [InstagramInputFormatter()],
+                      prefixIcon: const Icon(Icons.alternate_email_rounded),
+                      prefixText: '@',
+                      onFieldSubmitted: (_) => _saveClient(),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    DropdownButtonFormField<String>(
+                      initialValue: 'comingSoon',
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.preferredProfessional,
+                        prefixIcon: Icon(Icons.badge_outlined),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'comingSoon',
+                          child: Text(AppStrings.comingSoon),
+                        ),
+                      ],
+                      onChanged: null,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      AppStrings.preferredProfessionalUnavailable,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppButton(
+                      label: _isEditing
+                          ? AppStrings.saveChanges
+                          : AppStrings.save,
+                      isLoading: isLoading,
+                      onPressed: isLoading ? null : _saveClient,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }

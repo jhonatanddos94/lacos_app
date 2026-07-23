@@ -19,10 +19,7 @@ Future<AppointmentPreparationAction> showAppointmentPreparationBottomSheet({
     appointment: appointment,
   );
 
-  await _touchDisplayedMemories(
-    ref: ref,
-    preparationData: preparationData,
-  );
+  await _touchDisplayedMemories(ref: ref, preparationData: preparationData);
 
   if (!context.mounted) {
     return AppointmentPreparationAction.dismiss;
@@ -34,9 +31,8 @@ Future<AppointmentPreparationAction> showAppointmentPreparationBottomSheet({
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-    builder: (context) => AppointmentPreparationBottomSheet(
-      data: preparationData,
-    ),
+    builder: (context) =>
+        AppointmentPreparationBottomSheet(data: preparationData),
   );
 
   return action ?? AppointmentPreparationAction.dismiss;

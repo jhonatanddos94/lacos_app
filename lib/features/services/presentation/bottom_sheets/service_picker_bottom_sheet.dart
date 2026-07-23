@@ -57,7 +57,9 @@ class _ServicePickerBottomSheetState
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openServiceActions(Service service) async {
@@ -123,20 +125,23 @@ class _ServicePickerBottomSheetState
   }
 
   List<Service> _filterServices(List<Service> services) {
-    final activeServices =
-        services.where((service) => service.isActive).toList(growable: false);
+    final activeServices = services
+        .where((service) => service.isActive)
+        .toList(growable: false);
 
     final query = _searchText.trim().toLowerCase();
     if (query.isEmpty) {
       return activeServices;
     }
 
-    return activeServices.where((service) {
-      final name = service.name.toLowerCase();
-      final category = service.category?.toLowerCase() ?? '';
+    return activeServices
+        .where((service) {
+          final name = service.name.toLowerCase();
+          final category = service.category?.toLowerCase() ?? '';
 
-      return name.contains(query) || category.contains(query);
-    }).toList(growable: false);
+          return name.contains(query) || category.contains(query);
+        })
+        .toList(growable: false);
   }
 
   @override

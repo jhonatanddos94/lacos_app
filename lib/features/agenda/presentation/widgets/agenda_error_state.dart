@@ -55,10 +55,7 @@ class AgendaErrorState extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              AppButton(
-                label: AppStrings.tryAgain,
-                onPressed: onRetry,
-              ),
+              AppButton(label: AppStrings.tryAgain, onPressed: onRetry),
             ],
           ),
         ),

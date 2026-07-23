@@ -26,9 +26,7 @@ void main() {
   group('AppointmentMapper', () {
     test('mapeia completedAt quando presente', () {
       final completedAt = DateTime.utc(2026, 7, 6, 18);
-      final object = _appointmentObject(
-        completedAt: completedAt,
-      );
+      final object = _appointmentObject(completedAt: completedAt);
 
       final appointment = mapper.toDomain(object);
 
@@ -52,12 +50,12 @@ ParseObject _appointmentObject({DateTime? completedAt}) {
   final object = ParseObject('Appointment')
     ..objectId = 'appointment-1'
     ..set<ParseObject>('client', _pointer('Client', 'client-1'))
-    ..set<ParseObject>('professional', _pointer('Professional', 'professional-1'))
-    ..set<ParseObject>('salon', _pointer('Salon', 'salon-1'))
-    ..set<ParseUser>(
-      'owner',
-      ParseUser.forQuery()..objectId = 'owner-1',
+    ..set<ParseObject>(
+      'professional',
+      _pointer('Professional', 'professional-1'),
     )
+    ..set<ParseObject>('salon', _pointer('Salon', 'salon-1'))
+    ..set<ParseUser>('owner', ParseUser.forQuery()..objectId = 'owner-1')
     ..set<DateTime>('startAt', startAt)
     ..set<DateTime>('endAt', endAt)
     ..set<String>('status', 'pending')

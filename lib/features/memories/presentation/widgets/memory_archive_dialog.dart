@@ -35,8 +35,9 @@ class _MemoryArchiveDialogState extends ConsumerState<MemoryArchiveDialog> {
       return;
     }
 
-    final errorMessage =
-        ref.read(clientMemoryActionsControllerProvider).errorMessage;
+    final errorMessage = ref
+        .read(clientMemoryActionsControllerProvider)
+        .errorMessage;
     if (errorMessage != null) {
       _showMessage(errorMessage);
     }
@@ -44,15 +45,17 @@ class _MemoryArchiveDialogState extends ConsumerState<MemoryArchiveDialog> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLoading = ref.watch(clientMemoryActionsControllerProvider).isLoading;
+    final isLoading = ref
+        .watch(clientMemoryActionsControllerProvider)
+        .isLoading;
 
     return AlertDialog(
       title: const Text(AppStrings.memoryArchiveTitle),

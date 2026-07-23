@@ -12,11 +12,7 @@ import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.da
 import 'package:lacos_app/features/clients/presentation/widgets/client_tag.dart';
 
 class ClientCard extends StatelessWidget {
-  const ClientCard({
-    required this.client,
-    this.onTap,
-    super.key,
-  });
+  const ClientCard({required this.client, this.onTap, super.key});
 
   static const _avatarSize = 54.0;
 

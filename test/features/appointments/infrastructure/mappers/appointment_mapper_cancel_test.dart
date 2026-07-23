@@ -98,12 +98,12 @@ ParseObject _appointmentObject({
   final object = ParseObject('Appointment')
     ..objectId = 'appointment-1'
     ..set<ParseObject>('client', _pointer('Client', 'client-1'))
-    ..set<ParseObject>('professional', _pointer('Professional', 'professional-1'))
-    ..set<ParseObject>('salon', _pointer('Salon', 'salon-1'))
-    ..set<ParseUser>(
-      'owner',
-      ParseUser.forQuery()..objectId = 'owner-1',
+    ..set<ParseObject>(
+      'professional',
+      _pointer('Professional', 'professional-1'),
     )
+    ..set<ParseObject>('salon', _pointer('Salon', 'salon-1'))
+    ..set<ParseUser>('owner', ParseUser.forQuery()..objectId = 'owner-1')
     ..set<DateTime>('startAt', startAt)
     ..set<DateTime>('endAt', endAt)
     ..set<String>('status', status)

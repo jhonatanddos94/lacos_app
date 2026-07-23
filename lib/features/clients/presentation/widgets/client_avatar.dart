@@ -54,9 +54,7 @@ class ClientAvatar extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned.fill(
-            child: _buildImage(context),
-          ),
+          Positioned.fill(child: _buildImage(context)),
           if (showCameraBadge)
             Positioned(
               right: 0,
@@ -233,7 +231,8 @@ class _InitialAvatar extends StatelessWidget {
               )
             : Text(
                 initial,
-                style: textStyle ??
+                style:
+                    textStyle ??
                     theme.textTheme.titleSmall?.copyWith(
                       color: AppColors.purple800,
                       fontWeight: FontWeight.w800,

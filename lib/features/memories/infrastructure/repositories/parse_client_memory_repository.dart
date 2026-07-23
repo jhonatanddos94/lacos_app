@@ -54,7 +54,8 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
 
       _mapper.applyDomainFields(object: parseMemory, memory: memory);
 
-      final professional = await _professionalRepository.getCurrentProfessional();
+      final professional = await _professionalRepository
+          .getCurrentProfessional();
       if (professional != null) {
         parseMemory.set<ParseObject>(
           'professional',
@@ -173,6 +174,7 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
   @override
   Future<List<ClientMemory>> findByClient({
     required String clientId,
+    bool includeArchived = false,
   }) async {
     try {
       final salon = await _salonRepository.getCurrentSalon();
@@ -185,9 +187,13 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
       final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
         ..whereEqualTo('client', _clientPointer(clientId))
         ..whereEqualTo('salon', _salonPointer(salon.id))
-        ..whereEqualTo('isActive', true)
-        ..whereNotEqualTo('isArchived', true)
-        ..orderByDescending('createdAt');
+        ..whereEqualTo('isActive', true);
+
+      if (!includeArchived) {
+        query.whereNotEqualTo('isArchived', true);
+      }
+
+      query.orderByDescending('createdAt');
 
       final response = await query.query<ParseObject>();
       if (!response.success) {
@@ -303,9 +309,7 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
   }
 
   @override
-  Future<void> touchMentioned({
-    required List<String> memoryIds,
-  }) async {
+  Future<void> touchMentioned({required List<String> memoryIds}) async {
     final normalizedIds = memoryIds
         .map((id) => id.trim())
         .where((id) => id.isNotEmpty)
@@ -339,10 +343,13 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
       }
 
       final now = DateTime.now();
-      final saveFutures = results.whereType<ParseObject>().map((parseMemory) {
-        parseMemory.set<DateTime>('lastMentionedAt', now);
-        return parseMemory.save();
-      }).toList(growable: false);
+      final saveFutures = results
+          .whereType<ParseObject>()
+          .map((parseMemory) {
+            parseMemory.set<DateTime>('lastMentionedAt', now);
+            return parseMemory.save();
+          })
+          .toList(growable: false);
 
       if (saveFutures.isEmpty) {
         return;

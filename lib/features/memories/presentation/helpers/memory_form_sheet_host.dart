@@ -15,9 +15,7 @@ Future<ClientMemory?> showMemoryFormBottomSheet({
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-    builder: (context) => MemoryFormBottomSheet(
-      clientId: clientId,
-      memory: memory,
-    ),
+    builder: (context) =>
+        MemoryFormBottomSheet(clientId: clientId, memory: memory),
   );
 }

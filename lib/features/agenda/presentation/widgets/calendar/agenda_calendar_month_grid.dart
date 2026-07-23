@@ -1,9 +1,7 @@
 /// Grade mensal pura para o calendário da Agenda (sem dependências de UI ou domínio).
 class AgendaCalendarMonthGrid {
-  AgendaCalendarMonthGrid({
-    required this.year,
-    required this.month,
-  }) : assert(month >= 1 && month <= 12);
+  AgendaCalendarMonthGrid({required this.year, required this.month})
+    : assert(month >= 1 && month <= 12);
 
   final int year;
   final int month;
@@ -56,7 +54,11 @@ class AgendaCalendarMonthGrid {
 
     if (leadingEmptyCells > 0) {
       final previous = previousMonth();
-      final daysInPreviousMonth = DateTime(previous.year, previous.month + 1, 0).day;
+      final daysInPreviousMonth = DateTime(
+        previous.year,
+        previous.month + 1,
+        0,
+      ).day;
       for (var index = leadingEmptyCells - 1; index >= 0; index--) {
         final day = daysInPreviousMonth - index;
         cells.add(
@@ -140,10 +142,7 @@ class AgendaCalendarDayCell {
 }
 
 class AgendaCalendarVisibleRange {
-  const AgendaCalendarVisibleRange({
-    required this.start,
-    required this.end,
-  });
+  const AgendaCalendarVisibleRange({required this.start, required this.end});
 
   final DateTime start;
   final DateTime end;

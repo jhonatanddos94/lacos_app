@@ -2,10 +2,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 
 class UpdatedAppointment {
-  const UpdatedAppointment({
-    required this.appointment,
-    required this.services,
-  });
+  const UpdatedAppointment({required this.appointment, required this.services});
 
   final Appointment appointment;
   final List<AppointmentService> services;

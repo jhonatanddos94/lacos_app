@@ -11,20 +11,12 @@ abstract final class AppShadows {
 
   /// Cards, campos e containers discretamente destacados.
   static const List<BoxShadow> level1 = [
-    BoxShadow(
-      color: Color(0x0D3D3D42),
-      blurRadius: 12,
-      offset: Offset(0, 2),
-    ),
+    BoxShadow(color: Color(0x0D3D3D42), blurRadius: 12, offset: Offset(0, 2)),
   ];
 
   /// Dialogs, bottom sheets e menus temporários.
   static const List<BoxShadow> level2 = [
-    BoxShadow(
-      color: Color(0x143D3D42),
-      blurRadius: 24,
-      offset: Offset(0, 4),
-    ),
+    BoxShadow(color: Color(0x143D3D42), blurRadius: 24, offset: Offset(0, 4)),
   ];
 
   static Color get shadowColor => AppColors.graphite;

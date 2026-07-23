@@ -11,8 +11,8 @@ class ParseSessionErrorMapper {
 
     return switch (error.code) {
       ParseError.connectionFailed => 'Verifique sua conexão com a internet.',
-      ParseError.invalidSessionToken || ParseError.sessionMissing =>
-        'Sua sessão expirou. Entre novamente.',
+      ParseError.invalidSessionToken ||
+      ParseError.sessionMissing => 'Sua sessão expirou. Entre novamente.',
       ParseError.notInitialized =>
         'Não foi possível preparar sua sessão. Tente novamente.',
       ParseError.objectNotFound ||

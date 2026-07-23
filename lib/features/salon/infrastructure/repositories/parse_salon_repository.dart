@@ -11,8 +11,8 @@ class ParseSalonRepository implements SalonRepository {
   ParseSalonRepository({
     SalonMapper? mapper,
     ParseSalonErrorMapper? errorMapper,
-  })  : _mapper = mapper ?? const SalonMapper(),
-        _errorMapper = errorMapper ?? const ParseSalonErrorMapper();
+  }) : _mapper = mapper ?? const SalonMapper(),
+       _errorMapper = errorMapper ?? const ParseSalonErrorMapper();
 
   static const _salonClassName = 'Salon';
 

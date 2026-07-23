@@ -40,7 +40,9 @@ class AppointmentMapper {
       notes: object.get<String>('notes'),
       completedAt: _completedAt(object),
       canceledAt: _canceledAt(object),
-      canceledBy: AppointmentCanceledBy.fromParse(object.get<String>('canceledBy')),
+      canceledBy: AppointmentCanceledBy.fromParse(
+        object.get<String>('canceledBy'),
+      ),
       cancellationReason: _cancellationReason(object),
       isActive: object.get<bool>('isActive') ?? true,
       createdAt: createdAt,

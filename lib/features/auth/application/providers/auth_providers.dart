@@ -8,5 +8,6 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return FirebaseAuthRepository();
 });
 
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);

@@ -41,10 +41,7 @@ class AppointmentFormHeader extends StatelessWidget {
 
     return Row(
       children: [
-        _HeaderIconButton(
-          icon: Icons.close_rounded,
-          onPressed: onClose,
-        ),
+        _HeaderIconButton(icon: Icons.close_rounded, onPressed: onClose),
         Expanded(
           child: Column(
             children: [
@@ -80,10 +77,7 @@ class AppointmentFormHeader extends StatelessWidget {
 }
 
 class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _HeaderIconButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback? onPressed;

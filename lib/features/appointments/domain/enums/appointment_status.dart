@@ -10,7 +10,11 @@ enum AppointmentStatus {
       'confirmed' => AppointmentStatus.confirmed,
       'completed' => AppointmentStatus.completed,
       'canceled' => AppointmentStatus.canceled,
-      _ => throw ArgumentError.value(value, 'value', 'Status de agendamento inválido.'),
+      _ => throw ArgumentError.value(
+        value,
+        'value',
+        'Status de agendamento inválido.',
+      ),
     };
   }
 

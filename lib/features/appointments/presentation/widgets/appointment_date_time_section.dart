@@ -161,8 +161,7 @@ class AppointmentDateTimeSection extends StatelessWidget {
                 ),
               ),
             ],
-          ]
-          else ...[
+          ] else ...[
             if (showNoAvailableTimesMessage) ...[
               Text(
                 AppStrings.appointmentNoAvailableTimes,

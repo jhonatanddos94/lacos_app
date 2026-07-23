@@ -5,10 +5,7 @@ import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 
 class ClientMemoryActionsState {
-  const ClientMemoryActionsState({
-    this.isLoading = false,
-    this.errorMessage,
-  });
+  const ClientMemoryActionsState({this.isLoading = false, this.errorMessage});
 
   final bool isLoading;
   final String? errorMessage;
@@ -20,8 +17,9 @@ class ClientMemoryActionsState {
   }) {
     return ClientMemoryActionsState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage:
-          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
     );
   }
 }

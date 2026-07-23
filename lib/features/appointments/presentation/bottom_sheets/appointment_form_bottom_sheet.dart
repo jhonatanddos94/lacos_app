@@ -150,9 +150,9 @@ class _AppointmentFormBottomSheetState
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _submitForm() async {
@@ -262,9 +262,10 @@ class _AppointmentFormBottomSheetState
 
     return switch (error) {
       FormatException(message: final message) => message,
-      _ => _isEditMode
-          ? AppStrings.appointmentUpdateError
-          : AppStrings.appointmentSaveError,
+      _ =>
+        _isEditMode
+            ? AppStrings.appointmentUpdateError
+            : AppStrings.appointmentSaveError,
     };
   }
 
@@ -284,8 +285,8 @@ class _AppointmentFormBottomSheetState
     final startTimeError = _selectedStartTimeMinutes == null
         ? AppStrings.appointmentStartTimeRequired
         : (!_isEditMode && _isSelectedStartTimeInPast)
-            ? AppStrings.appointmentStartAtInPast
-            : null;
+        ? AppStrings.appointmentStartAtInPast
+        : null;
 
     setState(() {
       _clientError = clientError;
@@ -461,9 +462,8 @@ class _AppointmentFormBottomSheetState
 
   void _replaceService(int index, Service newService) {
     final isDuplicate = _selectedServices.asMap().entries.any(
-          (entry) =>
-              entry.key != index && entry.value.id == newService.id,
-        );
+      (entry) => entry.key != index && entry.value.id == newService.id,
+    );
 
     if (isDuplicate) {
       _showMessage(AppStrings.appointmentServiceAlreadyAdded);
@@ -700,10 +700,8 @@ class _AppointmentFormBottomSheetState
       appointmentsAsync.when(
         data: (dayAppointments) {
           availableStartTimes = _calculateAvailableStartTimes(dayAppointments);
-          displayedStartTimeMinutes =
-              _availabilityCalculator.toDisplayedStartTimeMinutes(
-            availableStartTimes,
-          );
+          displayedStartTimeMinutes = _availabilityCalculator
+              .toDisplayedStartTimeMinutes(availableStartTimes);
           showNoAvailableTimesMessage = availableStartTimes.isEmpty;
           _invalidateSelectedTimeIfNoLongerAvailable(availableStartTimes);
         },
@@ -759,100 +757,107 @@ class _AppointmentFormBottomSheetState
                               subtitle: _formSubtitle,
                               onClose: isSaving ? null : _close,
                             ),
-                          const SizedBox(height: AppSpacing.lg),
-                          KeyedSubtree(
-                            key: _clientSectionKey,
-                            child: AppointmentClientSection(
-                              selectedClient: _selectedClient,
-                              errorText: _clientError,
-                              onTap: _openClientPicker,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          KeyedSubtree(
-                            key: _servicesSectionKey,
-                            child: AppointmentServicesSection(
-                              selectedServices: _selectedServices,
-                              errorText: _servicesError,
-                              onAddService: _openServicePicker,
-                              onServiceTap: _openSelectedServiceActions,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          KeyedSubtree(
-                            key: _professionalSectionKey,
-                            child: AppointmentProfessionalSection(
-                              selectedProfessional: _selectedProfessional,
-                              errorText: _professionalError,
-                              onTap: _openProfessionalPicker,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          KeyedSubtree(
-                            key: _dateTimeSectionKey,
-                            child: AppointmentDateTimeSection(
-                              dateDisplayLabel: _selectedDateDisplayLabel,
-                              hasSelectedDate: _selectedDate != null,
-                              isTodaySelected: _isTodaySelected,
-                              isTomorrowSelected: _isTomorrowSelected,
-                              dateError: _dateError,
-                              startTimeValue: _startTimeDisplay,
-                              endTimeValue: _computedEndTime,
-                              selectedStartTimeMinutes:
-                                  _selectedStartTimeMinutes,
-                              startTimeError: _startTimeError,
-                              durationSummaryLabel: _buildDurationSummaryLabel(),
-                              appointmentSummaryLabel:
-                                  _buildAppointmentSummaryLabel(),
-                              canCalculateAvailableTimes:
-                                  _canCalculateAvailableTimes,
-                              isLoadingAvailableTimes: isLoadingAvailableTimes,
-                              availabilityError: availabilityError,
-                              displayedStartTimeMinutes:
-                                  displayedStartTimeMinutes,
-                              showNoAvailableTimesMessage:
-                                  showNoAvailableTimesMessage,
-                              onDateTap: _openDatePicker,
-                              onTodayTap: _selectToday,
-                              onTomorrowTap: _selectTomorrow,
-                              onSelectStartTime: _setSelectedStartTime,
-                              onCustomStartTimeTap: () =>
-                                  _openTimePicker(availableStartTimes),
-                              onRetryAvailability: _canCalculateAvailableTimes
-                                  ? _retryLoadAvailableTimes
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          AppointmentNotesSection(controller: _notesController),
-                          if (_saveError != null) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              _saveError!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                                height: 1.35,
+                            const SizedBox(height: AppSpacing.lg),
+                            KeyedSubtree(
+                              key: _clientSectionKey,
+                              child: AppointmentClientSection(
+                                selectedClient: _selectedClient,
+                                errorText: _clientError,
+                                onTap: _openClientPicker,
                               ),
                             ),
+                            const SizedBox(height: AppSpacing.lg),
+                            KeyedSubtree(
+                              key: _servicesSectionKey,
+                              child: AppointmentServicesSection(
+                                selectedServices: _selectedServices,
+                                errorText: _servicesError,
+                                onAddService: _openServicePicker,
+                                onServiceTap: _openSelectedServiceActions,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            KeyedSubtree(
+                              key: _professionalSectionKey,
+                              child: AppointmentProfessionalSection(
+                                selectedProfessional: _selectedProfessional,
+                                errorText: _professionalError,
+                                onTap: _openProfessionalPicker,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            KeyedSubtree(
+                              key: _dateTimeSectionKey,
+                              child: AppointmentDateTimeSection(
+                                dateDisplayLabel: _selectedDateDisplayLabel,
+                                hasSelectedDate: _selectedDate != null,
+                                isTodaySelected: _isTodaySelected,
+                                isTomorrowSelected: _isTomorrowSelected,
+                                dateError: _dateError,
+                                startTimeValue: _startTimeDisplay,
+                                endTimeValue: _computedEndTime,
+                                selectedStartTimeMinutes:
+                                    _selectedStartTimeMinutes,
+                                startTimeError: _startTimeError,
+                                durationSummaryLabel:
+                                    _buildDurationSummaryLabel(),
+                                appointmentSummaryLabel:
+                                    _buildAppointmentSummaryLabel(),
+                                canCalculateAvailableTimes:
+                                    _canCalculateAvailableTimes,
+                                isLoadingAvailableTimes:
+                                    isLoadingAvailableTimes,
+                                availabilityError: availabilityError,
+                                displayedStartTimeMinutes:
+                                    displayedStartTimeMinutes,
+                                showNoAvailableTimesMessage:
+                                    showNoAvailableTimesMessage,
+                                onDateTap: _openDatePicker,
+                                onTodayTap: _selectToday,
+                                onTomorrowTap: _selectTomorrow,
+                                onSelectStartTime: _setSelectedStartTime,
+                                onCustomStartTimeTap: () =>
+                                    _openTimePicker(availableStartTimes),
+                                onRetryAvailability: _canCalculateAvailableTimes
+                                    ? _retryLoadAvailableTimes
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            AppointmentNotesSection(
+                              controller: _notesController,
+                            ),
+                            if (_saveError != null) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                _saveError!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                      height: 1.35,
+                                    ),
+                              ),
+                            ],
+                            const SizedBox(height: AppSpacing.lg),
+                            AppButton(
+                              label: _submitLabel,
+                              icon: Icons.check_circle_outline_rounded,
+                              isLoading: isSaving,
+                              onPressed: isSaving ? null : _submitForm,
+                            ),
                           ],
-                          const SizedBox(height: AppSpacing.lg),
-                          AppButton(
-                            label: _submitLabel,
-                            icon: Icons.check_circle_outline_rounded,
-                            isLoading: isSaving,
-                            onPressed: isSaving ? null : _submitForm,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }

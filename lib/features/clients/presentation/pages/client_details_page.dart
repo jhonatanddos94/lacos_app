@@ -189,10 +189,8 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 errorMessage: memoriesAsync.hasError
                     ? AppStrings.clientMemoriesLoadError
                     : null,
-                onTap: () => context.push(
-                  RoutePaths.clientMemories,
-                  extra: _client,
-                ),
+                onTap: () =>
+                    context.push(RoutePaths.clientMemories, extra: _client),
               ),
               const SizedBox(height: AppSpacing.sm),
               const _HighlightSectionCard(

@@ -18,10 +18,9 @@ String digitsOnly(String value) {
 
 String formatBrazilianPhone(String phone) {
   final digits = digitsOnly(phone);
-  return const BrazilianPhoneInputFormatter().formatEditUpdate(
-    TextEditingValue.empty,
-    TextEditingValue(text: digits),
-  ).text;
+  return const BrazilianPhoneInputFormatter()
+      .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: digits))
+      .text;
 }
 
 String formatBrazilianDate(DateTime date) {

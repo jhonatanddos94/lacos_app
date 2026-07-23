@@ -85,11 +85,7 @@ void main() {
       final now = DateTime.now();
       final appointment = eligibleAppointment();
 
-      await pumpFlow(
-        tester,
-        appointment: appointment,
-        now: now,
-      );
+      await pumpFlow(tester, appointment: appointment, now: now);
 
       expect(find.byType(AppointmentPreparationBottomSheet), findsOneWidget);
       expect(find.text('Prefere conversar pouco.'), findsOneWidget);
@@ -116,11 +112,7 @@ void main() {
         status: AppointmentStatus.pending,
       );
 
-      await pumpFlow(
-        tester,
-        appointment: appointment,
-        now: now,
-      );
+      await pumpFlow(tester, appointment: appointment, now: now);
 
       expect(find.byType(AppointmentPreparationBottomSheet), findsNothing);
       expect(find.byType(AppointmentDetailsBottomSheet), findsOneWidget);
@@ -129,11 +121,7 @@ void main() {
     testWidgets('Agora não fecha fluxo sem abrir detalhes', (tester) async {
       final now = DateTime.now();
 
-      await pumpFlow(
-        tester,
-        appointment: eligibleAppointment(),
-        now: now,
-      );
+      await pumpFlow(tester, appointment: eligibleAppointment(), now: now);
 
       await tester.tap(find.text(AppStrings.appointmentPreparationNotNow));
       await tester.pumpAndSettle();
@@ -147,11 +135,7 @@ void main() {
         status: AppointmentStatus.confirmed,
       );
 
-      await pumpFlow(
-        tester,
-        appointment: appointment,
-        now: DateTime.now(),
-      );
+      await pumpFlow(tester, appointment: appointment, now: DateTime.now());
 
       expect(appointment.status, AppointmentStatus.confirmed);
     });
@@ -187,7 +171,10 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
   }
 
   @override
-  Future<List<ClientMemory>> findByClient({required String clientId}) async {
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) async {
     return memories;
   }
 

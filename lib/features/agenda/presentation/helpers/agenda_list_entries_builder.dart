@@ -6,20 +6,13 @@ import 'package:lacos_app/features/agenda/application/models/agenda_display_sect
 enum AgendaListEntryType { sectionHeader, appointment }
 
 class AgendaListEntry {
-  const AgendaListEntry._({
-    required this.type,
-    this.title,
-    this.appointment,
-  });
+  const AgendaListEntry._({required this.type, this.title, this.appointment});
 
   const AgendaListEntry.sectionHeader(String title)
     : this._(type: AgendaListEntryType.sectionHeader, title: title);
 
   const AgendaListEntry.appointment(AgendaAppointmentDisplay appointment)
-    : this._(
-        type: AgendaListEntryType.appointment,
-        appointment: appointment,
-      );
+    : this._(type: AgendaListEntryType.appointment, appointment: appointment);
 
   final AgendaListEntryType type;
   final String? title;
@@ -42,9 +35,7 @@ class AgendaListEntriesBuilder {
         ),
       );
     }
-    entries.addAll(
-      sections.pending.map(AgendaListEntry.appointment),
-    );
+    entries.addAll(sections.pending.map(AgendaListEntry.appointment));
 
     if (sections.hasCompletedSection) {
       entries.add(
@@ -55,9 +46,7 @@ class AgendaListEntriesBuilder {
           ),
         ),
       );
-      entries.addAll(
-        sections.completed.map(AgendaListEntry.appointment),
-      );
+      entries.addAll(sections.completed.map(AgendaListEntry.appointment));
     }
 
     if (sections.hasCanceledSection) {
@@ -69,9 +58,7 @@ class AgendaListEntriesBuilder {
           ),
         ),
       );
-      entries.addAll(
-        sections.canceled.map(AgendaListEntry.appointment),
-      );
+      entries.addAll(sections.canceled.map(AgendaListEntry.appointment));
     }
 
     return entries;

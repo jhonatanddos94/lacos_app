@@ -30,7 +30,9 @@ void main() {
     });
 
     test('bloqueia cancelamento de agendamento concluído', () {
-      repository.appointment = _appointment(status: AppointmentStatus.completed);
+      repository.appointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
 
       expect(
         () => useCase(_params()),
@@ -39,14 +41,19 @@ void main() {
       expect(repository.cancelCalls, 0);
     });
 
-    test('retorna agendamento já cancelado sem chamar cancel novamente', () async {
-      repository.appointment = _appointment(status: AppointmentStatus.canceled);
+    test(
+      'retorna agendamento já cancelado sem chamar cancel novamente',
+      () async {
+        repository.appointment = _appointment(
+          status: AppointmentStatus.canceled,
+        );
 
-      final result = await useCase(_params());
+        final result = await useCase(_params());
 
-      expect(result.status, AppointmentStatus.canceled);
-      expect(repository.cancelCalls, 0);
-    });
+        expect(result.status, AppointmentStatus.canceled);
+        expect(repository.cancelCalls, 0);
+      },
+    );
 
     test('propaga AppointmentAlreadyCanceledException do repository', () {
       repository.appointment = _appointment(status: AppointmentStatus.pending);

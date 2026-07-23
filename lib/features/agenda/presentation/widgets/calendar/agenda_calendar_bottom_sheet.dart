@@ -254,9 +254,7 @@ class _MonthNavButton extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: iconAfterLabel
-            ? [text, iconWidget]
-            : [iconWidget, text],
+        children: iconAfterLabel ? [text, iconWidget] : [iconWidget, text],
       ),
     );
   }
@@ -299,9 +297,7 @@ class _CalendarDayButton extends StatelessWidget {
       selected: isSelected,
       label: hasAppointments ? '$day, com atendimentos' : '$day',
       child: Material(
-        key: Key(
-          'agenda-calendar-day-${date.year}-${date.month}-${date.day}',
-        ),
+        key: Key('agenda-calendar-day-${date.year}-${date.month}-${date.day}'),
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,

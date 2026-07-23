@@ -4,10 +4,9 @@ import 'package:lacos_app/core/formatters/client_form_formatters.dart';
 
 String formatBrazilianPriceInput(String value) {
   final digits = digitsOnly(value);
-  return const BrazilianPriceInputFormatter().formatEditUpdate(
-    TextEditingValue.empty,
-    TextEditingValue(text: digits),
-  ).text;
+  return const BrazilianPriceInputFormatter()
+      .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: digits))
+      .text;
 }
 
 double? parseBrazilianPrice(String value) {

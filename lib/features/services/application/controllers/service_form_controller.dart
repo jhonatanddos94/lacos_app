@@ -39,10 +39,12 @@ class ServiceFormController extends StateNotifier<AsyncValue<Service?>> {
     state = const AsyncLoading();
 
     try {
-      final resolvedCategory =
-          normalizedCategory?.isEmpty == true ? null : normalizedCategory;
-      final resolvedDescription =
-          normalizedDescription?.isEmpty == true ? null : normalizedDescription;
+      final resolvedCategory = normalizedCategory?.isEmpty == true
+          ? null
+          : normalizedCategory;
+      final resolvedDescription = normalizedDescription?.isEmpty == true
+          ? null
+          : normalizedDescription;
 
       if (initialService != null) {
         final updatedService = Service(

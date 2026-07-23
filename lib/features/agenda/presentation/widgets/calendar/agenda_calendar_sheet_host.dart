@@ -26,10 +26,7 @@ Future<DateTime?> showAgendaCalendarSheet({
 }
 
 class AgendaCalendarSheetHost extends ConsumerStatefulWidget {
-  const AgendaCalendarSheetHost({
-    required this.initialDate,
-    super.key,
-  });
+  const AgendaCalendarSheetHost({required this.initialDate, super.key});
 
   final DateTime initialDate;
 
@@ -52,10 +49,7 @@ class _AgendaCalendarSheetHostState
   }
 
   void _onDisplayedMonthChanged(AgendaCalendarMonthGrid month) {
-    final nextView = AgendaCalendarView(
-      year: month.year,
-      month: month.month,
-    );
+    final nextView = AgendaCalendarView(year: month.year, month: month.month);
     if (nextView == _displayedView) return;
 
     setState(() => _displayedView = nextView);

@@ -12,12 +12,25 @@ void main() {
       final sections = AgendaDisplayOrganizer.organize([
         _display(id: 'canceled', status: AppointmentStatus.canceled, hour: 13),
         _display(id: 'pending', status: AppointmentStatus.pending, hour: 9),
-        _display(id: 'confirmed', status: AppointmentStatus.confirmed, hour: 11),
-        _display(id: 'completed', status: AppointmentStatus.completed, hour: 10),
+        _display(
+          id: 'confirmed',
+          status: AppointmentStatus.confirmed,
+          hour: 11,
+        ),
+        _display(
+          id: 'completed',
+          status: AppointmentStatus.completed,
+          hour: 10,
+        ),
       ], now: now);
 
-      expect(sections.pending.map((item) => item.appointmentId), ['pending', 'confirmed']);
-      expect(sections.completed.map((item) => item.appointmentId), ['completed']);
+      expect(sections.pending.map((item) => item.appointmentId), [
+        'pending',
+        'confirmed',
+      ]);
+      expect(sections.completed.map((item) => item.appointmentId), [
+        'completed',
+      ]);
       expect(sections.canceled.map((item) => item.appointmentId), ['canceled']);
       expect(sections.isEmpty, isFalse);
       expect(sections.showPendingHeader, isTrue);
@@ -43,10 +56,11 @@ void main() {
         _display(id: 'current', status: AppointmentStatus.confirmed, hour: 14),
       ], now: now);
 
-      expect(
-        sections.pending.map((item) => item.appointmentId),
-        ['overdue', 'current', 'upcoming'],
-      );
+      expect(sections.pending.map((item) => item.appointmentId), [
+        'overdue',
+        'current',
+        'upcoming',
+      ]);
     });
 
     test('retorna vazio quando não há atendimentos', () {

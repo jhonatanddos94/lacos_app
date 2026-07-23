@@ -5,10 +5,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 
 class AgendaFab extends StatelessWidget {
-  const AgendaFab({
-    required this.onPressed,
-    super.key,
-  });
+  const AgendaFab({required this.onPressed, super.key});
 
   final VoidCallback onPressed;
 

@@ -39,7 +39,9 @@ void main() {
         onChanged: () => changeCount++,
       );
 
-      await Future<void>.delayed(AppDurations.agendaHighlight + const Duration(milliseconds: 20));
+      await Future<void>.delayed(
+        AppDurations.agendaHighlight + const Duration(milliseconds: 20),
+      );
 
       expect(controller.highlightedAppointmentId, isNull);
       expect(changeCount, 2);
@@ -85,10 +87,7 @@ void main() {
 
     test('indexForAppointmentId retorna null quando não encontra', () {
       expect(
-        AgendaAppointmentScroll.indexForAppointmentId(
-          appointments,
-          'missing',
-        ),
+        AgendaAppointmentScroll.indexForAppointmentId(appointments, 'missing'),
         isNull,
       );
     });
@@ -97,8 +96,9 @@ void main() {
       expect(AgendaAppointmentScroll.offsetForIndex(0), 0);
       expect(
         AgendaAppointmentScroll.offsetForIndex(2),
-        2 * (AgendaAppointmentScroll.estimatedItemHeight +
-            AgendaAppointmentScroll.separatorHeight),
+        2 *
+            (AgendaAppointmentScroll.estimatedItemHeight +
+                AgendaAppointmentScroll.separatorHeight),
       );
     });
 

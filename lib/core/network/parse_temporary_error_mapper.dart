@@ -30,10 +30,7 @@ abstract final class ParseTemporaryErrorMapper {
     return _isTemporaryMessage(error.toString());
   }
 
-  static String messageForThrowable(
-    Object error, {
-    required String fallback,
-  }) {
+  static String messageForThrowable(Object error, {required String fallback}) {
     if (isTemporaryThrowable(error)) {
       return AppStrings.temporaryLoadError;
     }
@@ -57,7 +54,8 @@ abstract final class ParseTemporaryErrorMapper {
     required String fallback,
   }) {
     return switch (error) {
-      FormatException(message: final message) when message.isNotEmpty => message,
+      FormatException(message: final message) when message.isNotEmpty =>
+        message,
       StateError(message: final message) => message,
       _ => fallback,
     };

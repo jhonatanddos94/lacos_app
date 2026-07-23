@@ -11,7 +11,8 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 
-class CancelAppointmentController extends StateNotifier<CancelAppointmentState> {
+class CancelAppointmentController
+    extends StateNotifier<CancelAppointmentState> {
   CancelAppointmentController(this._cancelAppointmentUseCase)
     : super(const CancelAppointmentState());
 

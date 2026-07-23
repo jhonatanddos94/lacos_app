@@ -19,14 +19,10 @@ void main() {
               (ref, day) async => const <AgendaAppointmentDisplay>[],
             ),
             agendaCalendarAppointmentDaysProvider.overrideWith(
-              (ref, view) async => {
-                DateTime(2026, 8, 21),
-              },
+              (ref, view) async => {DateTime(2026, 8, 21)},
             ),
           ],
-          child: const MaterialApp(
-            home: AgendaPage(),
-          ),
+          child: const MaterialApp(home: AgendaPage()),
         ),
       );
 
@@ -59,15 +55,17 @@ void main() {
       await tester.pumpAndSettle();
 
       final selectedDay = DateTime(2026, 8, 21);
-      final expectedHeader = formatAgendaDateLine(
-        selectedDay,
-        isToday: false,
-      );
+      final expectedHeader = formatAgendaDateLine(selectedDay, isToday: false);
 
       expect(find.text(expectedHeader), findsOneWidget);
 
-      final chips = tester.widgetList<AgendaDayChip>(find.byType(AgendaDayChip));
-      expect(chips.any((chip) => chip.isSelected && chip.day.day == 21), isTrue);
+      final chips = tester.widgetList<AgendaDayChip>(
+        find.byType(AgendaDayChip),
+      );
+      expect(
+        chips.any((chip) => chip.isSelected && chip.day.day == 21),
+        isTrue,
+      );
       expect(
         chips.any((chip) => chip.isSelected && chip.day.month == 8),
         isTrue,
@@ -130,19 +128,15 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            agendaAppointmentsDisplayProvider.overrideWith(
-              (ref, day) async {
-                loadedDays.add(day);
-                return const <AgendaAppointmentDisplay>[];
-              },
-            ),
+            agendaAppointmentsDisplayProvider.overrideWith((ref, day) async {
+              loadedDays.add(day);
+              return const <AgendaAppointmentDisplay>[];
+            }),
             agendaCalendarAppointmentDaysProvider.overrideWith(
               (ref, view) async => const {},
             ),
           ],
-          child: const MaterialApp(
-            home: AgendaPage(),
-          ),
+          child: const MaterialApp(home: AgendaPage()),
         ),
       );
 

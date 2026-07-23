@@ -52,10 +52,7 @@ void main() {
       expect(result.productsUsed, 'Máscara');
       expect(result.finalAmount, 180);
       expect(result.serviceDate, completedAt);
-      expect(
-        serviceRecordServiceRepository.lastCreatedServices,
-        hasLength(2),
-      );
+      expect(serviceRecordServiceRepository.lastCreatedServices, hasLength(2));
       expect(
         serviceRecordServiceRepository.lastCreatedServices.first.serviceId,
         'service-1',
@@ -63,42 +60,51 @@ void main() {
       expect(serviceRecordRepository.lastLegacyPrimaryServiceId, 'service-1');
     });
 
-    test('envia legacyPrimaryServiceId com o primeiro serviço executado', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.completedAppointment = _appointment(
-        status: AppointmentStatus.completed,
-      );
+    test(
+      'envia legacyPrimaryServiceId com o primeiro serviço executado',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+        );
 
-      await useCase(_params());
+        await useCase(_params());
 
-      expect(serviceRecordRepository.lastLegacyPrimaryServiceId, 'service-1');
-    });
+        expect(serviceRecordRepository.lastLegacyPrimaryServiceId, 'service-1');
+      },
+    );
 
-    test('lança AppointmentNotFoundException quando appointment não existe', () async {
-      appointmentRepository.appointment = null;
+    test(
+      'lança AppointmentNotFoundException quando appointment não existe',
+      () async {
+        appointmentRepository.appointment = null;
 
-      await expectLater(
-        useCase(_params()),
-        throwsA(isA<AppointmentNotFoundException>()),
-      );
-      expect(appointmentRepository.completeCalls, 0);
-      expect(serviceRecordRepository.createCalls, 0);
-      expect(serviceRecordServiceRepository.createManyCalls, 0);
-    });
+        await expectLater(
+          useCase(_params()),
+          throwsA(isA<AppointmentNotFoundException>()),
+        );
+        expect(appointmentRepository.completeCalls, 0);
+        expect(serviceRecordRepository.createCalls, 0);
+        expect(serviceRecordServiceRepository.createManyCalls, 0);
+      },
+    );
 
-    test('lança AppointmentCannotCompleteException quando status é cancelado', () async {
-      appointmentRepository.appointment = _appointment(
-        status: AppointmentStatus.canceled,
-      );
+    test(
+      'lança AppointmentCannotCompleteException quando status é cancelado',
+      () async {
+        appointmentRepository.appointment = _appointment(
+          status: AppointmentStatus.canceled,
+        );
 
-      await expectLater(
-        useCase(_params()),
-        throwsA(isA<AppointmentCannotCompleteException>()),
-      );
-      expect(appointmentRepository.completeCalls, 0);
-      expect(serviceRecordRepository.createCalls, 0);
-      expect(serviceRecordServiceRepository.createManyCalls, 0);
-    });
+        await expectLater(
+          useCase(_params()),
+          throwsA(isA<AppointmentCannotCompleteException>()),
+        );
+        expect(appointmentRepository.completeCalls, 0);
+        expect(serviceRecordRepository.createCalls, 0);
+        expect(serviceRecordServiceRepository.createManyCalls, 0);
+      },
+    );
 
     test('appointment já completed não chama complete novamente', () async {
       appointmentRepository.appointment = _appointment(
@@ -114,29 +120,35 @@ void main() {
       expect(result.id, 'service-record-1');
     });
 
-    test('chama appointmentRepository.complete exatamente uma vez no fluxo feliz', () async {
-      appointmentRepository.appointment = _appointment();
-      appointmentRepository.completedAppointment = _appointment(
-        status: AppointmentStatus.completed,
-      );
+    test(
+      'chama appointmentRepository.complete exatamente uma vez no fluxo feliz',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+        );
 
-      await useCase(_params());
+        await useCase(_params());
 
-      expect(appointmentRepository.completeCalls, 1);
-    });
+        expect(appointmentRepository.completeCalls, 1);
+      },
+    );
 
-    test('retoma criação do histórico quando appointment já está completed', () async {
-      appointmentRepository.appointment = _appointment(
-        status: AppointmentStatus.completed,
-        completedAt: DateTime(2026, 7, 6, 15),
-      );
-      serviceRecordRepository.existingRecord = null;
+    test(
+      'retoma criação do histórico quando appointment já está completed',
+      () async {
+        appointmentRepository.appointment = _appointment(
+          status: AppointmentStatus.completed,
+          completedAt: DateTime(2026, 7, 6, 15),
+        );
+        serviceRecordRepository.existingRecord = null;
 
-      await useCase(_params());
+        await useCase(_params());
 
-      expect(appointmentRepository.completeCalls, 0);
-      expect(serviceRecordRepository.createCalls, 1);
-    });
+        expect(appointmentRepository.completeCalls, 0);
+        expect(serviceRecordRepository.createCalls, 1);
+      },
+    );
 
     test('propaga falha ao criar ServiceRecord', () async {
       appointmentRepository.appointment = _appointment();
@@ -145,10 +157,7 @@ void main() {
       );
       serviceRecordRepository.shouldFailOnCreate = true;
 
-      await expectLater(
-        useCase(_params()),
-        throwsA(isA<FormatException>()),
-      );
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
       expect(appointmentRepository.completeCalls, 1);
       expect(serviceRecordRepository.createCalls, 1);
       expect(serviceRecordServiceRepository.createManyCalls, 0);
@@ -173,10 +182,7 @@ void main() {
       );
       serviceRecordServiceRepository.shouldFailOnCreateMany = true;
 
-      await expectLater(
-        useCase(_params()),
-        throwsA(isA<FormatException>()),
-      );
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
       expect(appointmentRepository.completeCalls, 1);
       expect(serviceRecordRepository.createCalls, 1);
       expect(serviceRecordServiceRepository.createManyCalls, 1);
@@ -237,7 +243,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> complete(String appointmentId) async {
     completeCalls++;
-    return completedAppointment ?? _appointment(status: AppointmentStatus.completed);
+    return completedAppointment ??
+        _appointment(status: AppointmentStatus.completed);
   }
 
   @override

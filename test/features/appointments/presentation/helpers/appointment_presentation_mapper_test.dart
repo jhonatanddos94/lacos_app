@@ -8,15 +8,18 @@ void main() {
   group('AppointmentPresentationMapper', () {
     const mapper = AppointmentPresentationMapper();
 
-    test('retorna total estimado enquanto preparação futura não está ativa', () {
-      expect(
-        mapper.estimatedTotalPrefix(
-          status: AppointmentStatus.completed,
-          operationalState: AppointmentOperationalState.completed,
-        ),
-        AppStrings.appointmentEstimatedTotalPrefix,
-      );
-    });
+    test(
+      'retorna total estimado enquanto preparação futura não está ativa',
+      () {
+        expect(
+          mapper.estimatedTotalPrefix(
+            status: AppointmentStatus.completed,
+            operationalState: AppointmentOperationalState.completed,
+          ),
+          AppStrings.appointmentEstimatedTotalPrefix,
+        );
+      },
+    );
 
     test('retorna mensagem natural do banner overdue', () {
       expect(

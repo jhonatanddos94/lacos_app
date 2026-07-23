@@ -185,9 +185,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       if (!mounted) return;
 
       if (message != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } on Object {
       if (!mounted) return;
@@ -206,7 +206,10 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   }) async {
     final updatedDay = AgendaDay.from(updatedAppointment.startAt);
 
-    if (!isSameAppointmentDate(updatedDay.toDateTime(), _normalizedSelectedDay)) {
+    if (!isSameAppointmentDate(
+      updatedDay.toDateTime(),
+      _normalizedSelectedDay,
+    )) {
       setState(() => _selectedDay = updatedDay.toDateTime());
     }
 
@@ -299,16 +302,18 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => AppointmentFormBottomSheet(
-        initialDate: _normalizedSelectedDay,
-      ),
+      builder: (context) =>
+          AppointmentFormBottomSheet(initialDate: _normalizedSelectedDay),
     );
 
     if (!mounted || createdAppointment == null) return;
 
     final createdDay = AgendaDay.from(createdAppointment.appointment.startAt);
 
-    if (!isSameAppointmentDate(createdDay.toDateTime(), _normalizedSelectedDay)) {
+    if (!isSameAppointmentDate(
+      createdDay.toDateTime(),
+      _normalizedSelectedDay,
+    )) {
       setState(() => _selectedDay = createdDay.toDateTime());
     }
 
@@ -445,7 +450,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     }
 
     return appointmentsAsync.when(
-      loading: () => AgendaSkeletonList(scrollBottomPadding: _scrollBottomPadding),
+      loading: () =>
+          AgendaSkeletonList(scrollBottomPadding: _scrollBottomPadding),
       error: (error, _) => AgendaErrorState(
         message: resolveAgendaErrorMessage(error),
         onRetry: _retryLoadAppointments,
@@ -504,7 +510,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                     child: AgendaHeader(
                       selectedDay: _normalizedSelectedDay,
                       appointments: appointmentsAsync.value,
-                      isLoading: _isRefreshingAfterCreate ||
+                      isLoading:
+                          _isRefreshingAfterCreate ||
                           (appointmentsAsync.isLoading &&
                               !appointmentsAsync.hasValue),
                       isPastDay: !_isOperationalDay,
@@ -514,7 +521,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                 ),
               ),
               Padding(
-                padding: AppSpacing.screenPadding.copyWith(bottom: AppSpacing.sm),
+                padding: AppSpacing.screenPadding.copyWith(
+                  bottom: AppSpacing.sm,
+                ),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
@@ -538,7 +547,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                       constraints: const BoxConstraints(
                         maxWidth: _maxContentWidth,
                       ),
-                      child: _buildAnimatedAppointmentsContent(appointmentsAsync),
+                      child: _buildAnimatedAppointmentsContent(
+                        appointmentsAsync,
+                      ),
                     ),
                   ),
                 ),

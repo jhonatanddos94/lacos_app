@@ -83,21 +83,9 @@ void main() {
     test('ignora memórias inativas, arquivadas ou vazias', () {
       final result = AppointmentPreparationMemorySorter.selectTop(
         memories: [
-          memory(
-            id: 'inactive',
-            content: 'Inativa',
-            isActive: false,
-          ),
-          memory(
-            id: 'archived',
-            content: 'Arquivada',
-            isArchived: true,
-          ),
-          memory(
-            id: 'empty',
-            content: '   ',
-            createdAt: DateTime(2026, 7, 10),
-          ),
+          memory(id: 'inactive', content: 'Inativa', isActive: false),
+          memory(id: 'archived', content: 'Arquivada', isArchived: true),
+          memory(id: 'empty', content: '   ', createdAt: DateTime(2026, 7, 10)),
           memory(
             id: 'valid',
             content: 'Válida',

@@ -16,10 +16,7 @@ class LoginDivider extends StatelessWidget {
         const Expanded(child: Divider(color: AppColors.divider)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Text(
-            'ou continue com',
-            style: theme.textTheme.bodySmall,
-          ),
+          child: Text('ou continue com', style: theme.textTheme.bodySmall),
         ),
         const Expanded(child: Divider(color: AppColors.divider)),
       ],

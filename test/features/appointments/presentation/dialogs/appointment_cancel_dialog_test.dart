@@ -92,7 +92,9 @@ void main() {
     });
 
     testWidgets('erro inline mantém dialog aberto', (tester) async {
-      repository.appointment = _appointment(status: AppointmentStatus.completed);
+      repository.appointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
       await pumpDialog(tester);
 
       await tester.tap(find.text(AppStrings.appointmentCancelBySalon));

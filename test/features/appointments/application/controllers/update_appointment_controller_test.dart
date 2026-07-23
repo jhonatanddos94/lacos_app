@@ -34,7 +34,9 @@ void main() {
 
     test('expõe erro específico quando sync de serviços falha', () async {
       appointmentRepository.appointment = _appointment();
-      appointmentRepository.dayAppointments = [appointmentRepository.appointment!];
+      appointmentRepository.dayAppointments = [
+        appointmentRepository.appointment!,
+      ];
       appointmentServiceRepository.shouldFailCreateMany = true;
 
       final result = await controller.save(
@@ -60,14 +62,17 @@ void main() {
   });
 
   group('resolveUpdateAppointmentErrorMessage', () {
-    test('mapeia AppointmentServicesUpdateException para mensagem específica', () {
-      expect(
-        resolveUpdateAppointmentErrorMessage(
-          const AppointmentServicesUpdateException(),
-        ),
-        AppStrings.appointmentServicesUpdateError,
-      );
-    });
+    test(
+      'mapeia AppointmentServicesUpdateException para mensagem específica',
+      () {
+        expect(
+          resolveUpdateAppointmentErrorMessage(
+            const AppointmentServicesUpdateException(),
+          ),
+          AppStrings.appointmentServicesUpdateError,
+        );
+      },
+    );
   });
 }
 
@@ -122,8 +127,7 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> cancel({
@@ -150,7 +154,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 }
 
-class _FakeAppointmentServiceRepository implements AppointmentServiceRepository {
+class _FakeAppointmentServiceRepository
+    implements AppointmentServiceRepository {
   var shouldFailCreateMany = false;
 
   @override

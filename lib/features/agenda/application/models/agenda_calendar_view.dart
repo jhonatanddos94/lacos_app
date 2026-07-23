@@ -1,9 +1,7 @@
 /// Identificador do mês exibido no calendário mensual da Agenda.
 class AgendaCalendarView {
-  const AgendaCalendarView({
-    required this.year,
-    required this.month,
-  }) : assert(month >= 1 && month <= 12);
+  const AgendaCalendarView({required this.year, required this.month})
+    : assert(month >= 1 && month <= 12);
 
   final int year;
   final int month;

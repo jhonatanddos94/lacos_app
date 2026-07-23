@@ -11,8 +11,7 @@ class AgendaDisplaySections {
   final List<AgendaAppointmentDisplay> completed;
   final List<AgendaAppointmentDisplay> canceled;
 
-  bool get isEmpty =>
-      pending.isEmpty && completed.isEmpty && canceled.isEmpty;
+  bool get isEmpty => pending.isEmpty && completed.isEmpty && canceled.isEmpty;
 
   bool get hasCompletedSection => completed.isNotEmpty;
 

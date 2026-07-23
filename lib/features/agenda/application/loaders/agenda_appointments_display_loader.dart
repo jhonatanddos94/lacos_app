@@ -70,7 +70,8 @@ class AgendaAppointmentsDisplayLoader {
     return displays;
   }
 
-  Map<String, List<AppointmentService>> _groupAppointmentServicesByAppointmentId(
+  Map<String, List<AppointmentService>>
+  _groupAppointmentServicesByAppointmentId(
     List<AppointmentService> appointmentServices,
   ) {
     final grouped = <String, List<AppointmentService>>{};

@@ -38,10 +38,7 @@ void main() {
           'salon',
           (ParseObject('Salon')..objectId = 'salon-1'),
         )
-        ..set<ParseUser>(
-          'owner',
-          (ParseUser.forQuery()..objectId = 'owner-1'),
-        )
+        ..set<ParseUser>('owner', (ParseUser.forQuery()..objectId = 'owner-1'))
         ..set<String>('content', 'Prefere café sem açúcar')
         ..set<bool>('isActive', true);
 
@@ -63,9 +60,7 @@ void main() {
     });
 
     test('toDomain mapeia type legado general para other', () {
-      final memory = mapper.toDomain(
-        memoryObject(fields: {'type': 'general'}),
-      );
+      final memory = mapper.toDomain(memoryObject(fields: {'type': 'general'}));
 
       expect(memory.type, ClientMemoryType.other);
     });
@@ -98,12 +93,8 @@ void main() {
     });
 
     test('toDomain lê priority legado numérico', () {
-      final fromOne = mapper.toDomain(
-        memoryObject(fields: {'priority': 1}),
-      );
-      final fromTwo = mapper.toDomain(
-        memoryObject(fields: {'priority': 2}),
-      );
+      final fromOne = mapper.toDomain(memoryObject(fields: {'priority': 1}));
+      final fromTwo = mapper.toDomain(memoryObject(fields: {'priority': 2}));
 
       expect(fromOne.priority, ClientMemoryPriority.high);
       expect(fromTwo.priority, ClientMemoryPriority.high);

@@ -20,16 +20,10 @@ class AppointmentPreparationMemorySorter {
     final resolveEmoji = emojiForIndex ?? _defaultEmojiForIndex;
 
     final rankedMemories = memories
-        .where(
-          (memory) =>
-              memory.isVisible && memory.content.trim().isNotEmpty,
-        )
+        .where((memory) => memory.isVisible && memory.content.trim().isNotEmpty)
         .map((memory) {
           final rank = resolveRank(memory);
-          return (
-            memory: memory,
-            rank: rank,
-          );
+          return (memory: memory, rank: rank);
         })
         .toList(growable: false);
 

@@ -25,33 +25,40 @@ class AppointmentOperationalBadgeMapper {
     bool isNext = false,
   }) {
     return switch (operationalState) {
-      AppointmentOperationalState.overdue => const AppointmentOperationalBadgePresentation(
-        label: AppStrings.appointmentOperationalStateOverdueLabel,
-        backgroundColor: Color(0xFFFFF4E5),
-        foregroundColor: Color(0xFFB8741A),
-      ),
-      AppointmentOperationalState.current => const AppointmentOperationalBadgePresentation(
-        label: AppStrings.appointmentOperationalStateCurrentLabel,
-        backgroundColor: AppColors.purple100,
-        foregroundColor: AppColors.purple800,
-      ),
-      AppointmentOperationalState.upcoming => AppointmentOperationalBadgePresentation(
-        label: isNext
-            ? AppStrings.appointmentOperationalStateNextLabel
-            : AppStrings.appointmentOperationalStateUpcomingLabel,
-        backgroundColor: isNext ? AppColors.purple100 : const Color(0xFFF4F4F6),
-        foregroundColor: isNext ? AppColors.purple800 : AppColors.graphite,
-      ),
-      AppointmentOperationalState.completed => const AppointmentOperationalBadgePresentation(
-        label: AppStrings.appointmentOperationalStateCompletedLabel,
-        backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF2F6B4A),
-      ),
-      AppointmentOperationalState.canceled => const AppointmentOperationalBadgePresentation(
-        label: AppStrings.appointmentOperationalStateCanceledLabel,
-        backgroundColor: Color(0xFFFCE8EA),
-        foregroundColor: Color(0xFF9B4A54),
-      ),
+      AppointmentOperationalState.overdue =>
+        const AppointmentOperationalBadgePresentation(
+          label: AppStrings.appointmentOperationalStateOverdueLabel,
+          backgroundColor: Color(0xFFFFF4E5),
+          foregroundColor: Color(0xFFB8741A),
+        ),
+      AppointmentOperationalState.current =>
+        const AppointmentOperationalBadgePresentation(
+          label: AppStrings.appointmentOperationalStateCurrentLabel,
+          backgroundColor: AppColors.purple100,
+          foregroundColor: AppColors.purple800,
+        ),
+      AppointmentOperationalState.upcoming =>
+        AppointmentOperationalBadgePresentation(
+          label: isNext
+              ? AppStrings.appointmentOperationalStateNextLabel
+              : AppStrings.appointmentOperationalStateUpcomingLabel,
+          backgroundColor: isNext
+              ? AppColors.purple100
+              : const Color(0xFFF4F4F6),
+          foregroundColor: isNext ? AppColors.purple800 : AppColors.graphite,
+        ),
+      AppointmentOperationalState.completed =>
+        const AppointmentOperationalBadgePresentation(
+          label: AppStrings.appointmentOperationalStateCompletedLabel,
+          backgroundColor: Color(0xFFE7F5EC),
+          foregroundColor: Color(0xFF2F6B4A),
+        ),
+      AppointmentOperationalState.canceled =>
+        const AppointmentOperationalBadgePresentation(
+          label: AppStrings.appointmentOperationalStateCanceledLabel,
+          backgroundColor: Color(0xFFFCE8EA),
+          foregroundColor: Color(0xFF9B4A54),
+        ),
     };
   }
 

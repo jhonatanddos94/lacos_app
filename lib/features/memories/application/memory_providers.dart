@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/features/memories/application/models/client_memory_filters.dart';
+import 'package:lacos_app/features/memories/application/services/client_memory_filter_service.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/memories/infrastructure/repositories/parse_client_memory_repository.dart';
@@ -12,10 +14,7 @@ import 'package:lacos_app/features/salon/application/providers/salon_providers.d
 final clientMemoryRepositoryProvider = Provider<ClientMemoryRepository>((ref) {
   final salonRepository = ref.watch(salonRepositoryProvider);
   final professionalRepository = ref.watch(professionalRepositoryProvider);
-  return ParseClientMemoryRepository(
-    salonRepository,
-    professionalRepository,
-  );
+  return ParseClientMemoryRepository(salonRepository, professionalRepository);
 });
 
 final clientMemoriesProvider =
@@ -24,18 +23,41 @@ final clientMemoriesProvider =
       return repository.findByClient(clientId: clientId);
     });
 
-final memoryFormControllerProvider =
-    StateNotifierProvider<MemoryFormController, MemoryFormState>(
-      (ref) {
-        final repository = ref.watch(clientMemoryRepositoryProvider);
-        return MemoryFormController(repository);
-      },
+final clientMemoriesCatalogProvider =
+    FutureProvider.family<List<ClientMemory>, String>((ref, clientId) {
+      final repository = ref.watch(clientMemoryRepositoryProvider);
+      return repository.findByClient(clientId: clientId, includeArchived: true);
+    });
+
+final clientMemoryFiltersProvider =
+    StateProvider.family<ClientMemoryFilters, String>(
+      (ref, clientId) => ClientMemoryFilters.defaults,
     );
 
+final filteredClientMemoriesProvider =
+    Provider.family<AsyncValue<List<ClientMemory>>, String>((ref, clientId) {
+      final catalogAsync = ref.watch(clientMemoriesCatalogProvider(clientId));
+      final filters = ref.watch(clientMemoryFiltersProvider(clientId));
+
+      return catalogAsync.whenData(
+        (memories) => ClientMemoryFilterService.apply(
+          memories: memories,
+          filters: filters,
+        ),
+      );
+    });
+
+final memoryFormControllerProvider =
+    StateNotifierProvider<MemoryFormController, MemoryFormState>((ref) {
+      final repository = ref.watch(clientMemoryRepositoryProvider);
+      return MemoryFormController(repository);
+    });
+
 final clientMemoryActionsControllerProvider =
-    StateNotifierProvider<ClientMemoryActionsController, ClientMemoryActionsState>(
-      (ref) {
-        final repository = ref.watch(clientMemoryRepositoryProvider);
-        return ClientMemoryActionsController(repository);
-      },
-    );
+    StateNotifierProvider<
+      ClientMemoryActionsController,
+      ClientMemoryActionsState
+    >((ref) {
+      final repository = ref.watch(clientMemoryRepositoryProvider);
+      return ClientMemoryActionsController(repository);
+    });

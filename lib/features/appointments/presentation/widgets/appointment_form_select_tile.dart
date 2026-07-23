@@ -28,8 +28,7 @@ class AppointmentFormSelectTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final borderColor =
-        hasError ? theme.colorScheme.error : AppColors.divider;
+    final borderColor = hasError ? theme.colorScheme.error : AppColors.divider;
 
     return Material(
       color: Colors.transparent,
@@ -118,11 +117,7 @@ class AppointmentFormIconCircle extends StatelessWidget {
         color: AppColors.purple50,
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        icon,
-        color: AppColors.purple700,
-        size: AppIconSizes.sm,
-      ),
+      child: Icon(icon, color: AppColors.purple700, size: AppIconSizes.sm),
     );
   }
 }

@@ -27,8 +27,9 @@ abstract final class AppTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor:
-          isLight ? AppColors.warmWhite : const Color(0xFF1C1C1E),
+      scaffoldBackgroundColor: isLight
+          ? AppColors.warmWhite
+          : const Color(0xFF1C1C1E),
       dividerColor: isLight ? AppColors.divider : const Color(0xFF3A3A3E),
       splashFactory: InkSparkle.splashFactory,
       visualDensity: VisualDensity.standard,
@@ -36,8 +37,9 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        backgroundColor:
-            isLight ? AppColors.warmWhite : const Color(0xFF1C1C1E),
+        backgroundColor: isLight
+            ? AppColors.warmWhite
+            : const Color(0xFF1C1C1E),
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: textTheme.titleLarge,
         systemOverlayStyle: isLight
@@ -126,12 +128,17 @@ abstract final class AppTheme {
         enabledBorder: AppRadius.inputBorder(colorScheme.outline),
         focusedBorder: AppRadius.inputBorder(colorScheme.primary, width: 1.5),
         errorBorder: AppRadius.inputBorder(AppColors.softRose),
-        focusedErrorBorder: AppRadius.inputBorder(AppColors.softRose, width: 1.5),
+        focusedErrorBorder: AppRadius.inputBorder(
+          AppColors.softRose,
+          width: 1.5,
+        ),
         disabledBorder: AppRadius.inputBorder(
           colorScheme.outline.withValues(alpha: 0.5),
         ),
         labelStyle: textTheme.labelLarge,
-        hintStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
         errorStyle: textTheme.bodySmall?.copyWith(color: AppColors.softRose),
       ),
       chipTheme: ChipThemeData(
@@ -163,7 +170,9 @@ abstract final class AppTheme {
       snackBarTheme: SnackBarThemeData(
         elevation: 0,
         backgroundColor: AppColors.graphite,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(color: AppColors.onPrimary),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: AppColors.onPrimary,
+        ),
         shape: RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
         behavior: SnackBarBehavior.floating,
       ),

@@ -52,17 +52,19 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
 
     final queryDigits = digitsOnly(query);
 
-    return clients.where((client) {
-      final name = client.name.toLowerCase();
-      final phone = client.phone.toLowerCase();
-      final phoneDigits = digitsOnly(client.phone);
-      final instagram = client.instagram?.toLowerCase() ?? '';
+    return clients
+        .where((client) {
+          final name = client.name.toLowerCase();
+          final phone = client.phone.toLowerCase();
+          final phoneDigits = digitsOnly(client.phone);
+          final instagram = client.instagram?.toLowerCase() ?? '';
 
-      return name.contains(query) ||
-          phone.contains(query) ||
-          instagram.contains(query) ||
-          (queryDigits.isNotEmpty && phoneDigits.contains(queryDigits));
-    }).toList(growable: false);
+          return name.contains(query) ||
+              phone.contains(query) ||
+              instagram.contains(query) ||
+              (queryDigits.isNotEmpty && phoneDigits.contains(queryDigits));
+        })
+        .toList(growable: false);
   }
 
   Future<void> _openCreateClientSheet(
@@ -148,9 +150,8 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                             clients: _filterClients(clients),
                             bottomPadding: bottomInset,
                           ),
-                          loading: () => _ClientsLoadingState(
-                            bottomPadding: bottomInset,
-                          ),
+                          loading: () =>
+                              _ClientsLoadingState(bottomPadding: bottomInset),
                           error: (error, stackTrace) => _ClientsErrorState(
                             message: _resolveErrorMessage(error),
                             bottomPadding: bottomInset,

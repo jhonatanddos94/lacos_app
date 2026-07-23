@@ -43,7 +43,9 @@ void main() {
         ProviderScope(
           overrides: [
             createAppointmentUseCaseProvider.overrideWithValue(useCase),
-            appointmentsByDayProvider.overrideWith((ref, day) async => const []),
+            appointmentsByDayProvider.overrideWith(
+              (ref, day) async => const [],
+            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -103,10 +105,7 @@ void main() {
         find.text(formatAppointmentDateLabel(appointmentDate)),
         findsOneWidget,
       );
-      expect(
-        find.text(formatAppointmentDateLabel(agendaDate)),
-        findsNothing,
-      );
+      expect(find.text(formatAppointmentDateLabel(agendaDate)), findsNothing);
     });
   });
 
@@ -168,9 +167,7 @@ void main() {
     testWidgets('reabrir form edit não lança erro de modificação de provider', (
       WidgetTester tester,
     ) async {
-      final details = _appointmentDetails(
-        startAt: DateTime(2026, 7, 12, 14),
-      );
+      final details = _appointmentDetails(startAt: DateTime(2026, 7, 12, 14));
 
       await mountEditForm(tester, details, formKey: 1);
       expect(find.text('Maria Silva'), findsOneWidget);
@@ -186,9 +183,7 @@ void main() {
     testWidgets('submit continua funcionando na segunda abertura', (
       WidgetTester tester,
     ) async {
-      final details = _appointmentDetails(
-        startAt: DateTime(2026, 7, 12, 14),
-      );
+      final details = _appointmentDetails(startAt: DateTime(2026, 7, 12, 14));
       updateRepository.appointment = details.appointment;
       updateRepository.dayAppointments = [details.appointment];
 
@@ -217,7 +212,9 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      await tester.ensureVisible(find.text(AppStrings.appointmentFormEditAction));
+      await tester.ensureVisible(
+        find.text(AppStrings.appointmentFormEditAction),
+      );
       await tester.tap(find.text(AppStrings.appointmentFormEditAction));
       await tester.pump();
       await tester.pumpAndSettle();
@@ -230,10 +227,7 @@ void main() {
 }
 
 class _EditFormRouteHarness extends StatelessWidget {
-  const _EditFormRouteHarness({
-    required this.details,
-    required this.onSaved,
-  });
+  const _EditFormRouteHarness({required this.details, required this.onSaved});
 
   final AppointmentDetails details;
   final ValueChanged<UpdatedAppointment?> onSaved;
@@ -342,8 +336,7 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> findById(String appointmentId) {
@@ -356,7 +349,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 }
 
-class _FakeAppointmentServiceRepository implements AppointmentServiceRepository {
+class _FakeAppointmentServiceRepository
+    implements AppointmentServiceRepository {
   @override
   Future<List<AppointmentService>> createMany({
     required String appointmentId,
@@ -418,8 +412,7 @@ class _FakeUpdateAppointmentRepository implements AppointmentRepository {
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
     required DateTime end,
-  }) async =>
-      const {};
+  }) async => const {};
 
   @override
   Future<Appointment> cancel({

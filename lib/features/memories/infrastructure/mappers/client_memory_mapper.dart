@@ -10,9 +10,7 @@ class ClientMemoryMapper {
   ClientMemory toDomain(ParseObject object) {
     final id = object.objectId;
     if (id == null || id.isEmpty) {
-      throw StateError(
-        'Não foi possível carregar a memória. Tente novamente.',
-      );
+      throw StateError('Não foi possível carregar a memória. Tente novamente.');
     }
 
     final createdAt = object.createdAt ?? DateTime.now();
@@ -60,9 +58,7 @@ class ClientMemoryMapper {
     final pointer = object.get<ParseObject>(key);
     final pointerId = pointer?.objectId;
     if (pointerId == null || pointerId.isEmpty) {
-      throw StateError(
-        'Não foi possível carregar a memória. Tente novamente.',
-      );
+      throw StateError('Não foi possível carregar a memória. Tente novamente.');
     }
 
     return pointerId;
@@ -83,9 +79,7 @@ class ClientMemoryMapper {
         object.get<ParseUser>('owner') ?? object.get<ParseObject>('owner');
     final ownerId = owner?.objectId;
     if (ownerId == null || ownerId.isEmpty) {
-      throw StateError(
-        'Não foi possível carregar a memória. Tente novamente.',
-      );
+      throw StateError('Não foi possível carregar a memória. Tente novamente.');
     }
 
     return ownerId;

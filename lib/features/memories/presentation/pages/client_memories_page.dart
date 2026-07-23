@@ -9,12 +9,15 @@ import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/memories/application/models/client_memory_filters.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_actions_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/presentation/helpers/client_memory_filters_sheet_host.dart';
 import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_empty_state.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_error_state.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memories_filtered_empty_state.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_header.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_summary_card.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memory_card.dart';
@@ -38,11 +41,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
     gradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [
-        AppColors.purple600,
-        AppColors.purple700,
-        AppColors.lacosPurple,
-      ],
+      colors: [AppColors.purple600, AppColors.purple700, AppColors.lacosPurple],
       stops: [0, 0.45, 1],
     ),
   );
@@ -57,6 +56,24 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
 
   Client get _client => widget.client;
 
+  Future<void> _openFiltersSheet() async {
+    final currentFilters = ref.read(clientMemoryFiltersProvider(_client.id));
+    final appliedFilters = await showClientMemoryFiltersBottomSheet(
+      context: context,
+      initialFilters: currentFilters,
+    );
+
+    if (!mounted || appliedFilters == null) return;
+
+    ref.read(clientMemoryFiltersProvider(_client.id).notifier).state =
+        appliedFilters;
+  }
+
+  void _clearFilters() {
+    ref.read(clientMemoryFiltersProvider(_client.id).notifier).state =
+        ClientMemoryFilters.defaults;
+  }
+
   Future<void> _openCreateMemorySheet() async {
     final memory = await showMemoryFormBottomSheet(
       context: context,
@@ -65,7 +82,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
 
     if (!mounted || memory == null) return;
 
-    ref.invalidate(clientMemoriesProvider(_client.id));
+    ref.invalidate(clientMemoriesCatalogProvider(_client.id));
     _showMessage(AppStrings.memorySavedSuccess);
   }
 
@@ -78,7 +95,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
 
     if (!mounted || updatedMemory == null) return;
 
-    ref.invalidate(clientMemoriesProvider(_client.id));
+    ref.invalidate(clientMemoriesCatalogProvider(_client.id));
     _showMessage(AppStrings.memoryUpdatedSuccess);
   }
 
@@ -118,7 +135,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
     if (!mounted) return;
 
     if (updated != null) {
-      ref.invalidate(clientMemoriesProvider(_client.id));
+      ref.invalidate(clientMemoriesCatalogProvider(_client.id));
       _showMessage(
         isPinned
             ? AppStrings.memoryPinnedSuccess
@@ -127,8 +144,9 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
       return;
     }
 
-    final errorMessage =
-        ref.read(clientMemoryActionsControllerProvider).errorMessage;
+    final errorMessage = ref
+        .read(clientMemoryActionsControllerProvider)
+        .errorMessage;
     if (errorMessage != null) {
       _showMessage(errorMessage);
     }
@@ -142,26 +160,29 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
 
     if (!mounted || archived != true) return;
 
-    ref.invalidate(clientMemoriesProvider(_client.id));
+    ref.invalidate(clientMemoriesCatalogProvider(_client.id));
     _showMessage(AppStrings.memoryArchivedSuccess);
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _retryLoadMemories() {
-    ref.invalidate(clientMemoriesProvider(_client.id));
+    ref.invalidate(clientMemoriesCatalogProvider(_client.id));
   }
 
   @override
   Widget build(BuildContext context) {
-    final memoriesAsync = ref.watch(clientMemoriesProvider(_client.id));
-    final memories = memoriesAsync.value ?? const [];
-    final showFab = memoriesAsync.hasValue && memories.isNotEmpty;
+    final catalogAsync = ref.watch(clientMemoriesCatalogProvider(_client.id));
+    final filteredAsync = ref.watch(filteredClientMemoriesProvider(_client.id));
+    final filters = ref.watch(clientMemoryFiltersProvider(_client.id));
+    final catalog = catalogAsync.value ?? const [];
+    final filteredMemories = filteredAsync.value ?? const [];
+    final showFab = catalogAsync.hasValue && catalog.isNotEmpty;
     final topInset = MediaQuery.paddingOf(context).top;
     final headerBackgroundHeight =
         topInset + _headerContentHeight + AppRadius.lg;
@@ -187,13 +208,15 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
               left: 0,
               right: 0,
               height: headerBackgroundHeight,
-              child: const DecoratedBox(
-                decoration: _headerGradient,
-              ),
+              child: const DecoratedBox(decoration: _headerGradient),
             ),
             Column(
               children: [
-                ClientMemoriesHeader(onBack: () => context.pop()),
+                ClientMemoriesHeader(
+                  onBack: () => context.pop(),
+                  onFilterTap: _openFiltersSheet,
+                  showFilterIndicator: filters.hasActiveFilters,
+                ),
                 Expanded(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -212,47 +235,50 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
                                 top: AppSpacing.xs,
                                 bottom: AppSpacing.sm,
                               ),
-                              child: ClientMemoriesSummaryCard(
-                                client: _client,
-                              ),
+                              child: ClientMemoriesSummaryCard(client: _client),
                             ),
                             Expanded(
-                              child: memoriesAsync.when(
+                              child: catalogAsync.when(
                                 loading: () => const Center(
                                   child: CircularProgressIndicator(),
                                 ),
                                 error: (_, _) => ClientMemoriesErrorState(
                                   onRetry: _retryLoadMemories,
                                 ),
-                                data: (loadedMemories) =>
-                                    loadedMemories.isEmpty
-                                        ? ClientMemoriesEmptyState(
-                                            onAddMemory:
-                                                _openCreateMemorySheet,
-                                          )
-                                        : ListView.separated(
-                                            padding: AppSpacing.screenPadding
-                                                .copyWith(
-                                              top: 0,
-                                              bottom: AppSpacing.lg +
-                                                  _fabSize +
-                                                  AppSpacing.sm,
-                                            ),
-                                            itemCount: loadedMemories.length,
-                                            separatorBuilder: (_, _) =>
-                                                const SizedBox(
-                                              height: AppSpacing.xxxs,
-                                            ),
-                                            itemBuilder: (context, index) {
-                                              final memory =
-                                                  loadedMemories[index];
-                                              return ClientMemoryCard(
-                                                memory: memory,
-                                                onMenuTap: () =>
-                                                    _openMemoryActions(memory),
-                                              );
-                                            },
-                                          ),
+                                data: (_) {
+                                  if (catalog.isEmpty) {
+                                    return ClientMemoriesEmptyState(
+                                      onAddMemory: _openCreateMemorySheet,
+                                    );
+                                  }
+
+                                  if (filteredMemories.isEmpty) {
+                                    return ClientMemoriesFilteredEmptyState(
+                                      onClearFilters: _clearFilters,
+                                    );
+                                  }
+
+                                  return ListView.separated(
+                                    padding: AppSpacing.screenPadding.copyWith(
+                                      top: 0,
+                                      bottom:
+                                          AppSpacing.lg +
+                                          _fabSize +
+                                          AppSpacing.sm,
+                                    ),
+                                    itemCount: filteredMemories.length,
+                                    separatorBuilder: (_, _) =>
+                                        const SizedBox(height: AppSpacing.xxxs),
+                                    itemBuilder: (context, index) {
+                                      final memory = filteredMemories[index];
+                                      return ClientMemoryCard(
+                                        memory: memory,
+                                        onMenuTap: () =>
+                                            _openMemoryActions(memory),
+                                      );
+                                    },
+                                  );
+                                },
                               ),
                             ),
                           ],

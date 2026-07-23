@@ -24,7 +24,8 @@ class ClientPickerBottomSheet extends ConsumerStatefulWidget {
       _ClientPickerBottomSheetState();
 }
 
-class _ClientPickerBottomSheetState extends ConsumerState<ClientPickerBottomSheet> {
+class _ClientPickerBottomSheetState
+    extends ConsumerState<ClientPickerBottomSheet> {
   static const _fabSize = 56.0;
   static const _listBottomPadding = AppSpacing.md + _fabSize + AppSpacing.md;
 
@@ -71,8 +72,9 @@ class _ClientPickerBottomSheetState extends ConsumerState<ClientPickerBottomShee
   }
 
   List<Client> _filterClients(List<Client> clients) {
-    final activeClients =
-        clients.where((client) => client.isActive).toList(growable: false);
+    final activeClients = clients
+        .where((client) => client.isActive)
+        .toList(growable: false);
 
     final query = _searchText.trim().toLowerCase();
     if (query.isEmpty) {
@@ -81,17 +83,19 @@ class _ClientPickerBottomSheetState extends ConsumerState<ClientPickerBottomShee
 
     final queryDigits = digitsOnly(query);
 
-    return activeClients.where((client) {
-      final name = client.name.toLowerCase();
-      final phone = client.phone.toLowerCase();
-      final phoneDigits = digitsOnly(client.phone);
-      final instagram = client.instagram?.toLowerCase() ?? '';
+    return activeClients
+        .where((client) {
+          final name = client.name.toLowerCase();
+          final phone = client.phone.toLowerCase();
+          final phoneDigits = digitsOnly(client.phone);
+          final instagram = client.instagram?.toLowerCase() ?? '';
 
-      return name.contains(query) ||
-          phone.contains(query) ||
-          instagram.contains(query) ||
-          (queryDigits.isNotEmpty && phoneDigits.contains(queryDigits));
-    }).toList(growable: false);
+          return name.contains(query) ||
+              phone.contains(query) ||
+              instagram.contains(query) ||
+              (queryDigits.isNotEmpty && phoneDigits.contains(queryDigits));
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -265,10 +269,7 @@ class _HeaderIconButton extends StatelessWidget {
 }
 
 class _ClientPickerTile extends StatelessWidget {
-  const _ClientPickerTile({
-    required this.client,
-    required this.onTap,
-  });
+  const _ClientPickerTile({required this.client, required this.onTap});
 
   final Client client;
   final VoidCallback onTap;

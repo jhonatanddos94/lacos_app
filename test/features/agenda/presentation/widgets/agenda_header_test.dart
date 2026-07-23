@@ -73,7 +73,10 @@ void main() {
         ),
       );
 
-      expect(find.text(AppStrings.agendaOperationalSummaryNone), findsOneWidget);
+      expect(
+        find.text(AppStrings.agendaOperationalSummaryNone),
+        findsOneWidget,
+      );
     });
   });
 }

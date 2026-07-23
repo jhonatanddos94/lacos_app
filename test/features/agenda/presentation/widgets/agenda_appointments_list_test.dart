@@ -46,13 +46,21 @@ void main() {
 
       expect(find.text('Ana'), findsOneWidget);
       expect(find.text('Beatriz'), findsOneWidget);
-      expect(find.textContaining(AppStrings.agendaSectionCanceled), findsOneWidget);
-      expect(find.text(AppStrings.appointmentCanceledByClientLabel), findsOneWidget);
+      expect(
+        find.textContaining(AppStrings.agendaSectionCanceled),
+        findsOneWidget,
+      );
+      expect(
+        find.text(AppStrings.appointmentCanceledByClientLabel),
+        findsOneWidget,
+      );
       expect(find.text('Cliente desistiu'), findsOneWidget);
       expect(find.text(AppStrings.agendaEmptyDay), findsNothing);
     });
 
-    testWidgets('mostra empty state apenas quando o dia está vazio', (tester) async {
+    testWidgets('mostra empty state apenas quando o dia está vazio', (
+      tester,
+    ) async {
       final day = DateTime(2026, 7, 7);
 
       await tester.pumpWidget(

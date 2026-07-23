@@ -16,10 +16,7 @@ void main() {
     });
 
     test('healthAttention usa snake_case no Parse', () {
-      expect(
-        ClientMemoryType.healthAttention.parseValue,
-        'health_attention',
-      );
+      expect(ClientMemoryType.healthAttention.parseValue, 'health_attention');
       expect(
         ClientMemoryType.fromParse('health_attention'),
         ClientMemoryType.healthAttention,
@@ -71,10 +68,7 @@ void main() {
 
     test('usa isPinned e priority do domínio', () {
       final rank = ClientMemoryRankResolver.resolve(
-        memory(
-          isPinned: true,
-          priority: ClientMemoryPriority.high,
-        ),
+        memory(isPinned: true, priority: ClientMemoryPriority.high),
       );
 
       expect(rank.isPinned, isTrue);

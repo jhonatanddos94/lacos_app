@@ -90,8 +90,7 @@ class AppointmentDetailsLoader {
     return activeServices
         .map(
           (item) =>
-              serviceById[item.serviceId] ??
-              _serviceFromBookingSnapshot(item),
+              serviceById[item.serviceId] ?? _serviceFromBookingSnapshot(item),
         )
         .toList(growable: false);
   }

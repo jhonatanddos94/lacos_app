@@ -13,11 +13,7 @@ import 'package:lacos_app/features/memories/domain/enums/client_memory_priority.
 import 'package:lacos_app/features/memories/presentation/helpers/client_memory_labels.dart';
 
 class ClientMemoryCard extends StatelessWidget {
-  const ClientMemoryCard({
-    required this.memory,
-    this.onMenuTap,
-    super.key,
-  });
+  const ClientMemoryCard({required this.memory, this.onMenuTap, super.key});
 
   static const _bowSize = 18.0;
 
@@ -98,9 +94,7 @@ class ClientMemoryCard extends StatelessWidget {
             runSpacing: AppSpacing.xxxs,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _MemoryMetaChip(
-                label: ClientMemoryLabels.typeLabel(memory.type),
-              ),
+              _MemoryMetaChip(label: ClientMemoryLabels.typeLabel(memory.type)),
               if (ClientMemoryLabels.shouldHighlightPriority(memory.priority))
                 _MemoryMetaChip(
                   label: ClientMemoryLabels.priorityLabel(memory.priority),

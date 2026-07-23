@@ -25,8 +25,5 @@ final appointmentDetailsLoaderProvider = Provider<AppointmentDetailsLoader>((
 final appointmentDetailsProvider = FutureProvider.autoDispose
     .family<AppointmentDetails, AppointmentDetailsQuery>((ref, query) {
       final loader = ref.watch(appointmentDetailsLoaderProvider);
-      return loader.load(
-        appointmentId: query.appointmentId,
-        day: query.day,
-      );
+      return loader.load(appointmentId: query.appointmentId, day: query.day);
     });

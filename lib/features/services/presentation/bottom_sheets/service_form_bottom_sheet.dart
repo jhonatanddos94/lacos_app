@@ -28,7 +28,8 @@ class ServiceFormBottomSheet extends ConsumerStatefulWidget {
       _ServiceFormBottomSheetState();
 }
 
-class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet> {
+class _ServiceFormBottomSheetState
+    extends ConsumerState<ServiceFormBottomSheet> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -100,8 +101,9 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
         _selectedDurationMinutes == null || _selectedDurationMinutes! <= 0;
 
     setState(() {
-      _nameError =
-          hasNameError ? AppValidationMessages.serviceNameRequired : null;
+      _nameError = hasNameError
+          ? AppValidationMessages.serviceNameRequired
+          : null;
       _durationError = hasDurationError
           ? AppValidationMessages.serviceDurationRequired
           : null;
@@ -125,7 +127,9 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
 
     if (!_validateForm()) return;
 
-    final service = await ref.read(serviceFormControllerProvider.notifier).save(
+    final service = await ref
+        .read(serviceFormControllerProvider.notifier)
+        .save(
           initialService: widget.service,
           name: _nameController.text,
           durationMinutes: _selectedDurationMinutes,
@@ -208,8 +212,9 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                               textInputAction: TextInputAction.next,
                               textCapitalization: TextCapitalization.words,
                               maxLength: AppFieldLimits.serviceName,
-                              prefixIcon:
-                                  const Icon(Icons.content_cut_outlined),
+                              prefixIcon: const Icon(
+                                Icons.content_cut_outlined,
+                              ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             DropdownButtonFormField<String?>(
@@ -233,8 +238,8 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                               onChanged: isLoading
                                   ? null
                                   : (value) => setState(
-                                        () => _selectedCategory = value,
-                                      ),
+                                      () => _selectedCategory = value,
+                                    ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             DropdownButtonFormField<int?>(
@@ -246,8 +251,7 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                                     ? AppStrings.required
                                     : null,
                                 errorText: _durationError,
-                                prefixIcon:
-                                    const Icon(Icons.schedule_outlined),
+                                prefixIcon: const Icon(Icons.schedule_outlined),
                               ),
                               hint: const Text(AppStrings.serviceDurationHint),
                               items: [
@@ -264,13 +268,13 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                               onChanged: isLoading
                                   ? null
                                   : (value) => setState(() {
-                                        _selectedDurationMinutes = value;
-                                        if (_durationError != null &&
-                                            value != null &&
-                                            value > 0) {
-                                          _durationError = null;
-                                        }
-                                      }),
+                                      _selectedDurationMinutes = value;
+                                      if (_durationError != null &&
+                                          value != null &&
+                                          value > 0) {
+                                        _durationError = null;
+                                      }
+                                    }),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             AppTextField(
@@ -283,8 +287,7 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                               inputFormatters: const [
                                 BrazilianPriceInputFormatter(),
                               ],
-                              prefixIcon:
-                                  const Icon(Icons.payments_outlined),
+                              prefixIcon: const Icon(Icons.payments_outlined),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Stack(
@@ -300,7 +303,8 @@ class _ServiceFormBottomSheetState extends ConsumerState<ServiceFormBottomSheet>
                                       TextCapitalization.sentences,
                                   maxLines: 4,
                                   minLines: 3,
-                                  maxLength: AppFieldLimits.serviceFormDescription,
+                                  maxLength:
+                                      AppFieldLimits.serviceFormDescription,
                                 ),
                                 Positioned(
                                   right: AppSpacing.xxs,
@@ -367,10 +371,7 @@ class _SheetHandle extends StatelessWidget {
 }
 
 class _ServiceFormHeader extends StatelessWidget {
-  const _ServiceFormHeader({
-    required this.isEditing,
-    required this.onClose,
-  });
+  const _ServiceFormHeader({required this.isEditing, required this.onClose});
 
   final bool isEditing;
   final VoidCallback onClose;
@@ -382,17 +383,12 @@ class _ServiceFormHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _HeaderIconButton(
-          icon: Icons.close_rounded,
-          onPressed: onClose,
-        ),
+        _HeaderIconButton(icon: Icons.close_rounded, onPressed: onClose),
         Expanded(
           child: Column(
             children: [
               Text(
-                isEditing
-                    ? AppStrings.editService
-                    : AppStrings.newServiceTitle,
+                isEditing ? AppStrings.editService : AppStrings.newServiceTitle,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: AppColors.graphite,
@@ -420,10 +416,7 @@ class _ServiceFormHeader extends StatelessWidget {
 }
 
 class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _HeaderIconButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback onPressed;

@@ -67,8 +67,7 @@ class ClientsListSection extends StatelessWidget {
                 extra: client,
               ),
             ),
-            if (client != clients.last)
-              const SizedBox(height: AppSpacing.xs),
+            if (client != clients.last) const SizedBox(height: AppSpacing.xs),
           ],
         ],
       ],

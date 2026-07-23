@@ -68,11 +68,18 @@ class _AppointmentDetailsBottomSheetState
   Widget build(BuildContext context) {
     final detailsAsync = ref.watch(
       appointmentDetailsProvider(
-        AppointmentDetailsQuery(appointmentId: widget.appointmentId, day: widget.day),
+        AppointmentDetailsQuery(
+          appointmentId: widget.appointmentId,
+          day: widget.day,
+        ),
       ),
     );
-    final isCanceling = ref.watch(cancelAppointmentControllerProvider).isLoading;
-    final isCompleting = ref.watch(completeAppointmentControllerProvider).isLoading;
+    final isCanceling = ref
+        .watch(cancelAppointmentControllerProvider)
+        .isLoading;
+    final isCompleting = ref
+        .watch(completeAppointmentControllerProvider)
+        .isLoading;
     final isBusy = isCanceling || isCompleting;
 
     return Material(
@@ -113,7 +120,8 @@ class _AppointmentDetailsBottomSheetState
                   onEdit: details.appointment.status.canBeEdited && !isBusy
                       ? () => _openEditAppointment(context, details)
                       : null,
-                  onComplete: details.appointment.status.canBeCompleted && !isBusy
+                  onComplete:
+                      details.appointment.status.canBeCompleted && !isBusy
                       ? () => _confirmCompleteAppointment(details)
                       : null,
                   onCancel: details.appointment.status.canBeCanceled && !isBusy
@@ -171,8 +179,9 @@ class _AppointmentDetailsBottomSheetState
       return;
     }
 
-    final errorMessage =
-        ref.read(completeAppointmentControllerProvider).errorMessage;
+    final errorMessage = ref
+        .read(completeAppointmentControllerProvider)
+        .errorMessage;
     if (errorMessage == null) return;
 
     setState(() {
@@ -229,8 +238,9 @@ class _AppointmentDetailsBottomSheetState
 
     if (!mounted) return;
 
-    final errorMessage =
-        ref.read(cancelAppointmentControllerProvider).errorMessage;
+    final errorMessage = ref
+        .read(cancelAppointmentControllerProvider)
+        .errorMessage;
     if (errorMessage == null) return;
 
     setState(() {
@@ -240,9 +250,9 @@ class _AppointmentDetailsBottomSheetState
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openEditAppointment(
@@ -384,9 +394,11 @@ class _AppointmentDetailsContent extends StatelessWidget {
 
   static const _presentationMapper = AppointmentPresentationMapper();
   static const _badgeMapper = AppointmentOperationalBadgeMapper();
-  static const _operationalStateResolver = AppointmentOperationalStateResolver();
+  static const _operationalStateResolver =
+      AppointmentOperationalStateResolver();
 
-  bool get _isReadOnly => !details.appointment.status.canBeEdited &&
+  bool get _isReadOnly =>
+      !details.appointment.status.canBeEdited &&
       !details.appointment.status.canBeCompleted &&
       !details.appointment.status.canBeCanceled;
 
@@ -435,9 +447,7 @@ class _AppointmentDetailsContent extends StatelessWidget {
                 ),
                 if (showOverdueBanner) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  _OperationalOverdueBanner(
-                    endAt: appointment.endAt,
-                  ),
+                  _OperationalOverdueBanner(endAt: appointment.endAt),
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 _ClientHeroCard(
@@ -468,9 +478,11 @@ class _AppointmentDetailsContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (var index = 0;
-                          index < details.services.length;
-                          index++) ...[
+                      for (
+                        var index = 0;
+                        index < details.services.length;
+                        index++
+                      ) ...[
                         if (index > 0)
                           Divider(
                             height: AppSpacing.sm,
@@ -496,7 +508,8 @@ class _AppointmentDetailsContent extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   _CompactNotesBlock(notes: notes),
                 ],
-                if (details.appointment.status == AppointmentStatus.canceled) ...[
+                if (details.appointment.status ==
+                    AppointmentStatus.canceled) ...[
                   const SizedBox(height: AppSpacing.sm),
                   _CancellationDetailsBlock(appointment: details.appointment),
                 ],
@@ -533,10 +546,7 @@ class _AppointmentDetailsContent extends StatelessWidget {
     _ServicesSummary summary, {
     required AppointmentOperationalState operationalState,
   }) {
-    return '${_presentationMapper.estimatedTotalPrefix(
-      status: details.appointment.status,
-      operationalState: operationalState,
-    )} ${formatServicePrice(summary.totalPrice)}';
+    return '${_presentationMapper.estimatedTotalPrefix(status: details.appointment.status, operationalState: operationalState)} ${formatServicePrice(summary.totalPrice)}';
   }
 
   String? _professionalSubtitle(AppointmentDetails details) {
@@ -716,8 +726,7 @@ class _ServicesSummary {
   final double totalPrice;
   final bool hasPrice;
 
-  bool get hasData =>
-      totalDurationMinutes > 0 || (hasPrice && totalPrice > 0);
+  bool get hasData => totalDurationMinutes > 0 || (hasPrice && totalPrice > 0);
 
   factory _ServicesSummary.from(List<Service> services) {
     var totalDuration = 0;
@@ -767,7 +776,10 @@ class _ServicesTotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final totalLabel = AppStrings.appointmentDetailsTotalPrefix.replaceAll(':', '');
+    final totalLabel = AppStrings.appointmentDetailsTotalPrefix.replaceAll(
+      ':',
+      '',
+    );
 
     return Row(
       children: [
@@ -795,9 +807,7 @@ class _ServicesTotalRow extends StatelessWidget {
 }
 
 class _OperationalOverdueBanner extends StatelessWidget {
-  const _OperationalOverdueBanner({
-    required this.endAt,
-  });
+  const _OperationalOverdueBanner({required this.endAt});
 
   final DateTime endAt;
 
@@ -857,9 +867,12 @@ class _CancellationDetailsBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canceledByLabel = formatAppointmentCanceledByLabel(appointment.canceledBy);
-    final reasonText =
-        formatAppointmentCancellationReasonDisplay(appointment.cancellationReason);
+    final canceledByLabel = formatAppointmentCanceledByLabel(
+      appointment.canceledBy,
+    );
+    final reasonText = formatAppointmentCancellationReasonDisplay(
+      appointment.cancellationReason,
+    );
 
     return Container(
       width: double.infinity,
@@ -916,9 +929,7 @@ class _CompactNotesBlock extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.purple50.withValues(alpha: 0.55),
         borderRadius: AppRadius.borderSm,
-        border: Border.all(
-          color: AppColors.purple100.withValues(alpha: 0.85),
-        ),
+        border: Border.all(color: AppColors.purple100.withValues(alpha: 0.85)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1017,9 +1028,7 @@ class _DetailsActionsFooter extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warmWhite,
         border: Border(
-          top: BorderSide(
-            color: AppColors.divider.withValues(alpha: 0.6),
-          ),
+          top: BorderSide(color: AppColors.divider.withValues(alpha: 0.6)),
         ),
       ),
       child: SafeArea(
@@ -1107,9 +1116,7 @@ class _CancelAppointmentButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
         foregroundColor: AppColors.softRose,
-        side: BorderSide(
-          color: AppColors.softRose.withValues(alpha: 0.45),
-        ),
+        side: BorderSide(color: AppColors.softRose.withValues(alpha: 0.45)),
         shape: RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
         textStyle: theme.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,

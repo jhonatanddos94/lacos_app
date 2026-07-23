@@ -68,15 +68,17 @@ class _ProfessionalPickerBottomSheetState
       return activeProfessionals;
     }
 
-    return activeProfessionals.where((professional) {
-      final name = professional.name.toLowerCase();
-      final specialties = professional.specialties?.toLowerCase() ?? '';
-      final role = professional.role?.toLowerCase() ?? '';
+    return activeProfessionals
+        .where((professional) {
+          final name = professional.name.toLowerCase();
+          final specialties = professional.specialties?.toLowerCase() ?? '';
+          final role = professional.role?.toLowerCase() ?? '';
 
-      return name.contains(query) ||
-          specialties.contains(query) ||
-          role.contains(query);
-    }).toList(growable: false);
+          return name.contains(query) ||
+              specialties.contains(query) ||
+              role.contains(query);
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -142,8 +144,9 @@ class _ProfessionalPickerBottomSheetState
               Expanded(
                 child: professionalsAsync.when(
                   data: (professionals) {
-                    final filteredProfessionals =
-                        _filterProfessionals(professionals);
+                    final filteredProfessionals = _filterProfessionals(
+                      professionals,
+                    );
 
                     if (filteredProfessionals.isEmpty) {
                       return _ProfessionalPickerEmptyState(
@@ -264,10 +267,7 @@ class _ProfessionalPickerTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ClientAvatar(
-                name: professional.name,
-                radius: 22,
-              ),
+              ClientAvatar(name: professional.name, radius: 22),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
@@ -310,9 +310,7 @@ class _ProfessionalPickerTile extends StatelessWidget {
 }
 
 class _ProfessionalPickerEmptyState extends StatelessWidget {
-  const _ProfessionalPickerEmptyState({
-    required this.onNewProfessionalTap,
-  });
+  const _ProfessionalPickerEmptyState({required this.onNewProfessionalTap});
 
   final VoidCallback onNewProfessionalTap;
 

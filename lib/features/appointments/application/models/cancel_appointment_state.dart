@@ -28,7 +28,9 @@ class CancelAppointmentState {
       canceledBy: clearCanceledBy ? null : (canceledBy ?? this.canceledBy),
       cancellationReason: cancellationReason ?? this.cancellationReason,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
       success: success ?? this.success,
     );
   }

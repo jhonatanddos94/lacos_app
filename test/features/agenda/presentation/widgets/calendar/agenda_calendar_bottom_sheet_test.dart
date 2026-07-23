@@ -37,10 +37,7 @@ void main() {
     }
 
     testWidgets('abre no mês da data inicial', (WidgetTester tester) async {
-      await pumpCalendar(
-        tester: tester,
-        initialDate: DateTime(2026, 8, 20),
-      );
+      await pumpCalendar(tester: tester, initialDate: DateTime(2026, 8, 20));
 
       expect(find.text('Agosto 2026'), findsOneWidget);
       expect(find.text('Julho 2026'), findsNothing);
@@ -122,10 +119,7 @@ void main() {
     });
 
     testWidgets('navega entre meses sem fechar', (WidgetTester tester) async {
-      await pumpCalendar(
-        tester: tester,
-        initialDate: DateTime(2026, 7, 15),
-      );
+      await pumpCalendar(tester: tester, initialDate: DateTime(2026, 7, 15));
 
       expect(find.text('Julho 2026'), findsOneWidget);
 
@@ -137,10 +131,7 @@ void main() {
     });
 
     testWidgets('exibe o botão Hoje', (WidgetTester tester) async {
-      await pumpCalendar(
-        tester: tester,
-        initialDate: DateTime(2026, 7, 15),
-      );
+      await pumpCalendar(tester: tester, initialDate: DateTime(2026, 7, 15));
 
       expect(find.text(AppStrings.appointmentDateToday), findsOneWidget);
     });
@@ -179,9 +170,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: AgendaCalendarBottomSheet(
-            initialDate: DateTime(2026, 7, 15),
-          ),
+          home: AgendaCalendarBottomSheet(initialDate: DateTime(2026, 7, 15)),
         ),
       );
 

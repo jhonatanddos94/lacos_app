@@ -13,10 +13,7 @@ void invalidateAppointmentDetailsProviders(
 }) {
   ref.invalidate(
     appointmentDetailsProvider(
-      AppointmentDetailsQuery(
-        appointmentId: appointmentId,
-        day: day,
-      ),
+      AppointmentDetailsQuery(appointmentId: appointmentId, day: day),
     ),
   );
   ref.invalidate(appointmentServicesByAppointmentProvider(appointmentId));
@@ -42,22 +39,15 @@ void invalidateAppointmentAfterUpdate(
     day: updatedDay,
   );
 
-  invalidateAppointmentAgendaProviders(
-    ref,
-    day: AgendaDay.from(updatedDay),
-  );
+  invalidateAppointmentAgendaProviders(ref, day: AgendaDay.from(updatedDay));
 
-  if (originalDay != null &&
-      !_isSameDay(originalDay, updatedDay)) {
+  if (originalDay != null && !_isSameDay(originalDay, updatedDay)) {
     invalidateAppointmentDetailsProviders(
       ref,
       appointmentId: appointmentId,
       day: originalDay,
     );
-    invalidateAppointmentAgendaProviders(
-      ref,
-      day: AgendaDay.from(originalDay),
-    );
+    invalidateAppointmentAgendaProviders(ref, day: AgendaDay.from(originalDay));
   }
 }
 

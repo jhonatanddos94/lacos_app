@@ -11,9 +11,9 @@ class FirebaseAuthRepository implements AuthRepository {
     FirebaseAuth? firebaseAuth,
     FirebaseUserMapper? mapper,
     FirebaseAuthErrorMapper? errorMapper,
-  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _mapper = mapper ?? const FirebaseUserMapper(),
-        _errorMapper = errorMapper ?? const FirebaseAuthErrorMapper();
+  }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+       _mapper = mapper ?? const FirebaseUserMapper(),
+       _errorMapper = errorMapper ?? const FirebaseAuthErrorMapper();
 
   final FirebaseAuth _firebaseAuth;
   final FirebaseUserMapper _mapper;
@@ -24,9 +24,8 @@ class FirebaseAuthRepository implements AuthRepository {
       _firebaseAuth.authStateChanges().map(_mapper.toDomain);
 
   @override
-  AuthenticatedUser? get currentUser => _mapper.toDomain(
-        _firebaseAuth.currentUser,
-      );
+  AuthenticatedUser? get currentUser =>
+      _mapper.toDomain(_firebaseAuth.currentUser);
 
   @override
   Future<AuthenticatedUser> signIn({
@@ -41,9 +40,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final user = _mapper.toDomain(credential.user);
       if (user == null) {
-        throw StateError(
-          'Não foi possível entrar. Tente novamente.',
-        );
+        throw StateError('Não foi possível entrar. Tente novamente.');
       }
 
       return user;
@@ -65,9 +62,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final user = _mapper.toDomain(credential.user);
       if (user == null) {
-        throw StateError(
-          'Não foi possível criar sua conta. Tente novamente.',
-        );
+        throw StateError('Não foi possível criar sua conta. Tente novamente.');
       }
 
       return user;
