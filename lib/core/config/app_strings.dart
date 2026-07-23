@@ -104,6 +104,8 @@ abstract final class AppStrings {
       'preservada no histórico interno do sistema.';
   static const String remember = 'Lembrar';
   static const String memorySavedSuccess = 'Memória salva com sucesso.';
+  static const String memoryRegisteredSuccess =
+      'Memória registrada com sucesso.';
   static const String memoryUpdatedSuccess = 'Memória atualizada com sucesso.';
   static const String memoryDeletedSuccess = 'Memória excluída com sucesso.';
   static const String memorySaveError =
@@ -137,13 +139,29 @@ abstract final class AppStrings {
   static const String agendaEmptyPastDay =
       'Nenhum atendimento registrado neste dia.';
   static const String agendaHistoricalDayLabel = 'Consulta histórica';
-  static const String agendaSectionPending = 'Pendentes';
+  static const String agendaSectionPending = 'Próximos atendimentos';
   static const String agendaSectionCompleted = 'Concluídos';
   static const String agendaSectionCanceled = 'Cancelados';
+  static const String agendaOperationalSummaryNone = 'Nenhum atendimento';
+  static const String agendaOperationalSummaryOverdue = 'aguardando conclusão';
+  static const String agendaOperationalSummaryCurrent = 'em andamento';
+  static const String agendaOperationalSummaryUpcoming = 'próximos';
   static const String appointmentCanceledByClientLabel = 'Cliente cancelou';
   static const String appointmentCanceledBySalonLabel = 'Salão cancelou';
   static const String appointmentCancellationReasonNotProvided =
       'Motivo não informado';
+  static const String appointmentOperationalStateOverdueLabel =
+      'Aguardando conclusão';
+  static const String appointmentOperationalStateCurrentLabel = 'Em andamento';
+  static const String appointmentOperationalStateNextLabel = 'Próximo';
+  static const String appointmentOperationalStateUpcomingLabel = 'Agendado';
+  static const String appointmentOperationalStateCompletedLabel = 'Concluído';
+  static const String appointmentOperationalStateCanceledLabel = 'Cancelado';
+  static const String appointmentOperationalOverdueDetailsMessage =
+      'Este atendimento ainda não foi finalizado. '
+      'Conclua-o quando terminar o atendimento da cliente.';
+  static const String appointmentOperationalOverdueRelativePrefix =
+      'Aguardando conclusão';
   static const String agendaRefreshingAfterCreate = 'Atualizando agenda...';
   static const String agendaRefreshAfterCreateFailed =
       'Agendamento salvo, mas não foi possível atualizar a agenda agora.';
@@ -332,6 +350,33 @@ abstract final class AppStrings {
   static const String appointmentCompleteConfirm = 'Concluir atendimento';
   static const String appointmentCompleteSuccess =
       'Atendimento concluído com sucesso.';
+  static const String appointmentCompleteSuccessSheetTitle =
+      'Atendimento concluído';
+  static const String appointmentCompleteSuccessSheetMessage =
+      'Tudo certo! O atendimento foi concluído.';
+  static const String appointmentCompleteSuccessMemoryPrompt =
+      'Gostaria de registrar algo para lembrar no próximo atendimento desta cliente?';
+  static const String appointmentCompleteSuccessMemoryHint =
+      'Pequenos detalhes fazem toda a diferença para criar um atendimento mais personalizado.';
+  static const String appointmentCompleteSuccessRegisterMemory =
+      'Registrar memória';
+  static const String appointmentCompleteSuccessNotNow = 'Agora não';
+  static const String appointmentPreparationTitle =
+      'Preparando seu atendimento';
+  static const String appointmentPreparationSubtitle =
+      'Antes de começar, confira algumas informações que podem tornar '
+      'este atendimento ainda mais especial.';
+  static const String appointmentPreparationClientSection = 'Cliente';
+  static const String appointmentPreparationServicesLabel =
+      'Serviços agendados';
+  static const String appointmentPreparationScheduleLabel = 'Horário';
+  static const String appointmentPreparationMemoriesSection =
+      '✨ O que lembrar';
+  static const String appointmentPreparationMemoriesEmpty =
+      'Ainda não existem memórias cadastradas para esta cliente.';
+  static const String appointmentPreparationContinue =
+      'Continuar para o atendimento';
+  static const String appointmentPreparationNotNow = 'Agora não';
   static const String appointmentCompleteServicesUnavailable =
       'Não foi possível carregar os serviços deste atendimento.';
   static const String appointmentDetailsNotesSection = 'Observações';

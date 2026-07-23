@@ -1,0 +1,4 @@
+enum AppointmentPreparationAction {
+  continueToAppointment,
+  dismiss,
+}

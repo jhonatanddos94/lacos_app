@@ -19,11 +19,53 @@ void main() {
       expect(entries, isEmpty);
     });
 
+    test('inclui contadores nas seções quando houver itens', () {
+      final entries = AgendaListEntriesBuilder.build(
+        AgendaDisplaySections(
+          pending: [
+            _display('pending-1', AppointmentStatus.pending),
+            _display('pending-2', AppointmentStatus.confirmed),
+          ],
+          completed: [
+            _display('completed-1', AppointmentStatus.completed),
+          ],
+          canceled: [
+            _display('canceled-1', AppointmentStatus.canceled),
+          ],
+        ),
+      );
+
+      expect(
+        entries.any(
+          (entry) =>
+              entry.title ==
+              '${AppStrings.agendaSectionPending} (2)',
+        ),
+        isTrue,
+      );
+      expect(
+        entries.any(
+          (entry) =>
+              entry.title ==
+              '${AppStrings.agendaSectionCompleted} (1)',
+        ),
+        isTrue,
+      );
+      expect(
+        entries.any(
+          (entry) =>
+              entry.title ==
+              '${AppStrings.agendaSectionCanceled} (1)',
+        ),
+        isTrue,
+      );
+    });
+
     test('inclui seção cancelados quando houver itens', () {
       final entries = AgendaListEntriesBuilder.build(
         AgendaDisplaySections(
           canceled: [
-            _display('canceled-1'),
+            _display('canceled-1', AppointmentStatus.canceled),
           ],
         ),
       );
@@ -44,14 +86,15 @@ void main() {
   });
 }
 
-AgendaAppointmentDisplay _display(String id) {
+AgendaAppointmentDisplay _display(String id, AppointmentStatus status) {
   final startAt = DateTime(2026, 7, 7, 13);
   return AgendaAppointmentDisplay(
     appointmentId: id,
+    clientId: 'client-1',
     clientName: 'Beatriz',
     servicesSummary: 'Corte',
     startAt: startAt,
     endAt: startAt.add(const Duration(hours: 1)),
-    status: AppointmentStatus.canceled,
+    status: status,
   );
 }

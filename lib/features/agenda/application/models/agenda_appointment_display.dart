@@ -1,9 +1,12 @@
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_operational_state.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/appointments/domain/services/appointment_operational_state_resolver.dart';
 
 class AgendaAppointmentDisplay {
   const AgendaAppointmentDisplay({
     required this.appointmentId,
+    required this.clientId,
     required this.clientName,
     required this.servicesSummary,
     required this.startAt,
@@ -15,6 +18,7 @@ class AgendaAppointmentDisplay {
   });
 
   final String appointmentId;
+  final String clientId;
   final String clientName;
   final String? clientPhotoUrl;
   final String servicesSummary;
@@ -23,4 +27,15 @@ class AgendaAppointmentDisplay {
   final AppointmentStatus status;
   final AppointmentCanceledBy? canceledBy;
   final String? cancellationReason;
+
+  static const _operationalStateResolver = AppointmentOperationalStateResolver();
+
+  AppointmentOperationalState operationalState({DateTime? now}) {
+    return _operationalStateResolver.resolve(
+      status: status,
+      startAt: startAt,
+      endAt: endAt,
+      now: now ?? DateTime.now(),
+    );
+  }
 }

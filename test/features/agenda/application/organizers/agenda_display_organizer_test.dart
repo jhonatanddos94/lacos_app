@@ -7,14 +7,14 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_status.
 void main() {
   group('AgendaDisplayOrganizer', () {
     test('organiza pendentes, concluídos e cancelados', () {
-      final day = DateTime(2026, 7, 7);
+      final now = DateTime(2026, 7, 7, 8);
 
       final sections = AgendaDisplayOrganizer.organize([
         _display(id: 'canceled', status: AppointmentStatus.canceled, hour: 13),
         _display(id: 'pending', status: AppointmentStatus.pending, hour: 9),
         _display(id: 'confirmed', status: AppointmentStatus.confirmed, hour: 11),
         _display(id: 'completed', status: AppointmentStatus.completed, hour: 10),
-      ]);
+      ], now: now);
 
       expect(sections.pending.map((item) => item.appointmentId), ['pending', 'confirmed']);
       expect(sections.completed.map((item) => item.appointmentId), ['completed']);
@@ -34,6 +34,21 @@ void main() {
       expect(sections.pending.length, 1);
     });
 
+    test('prioriza overdue no topo da seção pendente', () {
+      final now = DateTime(2026, 7, 7, 15);
+
+      final sections = AgendaDisplayOrganizer.organize([
+        _display(id: 'upcoming', status: AppointmentStatus.pending, hour: 16),
+        _display(id: 'overdue', status: AppointmentStatus.pending, hour: 9),
+        _display(id: 'current', status: AppointmentStatus.confirmed, hour: 14),
+      ], now: now);
+
+      expect(
+        sections.pending.map((item) => item.appointmentId),
+        ['overdue', 'current', 'upcoming'],
+      );
+    });
+
     test('retorna vazio quando não há atendimentos', () {
       final sections = AgendaDisplayOrganizer.organize(const []);
 
@@ -50,6 +65,7 @@ AgendaAppointmentDisplay _display({
   final startAt = DateTime(2026, 7, 7, hour);
   return AgendaAppointmentDisplay(
     appointmentId: id,
+    clientId: 'client-$id',
     clientName: 'Cliente $id',
     servicesSummary: 'Corte',
     startAt: startAt,

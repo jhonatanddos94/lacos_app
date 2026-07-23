@@ -54,6 +54,7 @@ void main() {
       appointments = [
         AgendaAppointmentDisplay(
           appointmentId: 'appointment-1',
+          clientId: 'client-1',
           clientName: 'Ana',
           servicesSummary: 'Corte',
           startAt: DateTime(day.year, day.month, day.day, 9),
@@ -62,6 +63,7 @@ void main() {
         ),
         AgendaAppointmentDisplay(
           appointmentId: 'appointment-2',
+          clientId: 'client-2',
           clientName: 'Maria',
           servicesSummary: 'Hidratação',
           startAt: DateTime(day.year, day.month, day.day, 11),

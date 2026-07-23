@@ -6,7 +6,12 @@ import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_operational_state.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/appointment_operational_badge_mapper.dart';
+import 'package:lacos_app/features/appointments/presentation/widgets/appointment_operational_badge_chip.dart';
 import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
+
+const _badgeMapper = AppointmentOperationalBadgeMapper();
 
 class ScheduleItem extends StatelessWidget {
   const ScheduleItem({
@@ -30,19 +35,39 @@ class ScheduleItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final statusStyle = _StatusStyle.fromStatus(appointment.status);
-    final isNext = !isHighlighted && appointment.status == ScheduleStatus.next;
-    final isCompleted = appointment.status == ScheduleStatus.completed;
-    final isCanceled = appointment.status == ScheduleStatus.canceled;
-    final contentOpacity = switch (appointment.status) {
-      ScheduleStatus.completed => 0.82,
-      ScheduleStatus.canceled => 0.76,
-      _ => 1.0,
+    final badgePresentation = _badgeMapper.resolveFromSchedule(
+      operationalState: appointment.operationalState,
+      status: appointment.status,
+    );
+    final isNext = !isHighlighted &&
+        appointment.status == ScheduleStatus.next &&
+        appointment.operationalState != AppointmentOperationalState.overdue &&
+        appointment.operationalState != AppointmentOperationalState.current;
+    final isCompleted = appointment.status == ScheduleStatus.completed ||
+        appointment.operationalState == AppointmentOperationalState.completed;
+    final isCanceled = appointment.status == ScheduleStatus.canceled ||
+        appointment.operationalState == AppointmentOperationalState.canceled;
+    final isOverdue =
+        appointment.operationalState == AppointmentOperationalState.overdue;
+    final isCurrent =
+        appointment.operationalState == AppointmentOperationalState.current;
+    final contentOpacity = switch (appointment.operationalState) {
+      AppointmentOperationalState.completed => 0.82,
+      AppointmentOperationalState.canceled => 0.76,
+      _ => switch (appointment.status) {
+        ScheduleStatus.completed => 0.82,
+        ScheduleStatus.canceled => 0.76,
+        _ => 1.0,
+      },
     };
     final cardBackgroundColor = isHighlighted
         ? AppColors.purple50
         : isNext
         ? AppColors.purple50
+        : isCurrent
+        ? AppColors.purple50.withValues(alpha: 0.55)
+        : isOverdue
+        ? const Color(0xFFFFF8EE)
         : isCompleted
         ? const Color(0xFFF7F8F7)
         : isCanceled
@@ -72,6 +97,8 @@ class ScheduleItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isHighlighted
                         ? AppColors.purple500
+                        : isOverdue
+                        ? const Color(0xFFB8741A)
                         : isNext
                         ? AppColors.purple700
                         : Colors.transparent,
@@ -213,7 +240,9 @@ class ScheduleItem extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.xxs),
-                          _StatusChip(style: statusStyle),
+                          AppointmentOperationalBadgeChip(
+                            presentation: badgePresentation,
+                          ),
                           const SizedBox(width: AppSpacing.xxxs),
                           Icon(
                             Icons.chevron_right_rounded,
@@ -232,78 +261,5 @@ class ScheduleItem extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.style});
-
-  final _StatusStyle style;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: 3,
-      ),
-      decoration: BoxDecoration(
-        color: style.backgroundColor,
-        borderRadius: AppRadius.borderSm,
-      ),
-      child: Text(
-        style.label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: style.foregroundColor,
-          fontWeight: FontWeight.w700,
-          height: 1.1,
-          letterSpacing: -0.1,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusStyle {
-  const _StatusStyle({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
-
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-
-  factory _StatusStyle.fromStatus(ScheduleStatus status) {
-    return switch (status) {
-      ScheduleStatus.completed => const _StatusStyle(
-        label: 'Concluído',
-        backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF2F6B4A),
-      ),
-      ScheduleStatus.next => const _StatusStyle(
-        label: 'Próximo',
-        backgroundColor: AppColors.purple100,
-        foregroundColor: AppColors.purple800,
-      ),
-      ScheduleStatus.confirmed => const _StatusStyle(
-        label: 'Confirmado',
-        backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF2F6B4A),
-      ),
-      ScheduleStatus.pending => const _StatusStyle(
-        label: 'Pendente',
-        backgroundColor: Color(0xFFFFF4E5),
-        foregroundColor: Color(0xFFB8741A),
-      ),
-      ScheduleStatus.canceled => const _StatusStyle(
-        label: 'Cancelado',
-        backgroundColor: Color(0xFFFCE8EA),
-        foregroundColor: Color(0xFF9B4A54),
-      ),
-    };
   }
 }

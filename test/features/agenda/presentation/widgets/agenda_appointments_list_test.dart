@@ -101,6 +101,57 @@ void main() {
       expect(find.text('Beatriz'), findsOneWidget);
       expect(find.byType(AgendaSectionHeader), findsOneWidget);
     });
+
+    testWidgets('exibe contadores nas seções da agenda', (tester) async {
+      final day = DateTime(2026, 7, 7);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 800,
+              child: AgendaAppointmentsList(
+                appointments: [
+                  _display(
+                    id: 'pending',
+                    status: AppointmentStatus.pending,
+                    hour: 9,
+                    name: 'Ana',
+                  ),
+                  _display(
+                    id: 'completed',
+                    status: AppointmentStatus.completed,
+                    hour: 10,
+                    name: 'Maria',
+                  ),
+                  _display(
+                    id: 'canceled',
+                    status: AppointmentStatus.canceled,
+                    hour: 13,
+                    name: 'Beatriz',
+                  ),
+                ],
+                selectedDay: day,
+                scrollBottomPadding: 0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        find.text('${AppStrings.agendaSectionPending} (1)'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('${AppStrings.agendaSectionCompleted} (1)'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('${AppStrings.agendaSectionCanceled} (1)'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('AgendaScheduleListView', () {
@@ -177,6 +228,7 @@ AgendaAppointmentDisplay _display({
   final startAt = DateTime(2026, 7, 7, hour);
   return AgendaAppointmentDisplay(
     appointmentId: id,
+    clientId: 'client-$id',
     clientName: name,
     servicesSummary: 'Corte',
     startAt: startAt,

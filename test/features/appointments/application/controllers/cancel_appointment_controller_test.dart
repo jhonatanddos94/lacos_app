@@ -1,12 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/features/appointments/application/controllers/cancel_appointment_controller.dart';
-import 'package:lacos_app/features/appointments/application/models/cancel_appointment_params.dart';
 import 'package:lacos_app/features/appointments/application/models/cancel_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
-import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 

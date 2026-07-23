@@ -16,11 +16,18 @@ import 'package:lacos_app/features/appointments/application/models/updated_appoi
 import 'package:lacos_app/features/appointments/application/providers/appointment_details_providers.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_operational_state.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/appointments/domain/services/appointment_operational_state_resolver.dart';
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/dialogs/appointment_cancel_dialog.dart';
+import 'package:lacos_app/features/appointments/application/models/complete_appointment_flow_result.dart';
 import 'package:lacos_app/features/appointments/presentation/dialogs/complete_appointment_dialog.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_success_sheet_host.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/appointment_presentation_mapper.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/appointment_operational_badge_mapper.dart';
+import 'package:lacos_app/features/appointments/presentation/widgets/appointment_operational_badge_chip.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_service_mapper.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_form_header.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
@@ -149,8 +156,18 @@ class _AppointmentDetailsBottomSheetState
     if (!mounted) return;
 
     if (serviceRecord != null) {
-      final completedAppointment = _completedAppointmentFrom(details);
-      Navigator.of(context).pop(completedAppointment);
+      final successAction = await showCompleteAppointmentSuccessBottomSheet(
+        context: context,
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop(
+        CompleteAppointmentFlowResult(
+          appointment: _completedAppointmentFrom(details),
+          successAction: successAction,
+        ),
+      );
       return;
     }
 
@@ -365,6 +382,10 @@ class _AppointmentDetailsContent extends StatelessWidget {
   final String? cancelError;
   final String? completeError;
 
+  static const _presentationMapper = AppointmentPresentationMapper();
+  static const _badgeMapper = AppointmentOperationalBadgeMapper();
+  static const _operationalStateResolver = AppointmentOperationalStateResolver();
+
   bool get _isReadOnly => !details.appointment.status.canBeEdited &&
       !details.appointment.status.canBeCompleted &&
       !details.appointment.status.canBeCanceled;
@@ -380,6 +401,17 @@ class _AppointmentDetailsContent extends StatelessWidget {
       appointment.endAt,
     );
     final professionalLine = _buildProfessionalLine(details);
+    final operationalState = _operationalStateResolver.resolve(
+      status: appointment.status,
+      startAt: appointment.startAt,
+      endAt: appointment.endAt,
+      now: DateTime.now(),
+    );
+    final showOverdueBanner =
+        operationalState == AppointmentOperationalState.overdue;
+    final badgePresentation = _badgeMapper.resolve(
+      operationalState: operationalState,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -401,6 +433,12 @@ class _AppointmentDetailsContent extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (showOverdueBanner) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _OperationalOverdueBanner(
+                    endAt: appointment.endAt,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 _ClientHeroCard(
                   clientName: details.client.name,
@@ -410,14 +448,17 @@ class _AppointmentDetailsContent extends StatelessWidget {
                       '${formatAppointmentClockTime(appointment.startAt)} – '
                       '${formatAppointmentClockTime(appointment.endAt)}',
                   durationLabel: durationLabel,
-                  status: appointment.status,
+                  badgePresentation: badgePresentation,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _CompactMetaLine(text: professionalLine),
                 if (servicesSummary.hasPrice) ...[
                   const SizedBox(height: AppSpacing.xxxs),
                   _CompactMetaLine(
-                    text: _buildTotalValueLine(servicesSummary),
+                    text: _buildTotalValueLine(
+                      servicesSummary,
+                      operationalState: operationalState,
+                    ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.sm),
@@ -488,9 +529,14 @@ class _AppointmentDetailsContent extends StatelessWidget {
     return '${AppStrings.appointmentProfessionalSection}: $value';
   }
 
-  String _buildTotalValueLine(_ServicesSummary summary) {
-    return '${AppStrings.appointmentEstimatedTotalPrefix} '
-        '${formatServicePrice(summary.totalPrice)}';
+  String _buildTotalValueLine(
+    _ServicesSummary summary, {
+    required AppointmentOperationalState operationalState,
+  }) {
+    return '${_presentationMapper.estimatedTotalPrefix(
+      status: details.appointment.status,
+      operationalState: operationalState,
+    )} ${formatServicePrice(summary.totalPrice)}';
   }
 
   String? _professionalSubtitle(AppointmentDetails details) {
@@ -514,7 +560,7 @@ class _ClientHeroCard extends StatelessWidget {
     required this.dateLabel,
     required this.timeRange,
     required this.durationLabel,
-    required this.status,
+    required this.badgePresentation,
     this.photoUrl,
   });
 
@@ -523,7 +569,7 @@ class _ClientHeroCard extends StatelessWidget {
   final String dateLabel;
   final String timeRange;
   final String durationLabel;
-  final AppointmentStatus status;
+  final AppointmentOperationalBadgePresentation badgePresentation;
 
   @override
   Widget build(BuildContext context) {
@@ -586,7 +632,9 @@ class _ClientHeroCard extends StatelessWidget {
                         height: 1.2,
                       ),
                     ),
-                    _AppointmentStatusChip(status: status),
+                    AppointmentOperationalBadgeChip(
+                      presentation: badgePresentation,
+                    ),
                   ],
                 ),
               ],
@@ -742,6 +790,61 @@ class _ServicesTotalRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OperationalOverdueBanner extends StatelessWidget {
+  const _OperationalOverdueBanner({
+    required this.endAt,
+  });
+
+  final DateTime endAt;
+
+  static const _presentationMapper = AppointmentPresentationMapper();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final relativeTime = _presentationMapper.overdueBannerRelativeTime(
+      endAt: endAt,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8EE),
+        borderRadius: AppRadius.borderSm,
+        border: Border.all(color: const Color(0xFFE8C9A0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _presentationMapper.overdueBannerMessage(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+            ),
+          ),
+          if (relativeTime != null) ...[
+            const SizedBox(height: AppSpacing.xxxs),
+            Text(
+              relativeTime,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppColors.textSecondary.withValues(alpha: 0.88),
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -1022,67 +1125,4 @@ class _CancelAppointmentButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _AppointmentStatusChip extends StatelessWidget {
-  const _AppointmentStatusChip({required this.status});
-
-  final AppointmentStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = _statusStyle(status);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xxs,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: style.backgroundColor,
-        borderRadius: AppRadius.borderSm,
-      ),
-      child: Text(
-        formatAppointmentStatusLabel(status),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: style.foregroundColor,
-          fontWeight: FontWeight.w700,
-          fontSize: 10,
-          height: 1,
-        ),
-      ),
-    );
-  }
-
-  _StatusStyle _statusStyle(AppointmentStatus status) {
-    return switch (status) {
-      AppointmentStatus.completed => const _StatusStyle(
-        backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF2F6B4A),
-      ),
-      AppointmentStatus.confirmed => const _StatusStyle(
-        backgroundColor: Color(0xFFE7F5EC),
-        foregroundColor: Color(0xFF2F6B4A),
-      ),
-      AppointmentStatus.pending => const _StatusStyle(
-        backgroundColor: Color(0xFFFFF4E5),
-        foregroundColor: Color(0xFFB8741A),
-      ),
-      AppointmentStatus.canceled => const _StatusStyle(
-        backgroundColor: Color(0xFFF3F3F4),
-        foregroundColor: AppColors.textSecondary,
-      ),
-    };
-  }
-}
-
-class _StatusStyle {
-  const _StatusStyle({
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
-
-  final Color backgroundColor;
-  final Color foregroundColor;
 }

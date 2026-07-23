@@ -50,9 +50,9 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
         ..set<ParseUser>(
           'owner',
           ParseUser.forQuery()..objectId = currentUser.objectId,
-        )
-        ..set<String>('content', memory.content)
-        ..set<bool>('isActive', true);
+        );
+
+      _mapper.applyDomainFields(object: parseMemory, memory: memory);
 
       final professional = await _professionalRepository.getCurrentProfessional();
       if (professional != null) {
@@ -108,7 +108,7 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
       }
 
       final parseMemory = results.first as ParseObject;
-      parseMemory.set<String>('content', memory.content);
+      _mapper.applyDomainFields(object: parseMemory, memory: memory);
 
       final response = await parseMemory.save();
       if (!response.success) {
@@ -186,6 +186,7 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
         ..whereEqualTo('client', _clientPointer(clientId))
         ..whereEqualTo('salon', _salonPointer(salon.id))
         ..whereEqualTo('isActive', true)
+        ..whereNotEqualTo('isArchived', true)
         ..orderByDescending('createdAt');
 
       final response = await query.query<ParseObject>();
@@ -223,5 +224,57 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
 
   ParseObject _professionalPointer(String professionalId) {
     return ParseObject(_professionalClassName)..objectId = professionalId;
+  }
+
+  @override
+  Future<void> touchMentioned({
+    required List<String> memoryIds,
+  }) async {
+    final normalizedIds = memoryIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (normalizedIds.isEmpty) {
+      return;
+    }
+
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        return;
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
+        ..whereContainedIn('objectId', normalizedIds)
+        ..whereEqualTo('salon', _salonPointer(salon.id))
+        ..whereEqualTo('isActive', true)
+        ..whereNotEqualTo('isArchived', true);
+
+      final fetchResponse = await query.query<ParseObject>();
+      if (!fetchResponse.success) {
+        return;
+      }
+
+      final results = fetchResponse.results;
+      if (results == null || results.isEmpty) {
+        return;
+      }
+
+      final now = DateTime.now();
+      final saveFutures = results.whereType<ParseObject>().map((parseMemory) {
+        parseMemory.set<DateTime>('lastMentionedAt', now);
+        return parseMemory.save();
+      }).toList(growable: false);
+
+      if (saveFutures.isEmpty) {
+        return;
+      }
+
+      await Future.wait(saveFutures);
+    } on Object {
+      return;
+    }
   }
 }

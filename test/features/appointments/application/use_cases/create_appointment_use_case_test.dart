@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/create_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
-import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';

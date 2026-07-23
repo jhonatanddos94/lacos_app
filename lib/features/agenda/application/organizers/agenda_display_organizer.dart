@@ -6,8 +6,10 @@ class AgendaDisplayOrganizer {
   const AgendaDisplayOrganizer._();
 
   static AgendaDisplaySections organize(
-    List<AgendaAppointmentDisplay> appointments,
-  ) {
+    List<AgendaAppointmentDisplay> appointments, {
+    DateTime? now,
+  }) {
+    final referenceNow = now ?? DateTime.now();
     final sorted = [...appointments]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
 
@@ -27,10 +29,31 @@ class AgendaDisplayOrganizer {
       }
     }
 
+    pending.sort(
+      (a, b) => _comparePendingAppointments(a, b, referenceNow),
+    );
+
     return AgendaDisplaySections(
       pending: pending,
       completed: completed,
       canceled: canceled,
     );
+  }
+
+  static int _comparePendingAppointments(
+    AgendaAppointmentDisplay a,
+    AgendaAppointmentDisplay b,
+    DateTime now,
+  ) {
+    final priorityCompare = a
+        .operationalState(now: now)
+        .agendaSortPriority
+        .compareTo(b.operationalState(now: now).agendaSortPriority);
+
+    if (priorityCompare != 0) {
+      return priorityCompare;
+    }
+
+    return a.startAt.compareTo(b.startAt);
   }
 }

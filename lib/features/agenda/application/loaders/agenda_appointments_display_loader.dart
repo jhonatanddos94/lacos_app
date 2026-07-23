@@ -53,6 +53,7 @@ class AgendaAppointmentsDisplayLoader {
 
           return AgendaAppointmentDisplay(
             appointmentId: appointment.id,
+            clientId: appointment.clientId,
             clientName: client?.name ?? 'Cliente',
             clientPhotoUrl: client?.photoUrl,
             servicesSummary: _buildServicesSummary(sortedServices, serviceById),

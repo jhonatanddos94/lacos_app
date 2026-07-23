@@ -36,29 +36,16 @@ class MemoryFormController extends StateNotifier<AsyncValue<ClientMemory?>> {
     try {
       if (initialMemory != null) {
         final memory = await _repository.update(
-          ClientMemory(
-            id: initialMemory.id,
-            clientId: initialMemory.clientId,
-            salonId: initialMemory.salonId,
-            professionalId: initialMemory.professionalId,
-            ownerId: initialMemory.ownerId,
-            content: trimmedContent,
-            isActive: initialMemory.isActive,
-            createdAt: initialMemory.createdAt,
-            updatedAt: initialMemory.updatedAt,
-          ),
+          initialMemory.copyWith(content: trimmedContent),
         );
         state = AsyncData(memory);
         return memory;
       }
 
       final memory = await _repository.create(
-        ClientMemory(
+        ClientMemory.draft(
           clientId: clientId,
-          salonId: '',
-          ownerId: '',
           content: trimmedContent,
-          isActive: true,
         ),
       );
       state = AsyncData(memory);

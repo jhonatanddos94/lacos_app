@@ -1,3 +1,5 @@
+import 'package:lacos_app/features/appointments/domain/enums/appointment_operational_state.dart';
+
 class HomeDashboardData {
   const HomeDashboardData({
     required this.nextAppointment,
@@ -69,6 +71,7 @@ class TodayScheduleAppointment {
     required this.status,
     this.durationLabel,
     this.clientPhotoUrl,
+    this.operationalState,
     this.statusSubtitle,
     this.statusDetail,
   });
@@ -80,6 +83,7 @@ class TodayScheduleAppointment {
   final ScheduleStatus status;
   final String? durationLabel;
   final String? clientPhotoUrl;
+  final AppointmentOperationalState? operationalState;
   final String? statusSubtitle;
   final String? statusDetail;
 }

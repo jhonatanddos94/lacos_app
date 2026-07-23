@@ -33,7 +33,14 @@ class AgendaListEntriesBuilder {
     final entries = <AgendaListEntry>[];
 
     if (sections.showPendingHeader) {
-      entries.add(const AgendaListEntry.sectionHeader(AppStrings.agendaSectionPending));
+      entries.add(
+        AgendaListEntry.sectionHeader(
+          formatAgendaSectionTitle(
+            baseTitle: AppStrings.agendaSectionPending,
+            count: sections.pending.length,
+          ),
+        ),
+      );
     }
     entries.addAll(
       sections.pending.map(AgendaListEntry.appointment),

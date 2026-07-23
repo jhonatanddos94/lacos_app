@@ -10,4 +10,8 @@ abstract class ClientMemoryRepository {
   Future<List<ClientMemory>> findByClient({
     required String clientId,
   });
+
+  Future<void> touchMentioned({
+    required List<String> memoryIds,
+  });
 }

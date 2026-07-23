@@ -1,0 +1,4 @@
+enum CompleteAppointmentSuccessAction {
+  dismiss,
+  addMemory,
+}

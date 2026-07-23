@@ -427,7 +427,7 @@ class _FakeAppointmentServiceRepository implements AppointmentServiceRepository 
     final created = services
         .map(
           (service) => AppointmentService(
-            id: 'service-line-${service.displayOrder}-${createManyCalls}',
+            id: 'service-line-${service.displayOrder}-$createManyCalls',
             appointmentId: appointmentId,
             serviceId: service.serviceId,
             salonId: service.salonId,

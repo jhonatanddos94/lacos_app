@@ -1,5 +1,6 @@
 import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_operational_state.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/home/domain/entities/home_dashboard_data.dart';
 
@@ -8,17 +9,24 @@ class AgendaAppointmentDisplayMapper {
 
   static List<TodayScheduleAppointment> toScheduleItems(
     List<AgendaAppointmentDisplay> appointments,
-    DateTime selectedDay,
-  ) {
+    DateTime selectedDay, {
+    DateTime? now,
+  }) {
+    final referenceNow = now ?? DateTime.now();
     final sorted = [...appointments]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
-    final nextAppointmentId = _findNextAppointmentId(sorted, selectedDay);
+    final nextAppointmentId = _findNextAppointmentId(
+      sorted,
+      selectedDay,
+      now: referenceNow,
+    );
 
     return sorted
         .map(
           (appointment) => toScheduleItem(
             appointment,
             isNext: appointment.appointmentId == nextAppointmentId,
+            now: referenceNow,
           ),
         )
         .toList(growable: false);
@@ -27,7 +35,11 @@ class AgendaAppointmentDisplayMapper {
   static TodayScheduleAppointment toScheduleItem(
     AgendaAppointmentDisplay appointment, {
     required bool isNext,
+    DateTime? now,
   }) {
+    final referenceNow = now ?? DateTime.now();
+    final operationalState = appointment.operationalState(now: referenceNow);
+
     return TodayScheduleAppointment(
       startTime: formatAppointmentClockTime(appointment.startAt),
       endTime: formatAppointmentClockTime(appointment.endAt),
@@ -41,7 +53,9 @@ class AgendaAppointmentDisplayMapper {
       status: _mapScheduleStatus(
         appointment,
         isNext: isNext,
+        operationalState: operationalState,
       ),
+      operationalState: operationalState,
       statusSubtitle: _statusSubtitle(appointment),
       statusDetail: _statusDetail(appointment),
     );
@@ -70,11 +84,17 @@ class AgendaAppointmentDisplayMapper {
 
   static String? nextStartTime(
     List<AgendaAppointmentDisplay> appointments,
-    DateTime day,
-  ) {
+    DateTime day, {
+    DateTime? now,
+  }) {
+    final referenceNow = now ?? DateTime.now();
     final sorted = [...appointments]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
-    final nextId = _findNextAppointmentId(sorted, day);
+    final nextId = _findNextAppointmentId(
+      sorted,
+      day,
+      now: referenceNow,
+    );
     if (nextId == null) return null;
 
     final nextAppointment = sorted.firstWhere(
@@ -86,26 +106,18 @@ class AgendaAppointmentDisplayMapper {
 
   static String? _findNextAppointmentId(
     List<AgendaAppointmentDisplay> appointments,
-    DateTime selectedDay,
-  ) {
-    final now = DateTime.now();
+    DateTime selectedDay, {
+    required DateTime now,
+  }) {
     if (normalizeAppointmentDate(selectedDay).isBefore(normalizeAppointmentDate(now))) {
       return null;
     }
 
-    final isToday = _isSameDay(selectedDay, now);
-
     for (final appointment in appointments) {
-      switch (appointment.status) {
-        case AppointmentStatus.completed:
-        case AppointmentStatus.canceled:
-          continue;
-        case AppointmentStatus.pending:
-        case AppointmentStatus.confirmed:
-          if (isToday && appointment.startAt.isBefore(now)) {
-            continue;
-          }
-          return appointment.appointmentId;
+      final operationalState = appointment.operationalState(now: now);
+
+      if (operationalState == AppointmentOperationalState.upcoming) {
+        return appointment.appointmentId;
       }
     }
 
@@ -115,8 +127,9 @@ class AgendaAppointmentDisplayMapper {
   static ScheduleStatus _mapScheduleStatus(
     AgendaAppointmentDisplay appointment, {
     required bool isNext,
+    required AppointmentOperationalState operationalState,
   }) {
-    if (isNext) {
+    if (isNext && operationalState == AppointmentOperationalState.upcoming) {
       return ScheduleStatus.next;
     }
 
@@ -126,9 +139,5 @@ class AgendaAppointmentDisplayMapper {
       AppointmentStatus.pending => ScheduleStatus.pending,
       AppointmentStatus.canceled => ScheduleStatus.canceled,
     };
-  }
-
-  static bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }

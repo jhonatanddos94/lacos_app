@@ -26,12 +26,14 @@ import 'package:lacos_app/features/agenda/presentation/widgets/agenda_refresh_fa
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_refreshing_state.dart';
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_schedule_skeleton.dart';
 import 'package:lacos_app/features/appointments/application/helpers/appointment_provider_invalidation.dart';
+import 'package:lacos_app/features/appointments/application/models/complete_appointment_flow_result.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
-import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_details_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/agenda_appointment_open_flow.dart';
+import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_memory_flow.dart';
 
 class AgendaPage extends ConsumerStatefulWidget {
   const AgendaPage({super.key});
@@ -111,27 +113,27 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   ) async {
     final originalDay = AgendaDay.from(appointment.startAt);
 
-    final updatedAppointment = await showModalBottomSheet<Appointment>(
+    final updatedResult = await openAgendaAppointmentFlow(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => AppointmentDetailsBottomSheet(
-        appointmentId: appointment.appointmentId,
-        day: appointment.startAt,
-      ),
+      ref: ref,
+      appointment: appointment,
     );
 
-    if (!mounted || updatedAppointment == null) return;
+    if (!mounted || updatedResult == null) return;
+
+    if (updatedResult is CompleteAppointmentFlowResult) {
+      await _handleCompletedAppointmentFlow(updatedResult);
+      return;
+    }
+
+    if (updatedResult is! Appointment) return;
+
+    final updatedAppointment = updatedResult;
 
     final updatedDay = AgendaDay.from(updatedAppointment.startAt);
 
     if (updatedAppointment.status == AppointmentStatus.completed) {
-      await _handleAppointmentStatusChange(
-        day: updatedDay,
-        message: AppStrings.appointmentCompleteSuccess,
-      );
+      await _handleAppointmentStatusChange(day: updatedDay);
       return;
     }
 
@@ -149,17 +151,44 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     );
   }
 
+  Future<void> _handleCompletedAppointmentFlow(
+    CompleteAppointmentFlowResult result,
+  ) async {
+    final updatedDay = AgendaDay.from(result.appointment.startAt);
+
+    try {
+      await _refreshAppointmentsForDay(updatedDay);
+      if (!mounted) return;
+
+      await handleCompleteAppointmentMemoryFlow(
+        context: context,
+        ref: ref,
+        result: result,
+      );
+    } on Object {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.agendaRefreshAfterCreateFailed),
+        ),
+      );
+    }
+  }
+
   Future<void> _handleAppointmentStatusChange({
     required AgendaDay day,
-    required String message,
+    String? message,
   }) async {
     try {
       await _refreshAppointmentsForDay(day);
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      if (message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
     } on Object {
       if (!mounted) return;
 

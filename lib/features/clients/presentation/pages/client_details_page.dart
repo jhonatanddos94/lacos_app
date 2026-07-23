@@ -19,8 +19,7 @@ import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
-import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
-import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_form_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_preview_card.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 
@@ -120,13 +119,9 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   }
 
   Future<void> _openNewMemorySheet() async {
-    final memory = await showModalBottomSheet<ClientMemory>(
+    final memory = await showMemoryFormBottomSheet(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => MemoryFormBottomSheet(clientId: _client.id),
+      clientId: _client.id,
     );
 
     if (!mounted || memory == null) return;

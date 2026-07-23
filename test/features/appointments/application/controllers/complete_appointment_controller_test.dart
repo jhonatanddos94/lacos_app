@@ -9,7 +9,6 @@ import 'package:lacos_app/features/appointments/application/models/complete_appo
 import 'package:lacos_app/features/appointments/application/use_cases/complete_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
-import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
@@ -208,6 +207,17 @@ void main() {
       controller.reset();
 
       expect(controller.state, const CompleteAppointmentState());
+    });
+
+    test('não possui lógica de memória', () {
+      expect(
+        CompleteAppointmentController.new.toString(),
+        isNot(contains('memory')),
+      );
+      expect(
+        CompleteAppointmentState.new.toString(),
+        isNot(contains('Memory')),
+      );
     });
   });
 }

@@ -1,6 +1,8 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/domain/enums/client_memory_priority.dart';
+import 'package:lacos_app/features/memories/domain/enums/client_memory_type.dart';
 
 class ClientMemoryMapper {
   const ClientMemoryMapper();
@@ -23,10 +25,35 @@ class ClientMemoryMapper {
       professionalId: _optionalPointerId(object, 'professional'),
       ownerId: _ownerId(object),
       content: object.get<String>('content') ?? '',
+      type: ClientMemoryType.fromParse(object.get<String>('type')),
+      priority: ClientMemoryPriority.fromParse(object.get('priority')),
+      isPinned: object.get<bool>('isPinned') ?? false,
+      lastMentionedAt: object.get<DateTime>('lastMentionedAt'),
+      isArchived: object.get<bool>('isArchived') ?? false,
       isActive: object.get<bool>('isActive') ?? true,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
+  }
+
+  void applyDomainFields({
+    required ParseObject object,
+    required ClientMemory memory,
+  }) {
+    object
+      ..set<String>('content', memory.content)
+      ..set<String>('type', memory.type.toParse())
+      ..set<int>('priority', memory.priority.toParse())
+      ..set<bool>('isPinned', memory.isPinned)
+      ..set<bool>('isArchived', memory.isArchived)
+      ..set<bool>('isActive', memory.isActive);
+
+    final lastMentionedAt = memory.lastMentionedAt;
+    if (lastMentionedAt != null) {
+      object.set<DateTime>('lastMentionedAt', lastMentionedAt);
+    } else {
+      object.unset('lastMentionedAt');
+    }
   }
 
   String _requiredPointerId(ParseObject object, String key) {
@@ -52,7 +79,8 @@ class ClientMemoryMapper {
   }
 
   String _ownerId(ParseObject object) {
-    final owner = object.get<ParseUser>('owner') ?? object.get<ParseObject>('owner');
+    final owner =
+        object.get<ParseUser>('owner') ?? object.get<ParseObject>('owner');
     final ownerId = owner?.objectId;
     if (ownerId == null || ownerId.isEmpty) {
       throw StateError(

@@ -6,9 +6,10 @@ import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/features/agenda/application/builders/agenda_operational_summary_builder.dart';
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
 import 'package:lacos_app/features/agenda/presentation/helpers/agenda_date_formatters.dart';
-import 'package:lacos_app/features/agenda/presentation/mappers/agenda_appointment_display_mapper.dart';
+import 'package:lacos_app/features/agenda/presentation/helpers/agenda_operational_summary_formatter.dart';
 
 class AgendaHeader extends StatelessWidget {
   const AgendaHeader({
@@ -17,6 +18,7 @@ class AgendaHeader extends StatelessWidget {
     required this.isLoading,
     required this.onCalendarPressed,
     this.isPastDay = false,
+    this.referenceNow,
     super.key,
   });
 
@@ -25,6 +27,7 @@ class AgendaHeader extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onCalendarPressed;
   final bool isPastDay;
+  final DateTime? referenceNow;
 
   @override
   Widget build(BuildContext context) {
@@ -108,26 +111,18 @@ class AgendaHeader extends StatelessWidget {
 
     final loadedAppointments = appointments;
     if (loadedAppointments == null) {
-      return isToday ? 'Nenhum atendimento hoje' : 'Nenhum atendimento';
+      return AppStrings.agendaOperationalSummaryNone;
     }
 
     if (loadedAppointments.isEmpty) {
-      return isToday ? 'Nenhum atendimento hoje' : 'Nenhum atendimento';
+      return AppStrings.agendaOperationalSummaryNone;
     }
 
-    final countLabel = loadedAppointments.length == 1
-        ? '1 atendimento'
-        : '${loadedAppointments.length} atendimentos';
-    final nextTime = AgendaAppointmentDisplayMapper.nextStartTime(
+    final summary = AgendaOperationalSummaryBuilder.build(
       loadedAppointments,
-      selectedDay,
+      now: referenceNow,
     );
-
-    if (nextTime == null) {
-      return countLabel;
-    }
-
-    return '$countLabel • Próximo às $nextTime';
+    return formatAgendaOperationalSummaryLine(summary);
   }
 }
 

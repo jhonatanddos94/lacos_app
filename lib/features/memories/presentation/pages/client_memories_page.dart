@@ -12,7 +12,7 @@ import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_actions_bottom_sheet.dart';
-import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_form_bottom_sheet.dart';
+import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_empty_state.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_error_state.dart';
 import 'package:lacos_app/features/memories/presentation/widgets/client_memories_header.dart';
@@ -58,13 +58,9 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
   Client get _client => widget.client;
 
   Future<void> _openCreateMemorySheet() async {
-    final memory = await showModalBottomSheet<ClientMemory>(
+    final memory = await showMemoryFormBottomSheet(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => MemoryFormBottomSheet(clientId: _client.id),
+      clientId: _client.id,
     );
 
     if (!mounted || memory == null) return;
@@ -74,16 +70,10 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
   }
 
   Future<void> _openEditMemorySheet(ClientMemory memory) async {
-    final updatedMemory = await showModalBottomSheet<ClientMemory>(
+    final updatedMemory = await showMemoryFormBottomSheet(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => MemoryFormBottomSheet(
-        clientId: _client.id,
-        memory: memory,
-      ),
+      clientId: _client.id,
+      memory: memory,
     );
 
     if (!mounted || updatedMemory == null) return;
