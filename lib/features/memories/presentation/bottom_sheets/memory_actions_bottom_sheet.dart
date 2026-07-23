@@ -6,12 +6,17 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 
-enum MemoryAction { edit, pin, unpin, archive }
+enum MemoryAction { edit, pin, unpin, archive, restore }
 
 class MemoryActionsBottomSheet extends StatelessWidget {
-  const MemoryActionsBottomSheet({required this.isPinned, super.key});
+  const MemoryActionsBottomSheet({
+    required this.isPinned,
+    required this.isArchived,
+    super.key,
+  });
 
   final bool isPinned;
+  final bool isArchived;
 
   @override
   Widget build(BuildContext context) {
@@ -55,29 +60,45 @@ class MemoryActionsBottomSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _MemoryActionTile(
-                  icon: Icons.edit_outlined,
-                  label: AppStrings.editMemory,
-                  onTap: () => Navigator.of(context).pop(MemoryAction.edit),
-                ),
-                const SizedBox(height: AppSpacing.xxxs),
-                _MemoryActionTile(
-                  icon: isPinned
-                      ? Icons.push_pin_outlined
-                      : Icons.push_pin_rounded,
-                  label: isPinned
-                      ? AppStrings.memoryUnpinAction
-                      : AppStrings.memoryPinAction,
-                  onTap: () => Navigator.of(
-                    context,
-                  ).pop(isPinned ? MemoryAction.unpin : MemoryAction.pin),
-                ),
-                const SizedBox(height: AppSpacing.xxxs),
-                _MemoryActionTile(
-                  icon: Icons.inventory_2_outlined,
-                  label: AppStrings.memoryArchiveAction,
-                  onTap: () => Navigator.of(context).pop(MemoryAction.archive),
-                ),
+                if (isArchived) ...[
+                  _MemoryActionTile(
+                    icon: Icons.unarchive_outlined,
+                    label: AppStrings.memoryRestoreAction,
+                    onTap: () =>
+                        Navigator.of(context).pop(MemoryAction.restore),
+                  ),
+                  const SizedBox(height: AppSpacing.xxxs),
+                  _MemoryActionTile(
+                    icon: Icons.edit_outlined,
+                    label: AppStrings.editMemory,
+                    onTap: () => Navigator.of(context).pop(MemoryAction.edit),
+                  ),
+                ] else ...[
+                  _MemoryActionTile(
+                    icon: Icons.edit_outlined,
+                    label: AppStrings.editMemory,
+                    onTap: () => Navigator.of(context).pop(MemoryAction.edit),
+                  ),
+                  const SizedBox(height: AppSpacing.xxxs),
+                  _MemoryActionTile(
+                    icon: isPinned
+                        ? Icons.push_pin_outlined
+                        : Icons.push_pin_rounded,
+                    label: isPinned
+                        ? AppStrings.memoryUnpinAction
+                        : AppStrings.memoryPinAction,
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pop(isPinned ? MemoryAction.unpin : MemoryAction.pin),
+                  ),
+                  const SizedBox(height: AppSpacing.xxxs),
+                  _MemoryActionTile(
+                    icon: Icons.inventory_2_outlined,
+                    label: AppStrings.memoryArchiveAction,
+                    onTap: () =>
+                        Navigator.of(context).pop(MemoryAction.archive),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.xs),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),

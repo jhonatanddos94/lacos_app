@@ -12,6 +12,8 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/presentation/dialogs/complete_appointment_dialog.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_service_mapper.dart';
+import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record_service.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
@@ -23,16 +25,19 @@ void main() {
     late _FakeAppointmentRepository appointmentRepository;
     late _FakeServiceRecordRepository serviceRecordRepository;
     late _FakeServiceRecordServiceRepository serviceRecordServiceRepository;
+    late _NoopClientMemoryRepository memoryRepository;
     late CompleteAppointmentUseCase useCase;
 
     setUp(() {
       appointmentRepository = _FakeAppointmentRepository();
       serviceRecordRepository = _FakeServiceRecordRepository();
       serviceRecordServiceRepository = _FakeServiceRecordServiceRepository();
+      memoryRepository = _NoopClientMemoryRepository();
       useCase = CompleteAppointmentUseCase(
         appointmentRepository: appointmentRepository,
         serviceRecordRepository: serviceRecordRepository,
         serviceRecordServiceRepository: serviceRecordServiceRepository,
+        clientMemoryRepository: memoryRepository,
       );
     });
 
@@ -367,4 +372,45 @@ class _FakeServiceRecordServiceRepository
   ) async {
     return const [];
   }
+}
+
+class _NoopClientMemoryRepository implements ClientMemoryRepository {
+  @override
+  Future<void> markMentioned(String memoryId) async {}
+
+  @override
+  Future<void> touchMentioned({required List<String> memoryIds}) async {}
+
+  @override
+  Future<ClientMemory> archive(String memoryId) => throw UnimplementedError();
+
+  @override
+  Future<ClientMemory> create(ClientMemory memory) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String memoryId) => throw UnimplementedError();
+
+  @override
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> update(ClientMemory memory) =>
+      throw UnimplementedError();
+
+  @override
+  Future<ClientMemory> restore(String memoryId) => throw UnimplementedError();
 }

@@ -19,6 +19,7 @@ class CompleteAppointmentParams {
     this.result,
     this.productsUsed,
     this.finalAmount,
+    this.mentionedMemoryIds = const [],
   });
 
   final String appointmentId;
@@ -28,4 +29,5 @@ class CompleteAppointmentParams {
   final String? result;
   final String? productsUsed;
   final double? finalAmount;
+  final List<String> mentionedMemoryIds;
 }

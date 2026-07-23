@@ -39,7 +39,15 @@ class _CompleteAppointmentDialogState
     debugPrint('[AppointmentComplete] dialog confirm tapped');
 
     try {
-      final serviceRecord = await controller.complete(widget.appointmentId);
+      final mentionedMemoryIds = ref
+          .read(appointmentMemoryUsageProvider(widget.appointmentId))
+          .usedMemoryIds
+          .toList(growable: false);
+
+      final serviceRecord = await controller.complete(
+        widget.appointmentId,
+        mentionedMemoryIds: mentionedMemoryIds,
+      );
 
       if (!mounted) return;
 

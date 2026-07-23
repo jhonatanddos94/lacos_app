@@ -10,6 +10,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/memories/application/models/client_memory_filters.dart';
+import 'package:lacos_app/features/memories/application/models/client_memory_visibility_filter.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/presentation/bottom_sheets/memory_actions_bottom_sheet.dart';
@@ -104,7 +105,10 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
       context: context,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => MemoryActionsBottomSheet(isPinned: memory.isPinned),
+      builder: (context) => MemoryActionsBottomSheet(
+        isPinned: memory.isPinned,
+        isArchived: memory.isArchived,
+      ),
     );
 
     if (!mounted || action == null) return;
@@ -118,6 +122,33 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
         await _togglePin(memory, isPinned: false);
       case MemoryAction.archive:
         await _confirmArchiveMemory(memory);
+      case MemoryAction.restore:
+        await _restoreMemory(memory);
+    }
+  }
+
+  Future<void> _restoreMemory(ClientMemory memory) async {
+    final actionsState = ref.read(clientMemoryActionsControllerProvider);
+    if (actionsState.isLoading) return;
+
+    final restored = await ref
+        .read(clientMemoryActionsControllerProvider.notifier)
+        .restore(memory);
+
+    if (!mounted) return;
+
+    if (restored != null) {
+      ref.invalidate(clientMemoriesCatalogProvider(_client.id));
+      ref.invalidate(clientMemoriesProvider(_client.id));
+      _showMessage(AppStrings.memoryRestoredSuccess);
+      return;
+    }
+
+    final errorMessage = ref
+        .read(clientMemoryActionsControllerProvider)
+        .errorMessage;
+    if (errorMessage != null) {
+      _showMessage(errorMessage);
     }
   }
 
@@ -130,7 +161,7 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
 
     final updated = await ref
         .read(clientMemoryActionsControllerProvider.notifier)
-        .setPinned(memoryId: memoryId, isPinned: isPinned);
+        .setPinned(memory: memory, isPinned: isPinned);
 
     if (!mounted) return;
 
@@ -273,6 +304,10 @@ class _ClientMemoriesPageState extends ConsumerState<ClientMemoriesPage> {
                                       final memory = filteredMemories[index];
                                       return ClientMemoryCard(
                                         memory: memory,
+                                        emphasizeArchivedState:
+                                            filters.visibility ==
+                                            ClientMemoryVisibilityFilter
+                                                .archived,
                                         onMenuTap: () =>
                                             _openMemoryActions(memory),
                                       );

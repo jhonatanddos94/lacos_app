@@ -5,6 +5,8 @@ import 'package:lacos_app/features/appointments/application/controllers/cancel_a
 import 'package:lacos_app/features/appointments/application/controllers/complete_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/create_appointment_controller.dart';
 import 'package:lacos_app/features/appointments/application/controllers/update_appointment_controller.dart';
+import 'package:lacos_app/features/appointments/presentation/controllers/appointment_memory_usage_controller.dart';
+import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/appointments/application/models/cancel_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
@@ -86,9 +88,17 @@ final completeAppointmentUseCaseProvider = Provider<CompleteAppointmentUseCase>(
       serviceRecordServiceRepository: ref.watch(
         serviceRecordServiceRepositoryProvider,
       ),
+      clientMemoryRepository: ref.watch(clientMemoryRepositoryProvider),
     );
   },
 );
+
+final appointmentMemoryUsageProvider = StateNotifierProvider.autoDispose
+    .family<
+      AppointmentMemoryUsageController,
+      AppointmentMemoryUsageState,
+      String
+    >((ref, appointmentId) => AppointmentMemoryUsageController());
 
 final completeAppointmentControllerProvider =
     StateNotifierProvider<

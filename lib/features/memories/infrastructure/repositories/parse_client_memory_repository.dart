@@ -309,6 +309,63 @@ class ParseClientMemoryRepository implements ClientMemoryRepository {
   }
 
   @override
+  Future<ClientMemory> restore(String memoryId) async {
+    try {
+      final parseMemory = await _findArchivedMemory(memoryId);
+      parseMemory.set<bool>('isArchived', false);
+
+      final response = await parseMemory.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      return _mapper.toDomain(parseMemory);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw FormatException(AppStrings.memoryRestoreError);
+    }
+  }
+
+  Future<ParseObject> _findArchivedMemory(String memoryId) async {
+    if (memoryId.isEmpty) {
+      throw FormatException(AppStrings.memoryRestoreError);
+    }
+
+    final salon = await _salonRepository.getCurrentSalon();
+    if (salon == null) {
+      throw StateError(
+        'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+      );
+    }
+
+    final query = QueryBuilder<ParseObject>(ParseObject(_memoryClassName))
+      ..whereEqualTo('objectId', memoryId)
+      ..whereEqualTo('salon', _salonPointer(salon.id))
+      ..whereEqualTo('isActive', true)
+      ..whereEqualTo('isArchived', true);
+
+    final fetchResponse = await query.query<ParseObject>();
+    if (!fetchResponse.success) {
+      throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+    }
+
+    final results = fetchResponse.results;
+    if (results == null || results.isEmpty) {
+      throw FormatException(AppStrings.memoryRestoreError);
+    }
+
+    return results.first as ParseObject;
+  }
+
+  @override
+  Future<void> markMentioned(String memoryId) {
+    return touchMentioned(memoryIds: [memoryId]);
+  }
+
+  @override
   Future<void> touchMentioned({required List<String> memoryIds}) async {
     final normalizedIds = memoryIds
         .map((id) => id.trim())

@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/features/memories/application/models/client_memory_filters.dart';
+import 'package:lacos_app/features/memories/application/models/client_memory_highlights.dart';
+import 'package:lacos_app/features/memories/application/models/client_memory_profile_preview.dart';
 import 'package:lacos_app/features/memories/application/services/client_memory_filter_service.dart';
+import 'package:lacos_app/features/memories/application/services/client_memory_highlights_service.dart';
+import 'package:lacos_app/features/memories/application/services/client_memory_profile_preview_service.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/memories/infrastructure/repositories/parse_client_memory_repository.dart';
@@ -21,6 +25,26 @@ final clientMemoriesProvider =
     FutureProvider.family<List<ClientMemory>, String>((ref, clientId) {
       final repository = ref.watch(clientMemoryRepositoryProvider);
       return repository.findByClient(clientId: clientId);
+    });
+
+final clientMemoryHighlightsProvider =
+    Provider.family<ClientMemoryHighlights, String>((ref, clientId) {
+      final memoriesAsync = ref.watch(clientMemoriesProvider(clientId));
+
+      return memoriesAsync.maybeWhen(
+        data: ClientMemoryHighlightsService.resolve,
+        orElse: () => ClientMemoryHighlights.empty,
+      );
+    });
+
+final clientMemoryProfilePreviewProvider =
+    Provider.family<ClientMemoryProfilePreview, String>((ref, clientId) {
+      final memoriesAsync = ref.watch(clientMemoriesProvider(clientId));
+
+      return memoriesAsync.maybeWhen(
+        data: ClientMemoryProfilePreviewService.resolve,
+        orElse: () => ClientMemoryProfilePreview.empty,
+      );
     });
 
 final clientMemoriesCatalogProvider =

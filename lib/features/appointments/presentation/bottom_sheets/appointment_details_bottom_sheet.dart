@@ -31,6 +31,8 @@ import 'package:lacos_app/features/appointments/presentation/widgets/appointment
 import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_service_mapper.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_form_header.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:lacos_app/features/memories/application/memory_providers.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memory_highlights_card.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
@@ -164,6 +166,11 @@ class _AppointmentDetailsBottomSheetState
     if (!mounted) return;
 
     if (serviceRecord != null) {
+      ref.invalidate(clientMemoriesProvider(details.client.id));
+      ref
+          .read(appointmentMemoryUsageProvider(details.appointment.id).notifier)
+          .clear();
+
       final successAction = await showCompleteAppointmentSuccessBottomSheet(
         context: context,
       );
@@ -402,6 +409,11 @@ class _AppointmentDetailsContent extends StatelessWidget {
       !details.appointment.status.canBeCompleted &&
       !details.appointment.status.canBeCanceled;
 
+  bool _shouldShowMemoryHighlights(AppointmentStatus status) {
+    return status != AppointmentStatus.completed &&
+        status != AppointmentStatus.canceled;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -460,6 +472,13 @@ class _AppointmentDetailsContent extends StatelessWidget {
                   durationLabel: durationLabel,
                   badgePresentation: badgePresentation,
                 ),
+                if (_shouldShowMemoryHighlights(appointment.status)) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _AppointmentMemoryHighlightsSection(
+                    clientId: details.client.id,
+                    appointmentId: appointment.id,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 _CompactMetaLine(text: professionalLine),
                 if (servicesSummary.hasPrice) ...[
@@ -1130,6 +1149,35 @@ class _CancelAppointmentButton extends StatelessWidget {
           Text(AppStrings.appointmentCancelAction),
         ],
       ),
+    );
+  }
+}
+
+class _AppointmentMemoryHighlightsSection extends ConsumerWidget {
+  const _AppointmentMemoryHighlightsSection({
+    required this.clientId,
+    required this.appointmentId,
+  });
+
+  final String clientId;
+  final String appointmentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final highlights = ref.watch(clientMemoryHighlightsProvider(clientId));
+    if (!highlights.hasContent) {
+      return const SizedBox.shrink();
+    }
+
+    final usageState = ref.watch(appointmentMemoryUsageProvider(appointmentId));
+    final usageController = ref.read(
+      appointmentMemoryUsageProvider(appointmentId).notifier,
+    );
+
+    return ClientMemoryHighlightsCard(
+      highlights: highlights,
+      usedMemoryIds: usageState.usedMemoryIds,
+      onToggleUsed: usageController.toggleUsed,
     );
   }
 }

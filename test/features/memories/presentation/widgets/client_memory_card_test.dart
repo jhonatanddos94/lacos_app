@@ -59,5 +59,56 @@ void main() {
       expect(find.text(AppStrings.memoryTypePersonal), findsOneWidget);
       expect(find.text(AppStrings.memoryPriorityNormal), findsNothing);
     });
+
+    testWidgets('exibe badge Arquivada quando memória está arquivada', (
+      tester,
+    ) async {
+      final memory = ClientMemory(
+        id: 'memory-1',
+        clientId: 'client-1',
+        salonId: 'salon-1',
+        ownerId: 'owner-1',
+        content: 'Memória antiga',
+        isArchived: true,
+        isActive: true,
+        createdAt: DateTime(2026, 7, 8),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: ClientMemoryCard(memory: memory)),
+        ),
+      );
+
+      expect(find.text(AppStrings.memoryArchivedBadge), findsOneWidget);
+      expect(find.text(AppStrings.memoryPinnedBadge), findsNothing);
+    });
+
+    testWidgets('filtro arquivadas aplica aparência inativa', (tester) async {
+      final memory = ClientMemory(
+        id: 'memory-1',
+        clientId: 'client-1',
+        salonId: 'salon-1',
+        ownerId: 'owner-1',
+        content: 'Memória arquivada',
+        isArchived: true,
+        isActive: true,
+        createdAt: DateTime(2026, 7, 8),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClientMemoryCard(
+              memory: memory,
+              emphasizeArchivedState: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.inventory_2_outlined), findsOneWidget);
+      expect(find.text(AppStrings.memoryArchivedBadge), findsWidgets);
+    });
   });
 }

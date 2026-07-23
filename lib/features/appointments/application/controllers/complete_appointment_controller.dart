@@ -51,7 +51,10 @@ class CompleteAppointmentController
     state = const CompleteAppointmentState();
   }
 
-  Future<ServiceRecord?> complete(String appointmentId) async {
+  Future<ServiceRecord?> complete(
+    String appointmentId, {
+    List<String> mentionedMemoryIds = const [],
+  }) async {
     if (state.isLoading || _submissionInFlight) return null;
 
     final validationError = _validate(appointmentId: appointmentId);
@@ -82,6 +85,7 @@ class CompleteAppointmentController
           productsUsed: _nullableText(state.productsUsed),
           finalAmount: state.finalAmount,
           services: state.services,
+          mentionedMemoryIds: mentionedMemoryIds,
         ),
       );
 

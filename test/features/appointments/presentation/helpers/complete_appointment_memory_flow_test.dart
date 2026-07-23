@@ -213,6 +213,9 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
   Future<void> touchMentioned({required List<String> memoryIds}) async {}
 
   @override
+  Future<void> markMentioned(String memoryId) async {}
+
+  @override
   Future<ClientMemory> setPinned({
     required String memoryId,
     required bool isPinned,
@@ -222,6 +225,11 @@ class _FakeClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<ClientMemory> archive(String memoryId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> restore(String memoryId) {
     throw UnimplementedError();
   }
 }

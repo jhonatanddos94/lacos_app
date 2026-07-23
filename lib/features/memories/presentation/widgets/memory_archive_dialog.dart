@@ -26,7 +26,7 @@ class _MemoryArchiveDialogState extends ConsumerState<MemoryArchiveDialog> {
 
     final archived = await ref
         .read(clientMemoryActionsControllerProvider.notifier)
-        .archive(memoryId);
+        .archive(widget.memory);
 
     if (!mounted) return;
 

@@ -115,14 +115,19 @@ abstract final class AppStrings {
   static const String memoryPinAction = 'Fixar memória';
   static const String memoryUnpinAction = 'Desafixar memória';
   static const String memoryArchiveAction = 'Arquivar memória';
+  static const String memoryRestoreAction = 'Restaurar';
+  static const String memoryArchivedBadge = 'Arquivada';
   static const String memoryArchiveTitle = 'Arquivar memória?';
   static const String memoryArchiveMessage =
       'Ela sairá da lista ativa, mas continuará salva para consulta futura.';
   static const String memoryArchivedSuccess = 'Memória arquivada com sucesso.';
+  static const String memoryRestoredSuccess = 'Memória restaurada.';
   static const String memoryPinnedSuccess = 'Memória fixada.';
   static const String memoryUnpinnedSuccess = 'Memória desafixada.';
   static const String memoryArchiveError =
       'Não foi possível arquivar a memória. Tente novamente.';
+  static const String memoryRestoreError =
+      'Não foi possível restaurar a memória. Tente novamente.';
   static const String memoryPinError =
       'Não foi possível atualizar a memória. Tente novamente.';
   static const String memoryFiltersTitle = 'Filtrar memórias';
@@ -141,6 +146,11 @@ abstract final class AppStrings {
   static const String memoryFilterEmptyMessage =
       'Tente alterar ou limpar os filtros.';
   static const String memoryFilterClearAction = 'Limpar filtros';
+  static const String memoryImportantTitle = 'Memórias importantes';
+  static const String memoryImportantPinnedGroup = 'Fixadas';
+  static const String memoryImportantRecentGroup = 'Mencionadas recentemente';
+  static const String memoryImportantUsedAction = '✓ Utilizada';
+  static const String memoryImportantViewAll = 'Ver todas →';
   static const String deleteMemory = 'Excluir memória';
   static const String deleteMemoryTitle = 'Excluir memória?';
   static const String deleteMemoryMessage =

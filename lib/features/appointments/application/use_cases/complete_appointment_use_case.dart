@@ -5,6 +5,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
+import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record_service.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
@@ -15,13 +16,16 @@ class CompleteAppointmentUseCase {
     required AppointmentRepository appointmentRepository,
     required ServiceRecordRepository serviceRecordRepository,
     required ServiceRecordServiceRepository serviceRecordServiceRepository,
+    required ClientMemoryRepository clientMemoryRepository,
   }) : _appointmentRepository = appointmentRepository,
        _serviceRecordRepository = serviceRecordRepository,
-       _serviceRecordServiceRepository = serviceRecordServiceRepository;
+       _serviceRecordServiceRepository = serviceRecordServiceRepository,
+       _clientMemoryRepository = clientMemoryRepository;
 
   final AppointmentRepository _appointmentRepository;
   final ServiceRecordRepository _serviceRecordRepository;
   final ServiceRecordServiceRepository _serviceRecordServiceRepository;
+  final ClientMemoryRepository _clientMemoryRepository;
 
   Future<ServiceRecord> call(CompleteAppointmentParams params) async {
     debugPrint('[AppointmentComplete] usecase start');
@@ -31,6 +35,8 @@ class CompleteAppointmentUseCase {
       appointment: appointment,
       appointmentId: params.appointmentId,
     );
+
+    await _markMentionedMemories(params.mentionedMemoryIds);
 
     final existingRecord = await _serviceRecordRepository.findByAppointmentId(
       params.appointmentId,
@@ -63,6 +69,14 @@ class CompleteAppointmentUseCase {
 
     debugPrint('[AppointmentComplete] success');
     return createdServiceRecord;
+  }
+
+  Future<void> _markMentionedMemories(List<String> memoryIds) async {
+    if (memoryIds.isEmpty) {
+      return;
+    }
+
+    await _clientMemoryRepository.touchMentioned(memoryIds: memoryIds);
   }
 
   Future<Appointment> _resolveCompletedAppointment({

@@ -13,19 +13,27 @@ import 'package:lacos_app/features/memories/domain/enums/client_memory_priority.
 import 'package:lacos_app/features/memories/presentation/helpers/client_memory_labels.dart';
 
 class ClientMemoryCard extends StatelessWidget {
-  const ClientMemoryCard({required this.memory, this.onMenuTap, super.key});
+  const ClientMemoryCard({
+    required this.memory,
+    this.onMenuTap,
+    this.emphasizeArchivedState = false,
+    super.key,
+  });
 
   static const _bowSize = 18.0;
+  static const _archivedOpacity = 0.82;
 
   final ClientMemory memory;
   final VoidCallback? onMenuTap;
+  final bool emphasizeArchivedState;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final displayDate = memory.updatedAt ?? memory.createdAt;
+    final showArchivedEmphasis = emphasizeArchivedState && memory.isArchived;
 
-    return Container(
+    final card = Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.sm,
@@ -37,7 +45,9 @@ class ClientMemoryCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: AppRadius.borderMd,
         border: Border.all(
-          color: memory.isPinned ? AppColors.purple200 : AppColors.divider,
+          color: memory.isArchived
+              ? AppColors.divider
+              : (memory.isPinned ? AppColors.purple200 : AppColors.divider),
         ),
         boxShadow: AppShadows.level1,
       ),
@@ -47,25 +57,36 @@ class ClientMemoryCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset(
-                AppAssets.lacosLogo,
-                width: _bowSize,
-                height: _bowSize,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-                excludeFromSemantics: true,
-              ),
-              const SizedBox(width: AppSpacing.xxxs),
+              if (showArchivedEmphasis) ...[
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: AppIconSizes.sm,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.xxxs),
+              ] else ...[
+                Image.asset(
+                  AppAssets.lacosLogo,
+                  width: _bowSize,
+                  height: _bowSize,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: AppSpacing.xxxs),
+              ],
               Expanded(
                 child: Text(
-                  _formatMemoryDate(displayDate),
+                  showArchivedEmphasis
+                      ? AppStrings.memoryArchivedBadge
+                      : _formatMemoryDate(displayDate),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              if (memory.isPinned) ...[
+              if (memory.isPinned && !memory.isArchived) ...[
                 Icon(
                   Icons.push_pin_rounded,
                   size: AppIconSizes.sm,
@@ -101,11 +122,17 @@ class ClientMemoryCard extends StatelessWidget {
                   foregroundColor: _priorityColor(memory.priority),
                   backgroundColor: _priorityBackground(memory.priority),
                 ),
-              if (memory.isPinned)
+              if (memory.isPinned && !memory.isArchived)
                 _MemoryMetaChip(
                   label: AppStrings.memoryPinnedBadge,
                   foregroundColor: AppColors.purple700,
                   backgroundColor: AppColors.purple50,
+                ),
+              if (memory.isArchived)
+                _MemoryMetaChip(
+                  label: AppStrings.memoryArchivedBadge,
+                  foregroundColor: AppColors.textSecondary,
+                  backgroundColor: AppColors.divider.withValues(alpha: 0.45),
                 ),
             ],
           ),
@@ -123,6 +150,12 @@ class ClientMemoryCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (!showArchivedEmphasis) {
+      return card;
+    }
+
+    return Opacity(opacity: _archivedOpacity, child: card);
   }
 }
 

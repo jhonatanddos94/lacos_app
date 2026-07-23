@@ -6,6 +6,8 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_status.
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
+import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
+import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record_service.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
@@ -16,16 +18,19 @@ void main() {
     late _FakeAppointmentRepository appointmentRepository;
     late _FakeServiceRecordRepository serviceRecordRepository;
     late _FakeServiceRecordServiceRepository serviceRecordServiceRepository;
+    late _SpyClientMemoryRepository memoryRepository;
     late CompleteAppointmentUseCase useCase;
 
     setUp(() {
       appointmentRepository = _FakeAppointmentRepository();
       serviceRecordRepository = _FakeServiceRecordRepository();
       serviceRecordServiceRepository = _FakeServiceRecordServiceRepository();
+      memoryRepository = _SpyClientMemoryRepository();
       useCase = CompleteAppointmentUseCase(
         appointmentRepository: appointmentRepository,
         serviceRecordRepository: serviceRecordRepository,
         serviceRecordServiceRepository: serviceRecordServiceRepository,
+        clientMemoryRepository: memoryRepository,
       );
     });
 
@@ -187,18 +192,37 @@ void main() {
       expect(serviceRecordRepository.createCalls, 1);
       expect(serviceRecordServiceRepository.createManyCalls, 1);
     });
+
+    test('marca memórias utilizadas antes de criar o ServiceRecord', () async {
+      appointmentRepository.appointment = _appointment();
+      appointmentRepository.completedAppointment = _appointment(
+        status: AppointmentStatus.completed,
+      );
+
+      await useCase(
+        _params(mentionedMemoryIds: const ['memory-1', 'memory-2']),
+      );
+
+      expect(appointmentRepository.completeCalls, 1);
+      expect(memoryRepository.touchCalls, 1);
+      expect(memoryRepository.touchedMemoryIds, ['memory-1', 'memory-2']);
+      expect(serviceRecordRepository.createCalls, 1);
+    });
   });
 }
 
-CompleteAppointmentParams _params() {
-  return const CompleteAppointmentParams(
+CompleteAppointmentParams _params({
+  List<String> mentionedMemoryIds = const [],
+}) {
+  return CompleteAppointmentParams(
     appointmentId: 'appointment-1',
     procedureSummary: 'Corte e hidratação',
     technicalNotes: 'Observação técnica',
     result: 'Resultado positivo',
     productsUsed: 'Máscara',
     finalAmount: 180,
-    services: [
+    mentionedMemoryIds: mentionedMemoryIds,
+    services: const [
       CompletedServiceParams(
         serviceId: 'service-1',
         finalAmount: 80,
@@ -390,4 +414,53 @@ class _FakeServiceRecordServiceRepository
     findByServiceRecordCalls++;
     return const [];
   }
+}
+
+class _SpyClientMemoryRepository implements ClientMemoryRepository {
+  var touchCalls = 0;
+  List<String> touchedMemoryIds = const [];
+
+  @override
+  Future<void> markMentioned(String memoryId) {
+    return touchMentioned(memoryIds: [memoryId]);
+  }
+
+  @override
+  Future<void> touchMentioned({required List<String> memoryIds}) async {
+    touchCalls++;
+    touchedMemoryIds = memoryIds;
+  }
+
+  @override
+  Future<ClientMemory> archive(String memoryId) => throw UnimplementedError();
+
+  @override
+  Future<ClientMemory> create(ClientMemory memory) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> delete(String memoryId) => throw UnimplementedError();
+
+  @override
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> setPinned({
+    required String memoryId,
+    required bool isPinned,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ClientMemory> update(ClientMemory memory) =>
+      throw UnimplementedError();
+
+  @override
+  Future<ClientMemory> restore(String memoryId) => throw UnimplementedError();
 }

@@ -30,10 +30,11 @@ Future<void> pumpUntilLoginReady(WidgetTester tester) async {
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 100));
 
-    final loginVisible =
-        find.text('Bem-vinda de volta!').evaluate().isNotEmpty;
-    final splashVisible =
-        find.text(AppStrings.splashPreparing).evaluate().isNotEmpty;
+    final loginVisible = find.text('Bem-vinda de volta!').evaluate().isNotEmpty;
+    final splashVisible = find
+        .text(AppStrings.splashPreparing)
+        .evaluate()
+        .isNotEmpty;
 
     if (loginVisible && !splashVisible) {
       return;

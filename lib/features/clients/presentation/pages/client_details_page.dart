@@ -19,8 +19,9 @@ import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
+import 'package:lacos_app/features/memories/application/models/client_memory_profile_preview.dart';
+import 'package:lacos_app/features/memories/presentation/widgets/client_memory_highlights_card.dart';
 import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
-import 'package:lacos_app/features/memories/presentation/widgets/client_memories_preview_card.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
 
 class ClientDetailsPage extends ConsumerStatefulWidget {
@@ -150,7 +151,9 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final isPhotoLoading = ref.watch(clientFormControllerProvider).isLoading;
-    final memoriesAsync = ref.watch(clientMemoriesProvider(_client.id));
+    final profilePreview = ref.watch(
+      clientMemoryProfilePreviewProvider(_client.id),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
@@ -183,16 +186,14 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
               const SizedBox(height: AppSpacing.sm),
               _ClientDataCard(client: _client),
               const SizedBox(height: AppSpacing.sm),
-              ClientMemoriesPreviewCard(
-                memories: memoriesAsync.value ?? const [],
-                isLoading: memoriesAsync.isLoading && !memoriesAsync.hasValue,
-                errorMessage: memoriesAsync.hasError
-                    ? AppStrings.clientMemoriesLoadError
-                    : null,
-                onTap: () =>
-                    context.push(RoutePaths.clientMemories, extra: _client),
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              if (profilePreview.hasContent)
+                _ClientMemoryHighlightsPreviewSection(
+                  preview: profilePreview,
+                  onViewAll: () =>
+                      context.push(RoutePaths.clientMemories, extra: _client),
+                ),
+              if (profilePreview.hasContent)
+                const SizedBox(height: AppSpacing.sm),
               const _HighlightSectionCard(
                 title: AppStrings.clientNextAppointment,
                 titleIcon: Icons.event_available_outlined,
@@ -973,6 +974,34 @@ class _SoftChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ClientMemoryHighlightsPreviewSection extends StatelessWidget {
+  const _ClientMemoryHighlightsPreviewSection({
+    required this.preview,
+    required this.onViewAll,
+  });
+
+  final ClientMemoryProfilePreview preview;
+  final VoidCallback onViewAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.paddingSm,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderMd,
+        boxShadow: AppShadows.level1,
+        border: Border.all(color: AppColors.purple100),
+      ),
+      child: ClientMemoryHighlightsPreviewCard(
+        preview: preview,
+        onViewAll: onViewAll,
       ),
     );
   }
