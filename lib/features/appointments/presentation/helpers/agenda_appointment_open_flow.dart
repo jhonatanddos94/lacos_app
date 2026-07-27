@@ -8,44 +8,65 @@ import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appoi
 import 'package:lacos_app/features/appointments/presentation/helpers/appointment_preparation_sheet_host.dart';
 import 'package:lacos_app/features/appointments/presentation/models/appointment_preparation_action.dart';
 
+/// Impede abertura duplicada por toques rápidos enquanto o fluxo está ativo.
+var _isOpeningAgendaAppointment = false;
+
+@visibleForTesting
+bool get isOpeningAgendaAppointmentForTest => _isOpeningAgendaAppointment;
+
+@visibleForTesting
+void resetAgendaAppointmentOpenGuardForTest() {
+  _isOpeningAgendaAppointment = false;
+}
+
 Future<Object?> openAgendaAppointmentFlow({
   required BuildContext context,
   required WidgetRef ref,
   required AgendaAppointmentDisplay appointment,
   DateTime? now,
 }) async {
-  final referenceNow = now ?? DateTime.now();
-
-  if (AppointmentPreparationEligibility.isEligible(
-    status: appointment.status,
-    startAt: appointment.startAt,
-    endAt: appointment.endAt,
-    now: referenceNow,
-  )) {
-    final preparationAction = await showAppointmentPreparationBottomSheet(
-      context: context,
-      ref: ref,
-      appointment: appointment,
-    );
-
-    if (!context.mounted) {
-      return null;
-    }
-
-    if (preparationAction == AppointmentPreparationAction.dismiss) {
-      return null;
-    }
+  if (_isOpeningAgendaAppointment) {
+    return null;
   }
 
-  return showModalBottomSheet<Object?>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-    builder: (context) => AppointmentDetailsBottomSheet(
-      appointmentId: appointment.appointmentId,
-      day: appointment.startAt,
-    ),
-  );
+  _isOpeningAgendaAppointment = true;
+
+  try {
+    final referenceNow = now ?? DateTime.now();
+
+    if (AppointmentPreparationEligibility.isEligible(
+      status: appointment.status,
+      startAt: appointment.startAt,
+      endAt: appointment.endAt,
+      now: referenceNow,
+    )) {
+      final preparationAction = await showAppointmentPreparationBottomSheet(
+        context: context,
+        ref: ref,
+        appointment: appointment,
+      );
+
+      if (!context.mounted) {
+        return null;
+      }
+
+      if (preparationAction == AppointmentPreparationAction.dismiss) {
+        return null;
+      }
+    }
+
+    return await showModalBottomSheet<Object?>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
+      builder: (context) => AppointmentDetailsBottomSheet(
+        appointmentId: appointment.appointmentId,
+        day: appointment.startAt,
+      ),
+    );
+  } finally {
+    _isOpeningAgendaAppointment = false;
+  }
 }

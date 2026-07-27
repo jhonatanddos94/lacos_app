@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/features/memories/application/models/client_memory_highlights.dart';
 import 'package:lacos_app/features/memories/application/models/client_memory_profile_preview.dart';
@@ -102,7 +103,35 @@ void main() {
       expect(find.text(AppStrings.memoryImportantTitle), findsNothing);
     });
 
-    testWidgets('renderiza preview e botão Ver todas', (tester) async {
+    testWidgets('uma memória: mostra conteúdo sem indicador nem rotação', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClientMemoryHighlightsPreviewCard(
+              preview: ClientMemoryProfilePreview(
+                kind: ClientMemoryProfilePreviewKind.newest,
+                items: [_memory(id: 'c1', content: 'Memória única')],
+              ),
+              onViewAll: () {},
+              rotationInterval: const Duration(milliseconds: 50),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Memória única'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(1, 1)), findsNothing);
+      expect(find.byIcon(Icons.star_rounded), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(find.text('Memória única'), findsOneWidget);
+    });
+
+    testWidgets('múltiplas: mostra uma por vez, indicador e Ver todas', (
+      tester,
+    ) async {
       var viewAllTapped = false;
 
       await tester.pumpWidget(
@@ -117,6 +146,7 @@ void main() {
                 ],
               ),
               onViewAll: () => viewAllTapped = true,
+              rotationInterval: const Duration(days: 1),
             ),
           ),
         ),
@@ -124,9 +154,10 @@ void main() {
 
       expect(find.text(AppStrings.memoryImportantTitle), findsOneWidget);
       expect(find.text('Prefere café sem açúcar'), findsOneWidget);
-      expect(find.text('Cliente alérgica'), findsOneWidget);
+      expect(find.text('Cliente alérgica'), findsNothing);
+      expect(find.text(AppStrings.memoryImportantPosition(1, 2)), findsOneWidget);
       expect(find.text(AppStrings.memoryImportantViewAll), findsOneWidget);
-      expect(find.byIcon(Icons.star_rounded), findsWidgets);
+      expect(find.byIcon(Icons.star_rounded), findsOneWidget);
 
       await tester.tap(find.text(AppStrings.memoryImportantViewAll));
       await tester.pumpAndSettle();
@@ -134,23 +165,217 @@ void main() {
       expect(viewAllTapped, isTrue);
     });
 
-    testWidgets('preview comum não exibe ícone de fixada', (tester) async {
+    testWidgets('múltiplas: troca automaticamente após o intervalo', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: ClientMemoryHighlightsPreviewCard(
               preview: ClientMemoryProfilePreview(
                 kind: ClientMemoryProfilePreviewKind.newest,
-                items: [_memory(id: 'c1', content: 'Memória comum')],
+                items: [
+                  _memory(id: 'a', content: 'Primeira'),
+                  _memory(id: 'b', content: 'Segunda'),
+                ],
               ),
               onViewAll: () {},
+              rotationInterval: const Duration(milliseconds: 100),
+              transitionDuration: Duration.zero,
             ),
           ),
         ),
       );
 
-      expect(find.text('Memória comum'), findsOneWidget);
-      expect(find.byIcon(Icons.star_rounded), findsNothing);
+      expect(find.text('Primeira'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(1, 2)), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
+
+      expect(find.text('Segunda'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(2, 2)), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
+
+      expect(find.text('Primeira'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(1, 2)), findsOneWidget);
+    });
+
+    testWidgets('swipe manual avança e reinicia o ciclo', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClientMemoryHighlightsPreviewCard(
+              preview: ClientMemoryProfilePreview(
+                kind: ClientMemoryProfilePreviewKind.newest,
+                items: [
+                  _memory(id: 'a', content: 'Primeira'),
+                  _memory(id: 'b', content: 'Segunda'),
+                  _memory(id: 'c', content: 'Terceira'),
+                ],
+              ),
+              onViewAll: () {},
+              rotationInterval: const Duration(days: 1),
+              transitionDuration: Duration.zero,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Primeira'), findsOneWidget);
+
+      await tester.fling(
+        find.text('Primeira'),
+        const Offset(-300, 0),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Segunda'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(2, 3)), findsOneWidget);
+    });
+
+    testWidgets('atualização da lista preserva item atual quando possível', (
+      tester,
+    ) async {
+      final preview = ValueNotifier(
+        ClientMemoryProfilePreview(
+          kind: ClientMemoryProfilePreviewKind.newest,
+          items: [
+            _memory(id: 'a', content: 'Primeira'),
+            _memory(id: 'b', content: 'Segunda'),
+          ],
+        ),
+      );
+      addTearDown(preview.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ValueListenableBuilder<ClientMemoryProfilePreview>(
+              valueListenable: preview,
+              builder: (context, value, _) {
+                return ClientMemoryHighlightsPreviewCard(
+                  preview: value,
+                  onViewAll: () {},
+                  rotationInterval: const Duration(milliseconds: 50),
+                  transitionDuration: Duration.zero,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+      expect(find.text('Segunda'), findsOneWidget);
+
+      preview.value = ClientMemoryProfilePreview(
+        kind: ClientMemoryProfilePreviewKind.newest,
+        items: [
+          _memory(id: 'a', content: 'Primeira'),
+          _memory(id: 'b', content: 'Segunda'),
+          _memory(id: 'c', content: 'Terceira'),
+        ],
+      );
+      await tester.pump();
+
+      expect(find.text('Segunda'), findsOneWidget);
+      expect(find.text(AppStrings.memoryImportantPosition(2, 3)), findsOneWidget);
+    });
+
+    testWidgets('dispose cancela timer sem setState', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClientMemoryHighlightsPreviewCard(
+              preview: ClientMemoryProfilePreview(
+                kind: ClientMemoryProfilePreviewKind.newest,
+                items: [
+                  _memory(id: 'a', content: 'Primeira'),
+                  _memory(id: 'b', content: 'Segunda'),
+                ],
+              ),
+              onViewAll: () {},
+              rotationInterval: const Duration(milliseconds: 30),
+              transitionDuration: Duration.zero,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 100));
+    });
+
+    testWidgets('reduced motion remove duração da transição', (tester) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: MaterialApp(
+            home: Scaffold(
+              body: ClientMemoryHighlightsPreviewCard(
+                preview: ClientMemoryProfilePreview(
+                  kind: ClientMemoryProfilePreviewKind.newest,
+                  items: [
+                    _memory(id: 'a', content: 'Primeira'),
+                    _memory(id: 'b', content: 'Segunda'),
+                  ],
+                ),
+                onViewAll: () {},
+                rotationInterval: const Duration(milliseconds: 40),
+                transitionDuration: AppDurations.memoryPreviewTransition,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Primeira'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 40));
+      await tester.pump();
+
+      expect(find.text('Segunda'), findsOneWidget);
+    });
+
+    testWidgets('pausa rotação quando app vai para background', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClientMemoryHighlightsPreviewCard(
+              preview: ClientMemoryProfilePreview(
+                kind: ClientMemoryProfilePreviewKind.newest,
+                items: [
+                  _memory(id: 'a', content: 'Primeira'),
+                  _memory(id: 'b', content: 'Segunda'),
+                ],
+              ),
+              onViewAll: () {},
+              rotationInterval: const Duration(milliseconds: 50),
+              transitionDuration: Duration.zero,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Primeira'), findsOneWidget);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(find.text('Primeira'), findsOneWidget);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+      expect(find.text('Segunda'), findsOneWidget);
     });
   });
 

@@ -152,6 +152,16 @@ abstract final class AppStrings {
   static const String memoryImportantRecentGroup = 'Mencionadas recentemente';
   static const String memoryImportantUsedAction = '✓ Utilizada';
   static const String memoryImportantViewAll = 'Ver todas →';
+
+  /// Indicador discreto do preview rotativo (ex.: "2 de 4").
+  static String memoryImportantPosition(int current, int total) =>
+      '$current de $total';
+
+  static String memoryImportantPositionSemantics(int current, int total) =>
+      'Memória $current de $total';
+
+  static const String memoryImportantNextSemantics = 'Próxima memória';
+  static const String memoryImportantPreviousSemantics = 'Memória anterior';
   static const String clientMemoryImportantLoadingLabel =
       'Carregando memórias importantes';
   static const String clientNextAppointmentLoadingLabel =

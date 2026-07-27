@@ -51,6 +51,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   late DateTime _selectedDay;
   var _isRefreshingAfterCreate = false;
   var _refreshAfterCreateFailed = false;
+  var _isOpeningAppointment = false;
   final _appointmentsScrollController = ScrollController();
   final _createdAppointmentHighlight = AgendaAppointmentHighlightController();
 
@@ -111,57 +112,64 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   Future<void> _openAppointmentDetails(
     AgendaAppointmentDisplay appointment,
   ) async {
-    final originalDay = AgendaDay.from(appointment.startAt);
+    if (_isOpeningAppointment) return;
 
-    final updatedResult = await openAgendaAppointmentFlow(
-      context: context,
-      ref: ref,
-      appointment: appointment,
-    );
+    _isOpeningAppointment = true;
+    try {
+      final originalDay = AgendaDay.from(appointment.startAt);
 
-    if (!mounted || updatedResult == null) return;
-
-    if (updatedResult is CompleteAppointmentFlowResult) {
-      await _handleCompletedAppointmentFlow(updatedResult);
-      return;
-    }
-
-    if (updatedResult is! Appointment) return;
-
-    final updatedAppointment = updatedResult;
-
-    final updatedDay = AgendaDay.from(updatedAppointment.startAt);
-
-    if (updatedAppointment.status == AppointmentStatus.completed) {
-      invalidateAppointmentAfterCompletion(
-        ref,
-        appointmentId: updatedAppointment.id,
-        clientId: appointment.clientId,
-        day: updatedAppointment.startAt,
+      final updatedResult = await openAgendaAppointmentFlow(
+        context: context,
+        ref: ref,
+        appointment: appointment,
       );
-      await _handleAppointmentStatusChange(day: updatedDay);
-      return;
-    }
 
-    if (updatedAppointment.status == AppointmentStatus.canceled) {
-      invalidateAppointmentAfterCancellation(
-        ref,
-        appointmentId: updatedAppointment.id,
-        clientId: appointment.clientId,
-        day: updatedAppointment.startAt,
-      );
-      await _handleAppointmentStatusChange(
-        day: updatedDay,
-        message: AppStrings.appointmentCancelSuccess,
-      );
-      return;
-    }
+      if (!mounted || updatedResult == null) return;
 
-    await _handleAppointmentUpdated(
-      originalDay: originalDay,
-      updatedAppointment: updatedAppointment,
-      originalClientId: appointment.clientId,
-    );
+      if (updatedResult is CompleteAppointmentFlowResult) {
+        await _handleCompletedAppointmentFlow(updatedResult);
+        return;
+      }
+
+      if (updatedResult is! Appointment) return;
+
+      final updatedAppointment = updatedResult;
+
+      final updatedDay = AgendaDay.from(updatedAppointment.startAt);
+
+      if (updatedAppointment.status == AppointmentStatus.completed) {
+        invalidateAppointmentAfterCompletion(
+          ref,
+          appointmentId: updatedAppointment.id,
+          clientId: appointment.clientId,
+          day: updatedAppointment.startAt,
+        );
+        await _handleAppointmentStatusChange(day: updatedDay);
+        return;
+      }
+
+      if (updatedAppointment.status == AppointmentStatus.canceled) {
+        invalidateAppointmentAfterCancellation(
+          ref,
+          appointmentId: updatedAppointment.id,
+          clientId: appointment.clientId,
+          day: updatedAppointment.startAt,
+        );
+        await _handleAppointmentStatusChange(
+          day: updatedDay,
+          message: AppStrings.appointmentCancelSuccess,
+        );
+        return;
+      }
+
+      await _handleAppointmentUpdated(
+        originalDay: originalDay,
+        updatedAppointment: updatedAppointment,
+        originalClientId: appointment.clientId,
+      );
+    } finally {
+      _isOpeningAppointment = false;
+    }
   }
 
   Future<void> _handleCompletedAppointmentFlow(

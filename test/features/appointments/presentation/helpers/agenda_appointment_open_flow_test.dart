@@ -17,7 +17,10 @@ void main() {
 
     setUp(() {
       memoryRepository = _FakeClientMemoryRepository();
+      resetAgendaAppointmentOpenGuardForTest();
     });
+
+    tearDown(resetAgendaAppointmentOpenGuardForTest);
 
     AgendaAppointmentDisplay eligibleAppointment({
       AppointmentStatus status = AppointmentStatus.pending,
@@ -138,6 +141,72 @@ void main() {
       await pumpFlow(tester, appointment: appointment, now: DateTime.now());
 
       expect(appointment.status, AppointmentStatus.confirmed);
+    });
+
+    testWidgets('toques rápidos não empilham dois sheets de detalhes', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final appointment = AgendaAppointmentDisplay(
+        appointmentId: 'appointment-dup',
+        clientId: 'client-dup',
+        clientName: 'Cliente Duplicado',
+        servicesSummary: 'Corte',
+        startAt: now.add(const Duration(hours: 3)),
+        endAt: now.add(const Duration(hours: 4)),
+        status: AppointmentStatus.pending,
+      );
+
+      Object? secondResult = 'unset';
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            clientMemoryRepositoryProvider.overrideWithValue(memoryRepository),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        openAgendaAppointmentFlow(
+                          context: context,
+                          ref: ref,
+                          appointment: appointment,
+                          now: now,
+                        );
+                        openAgendaAppointmentFlow(
+                          context: context,
+                          ref: ref,
+                          appointment: appointment,
+                          now: now,
+                        ).then((result) => secondResult = result);
+                      },
+                      child: const Text('open-flow'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open-flow'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.byType(AppointmentDetailsBottomSheet), findsOneWidget);
+      expect(secondResult, isNull);
+      expect(isOpeningAgendaAppointmentForTest, isTrue);
+
+      Navigator.of(tester.element(find.byType(AppointmentDetailsBottomSheet)))
+          .pop();
+      await tester.pumpAndSettle();
+
+      expect(isOpeningAgendaAppointmentForTest, isFalse);
     });
   });
 }
