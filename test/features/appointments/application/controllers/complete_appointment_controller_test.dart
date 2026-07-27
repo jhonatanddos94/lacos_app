@@ -308,9 +308,10 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<void> delete(String appointmentId) {
-    throw UnimplementedError();
-  }
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) {

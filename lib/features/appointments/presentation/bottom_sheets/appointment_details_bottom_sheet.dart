@@ -245,6 +245,12 @@ class _AppointmentDetailsBottomSheetState
     if (!mounted) return;
 
     if (canceledAppointment != null) {
+      invalidateAppointmentAfterCancellation(
+        ref,
+        appointmentId: details.appointment.id,
+        clientId: details.client.id,
+        day: details.appointment.startAt,
+      );
       Navigator.of(context).pop(canceledAppointment);
       return;
     }
@@ -326,6 +332,8 @@ class _AppointmentDetailsBottomSheetState
         appointmentId: updatedAppointment.appointment.id,
         updatedDay: updatedAppointment.appointment.startAt,
         originalDay: appointment.startAt,
+        originalClientId: appointment.clientId,
+        updatedClientId: updatedAppointment.appointment.clientId,
       );
 
       if (!context.mounted) return;

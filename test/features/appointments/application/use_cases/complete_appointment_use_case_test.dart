@@ -60,6 +60,32 @@ void main() {
       },
     );
 
+    test(
+      'usa o mesmo instante para ServiceRecord e ServiceRecordServices criados',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentRepository.completedAppointment = _appointment(
+          status: AppointmentStatus.completed,
+        );
+
+        await useCase(_params());
+
+        final recordDraft = serviceRecordRepository.lastCreatedRecordDraft;
+        final serviceDrafts =
+            serviceRecordServiceRepository.lastCreatedServices;
+
+        expect(recordDraft, isNotNull);
+        expect(serviceDrafts, hasLength(2));
+        expect(recordDraft!.createdAt, recordDraft.updatedAt);
+
+        for (final service in serviceDrafts) {
+          expect(service.createdAt, service.updatedAt);
+          expect(service.createdAt, recordDraft.createdAt);
+          expect(service.updatedAt, recordDraft.updatedAt);
+        }
+      },
+    );
+
     test('conclui appointment, cria service record e services', () async {
       appointmentRepository.appointment = _appointment();
       appointmentRepository.completedAppointment = _appointment(
@@ -104,7 +130,7 @@ void main() {
     test(
       'lança AppointmentNotFoundException quando appointment não existe',
       () async {
-        appointmentRepository.appointment = null;
+        appointmentRepository.shouldThrowNotFoundOnFindById = true;
 
         await expectLater(
           useCase(_params()),
@@ -115,6 +141,14 @@ void main() {
         expect(serviceRecordServiceRepository.createManyCalls, 0);
       },
     );
+
+    test('propaga FormatException de findById como falha técnica', () async {
+      appointmentRepository.shouldThrowFormatExceptionOnFindById = true;
+
+      await expectLater(useCase(_params()), throwsA(isA<FormatException>()));
+      expect(appointmentRepository.completeCalls, 0);
+      expect(serviceRecordRepository.createCalls, 0);
+    });
 
     test(
       'lança AppointmentCannotCompleteException quando status é cancelado',
@@ -444,6 +478,8 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   Appointment? completedAppointment;
   var completeCalls = 0;
   var shouldFailOnComplete = false;
+  var shouldThrowNotFoundOnFindById = false;
+  var shouldThrowFormatExceptionOnFindById = false;
   final callLog = <String>[];
 
   @override
@@ -460,9 +496,15 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> findById(String appointmentId) async {
     callLog.add('findById');
+    if (shouldThrowNotFoundOnFindById) {
+      throw const AppointmentNotFoundException();
+    }
+    if (shouldThrowFormatExceptionOnFindById) {
+      throw const FormatException('Falha técnica ao carregar agendamento.');
+    }
     final current = appointment;
     if (current == null) {
-      throw StateError('Agendamento não encontrado.');
+      throw const AppointmentNotFoundException();
     }
     return current;
   }
@@ -482,9 +524,10 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<void> delete(String appointmentId) {
-    throw UnimplementedError();
-  }
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) {
@@ -511,6 +554,7 @@ class _FakeServiceRecordRepository implements ServiceRecordRepository {
   var shouldFailOnCreate = false;
   var failCreateOnceThenRecover = false;
   ServiceRecord? existingRecord;
+  ServiceRecord? lastCreatedRecordDraft;
   String? lastLegacyPrimaryServiceId;
   final callLog = <String>[];
 
@@ -522,6 +566,7 @@ class _FakeServiceRecordRepository implements ServiceRecordRepository {
     callLog.add('create');
     createCalls++;
     lastLegacyPrimaryServiceId = legacyPrimaryServiceId;
+    lastCreatedRecordDraft = record;
 
     if (failCreateOnceThenRecover) {
       failCreateOnceThenRecover = false;

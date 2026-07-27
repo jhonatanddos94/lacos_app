@@ -11,6 +11,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
+import 'package:lacos_app/features/clients/application/providers/client_next_appointment_providers.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
@@ -190,6 +191,103 @@ void main() {
     expect(serviceRecordByAppointmentCalls, 2);
     expect(serviceRecordsByClientCalls, 2);
   });
+
+  testWidgets('invalidateAppointmentAfterCreate invalida próximo atendimento', (
+    tester,
+  ) async {
+    var clientNextCalls = 0;
+    late WidgetRef widgetRef;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clientNextAppointmentProvider('client-1').overrideWith((ref) async {
+            clientNextCalls++;
+            return null;
+          }),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) {
+              widgetRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.runAsync(() async {
+      await widgetRef.read(clientNextAppointmentProvider('client-1').future);
+    });
+
+    expect(clientNextCalls, 1);
+
+    invalidateAppointmentAfterCreate(
+      widgetRef,
+      clientId: 'client-1',
+      day: DateTime(2026, 8, 22, 10),
+    );
+
+    await tester.runAsync(() async {
+      await widgetRef.read(clientNextAppointmentProvider('client-1').future);
+    });
+
+    expect(clientNextCalls, 2);
+  });
+
+  testWidgets(
+    'invalidateAppointmentAfterUpdate invalida clientes antigo e novo',
+    (tester) async {
+      final invalidatedClients = <String>[];
+      late WidgetRef widgetRef;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            clientNextAppointmentProvider('client-1').overrideWith((ref) async {
+              invalidatedClients.add('client-1');
+              return null;
+            }),
+            clientNextAppointmentProvider('client-2').overrideWith((ref) async {
+              invalidatedClients.add('client-2');
+              return null;
+            }),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                widgetRef = ref;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(clientNextAppointmentProvider('client-1').future);
+        await widgetRef.read(clientNextAppointmentProvider('client-2').future);
+      });
+
+      invalidatedClients.clear();
+
+      invalidateAppointmentAfterUpdate(
+        widgetRef,
+        appointmentId: 'appointment-1',
+        updatedDay: DateTime(2026, 8, 22, 10),
+        originalClientId: 'client-1',
+        updatedClientId: 'client-2',
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(clientNextAppointmentProvider('client-1').future);
+        await widgetRef.read(clientNextAppointmentProvider('client-2').future);
+      });
+
+      expect(invalidatedClients, containsAll(['client-1', 'client-2']));
+    },
+  );
 }
 
 class _FakeServiceRecordRepository implements ServiceRecordRepository {

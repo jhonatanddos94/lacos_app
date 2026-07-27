@@ -5,4 +5,10 @@ abstract final class AppEnvironment {
   static const parseClientKey = 'BsYEXvMqMXO3ltsjAVZSSJAazPM33alWiOVVfz4i';
 
   static const parseServerUrl = 'https://parseapi.back4app.com';
+
+  /// Versão reportada ao Cloud Code (`exchangeSession`). Override via dart-define.
+  static const appVersion = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: '1.0.0',
+  );
 }

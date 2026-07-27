@@ -18,7 +18,10 @@ import 'package:lacos_app/features/appointments/domain/services/availability_eng
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
+import 'package:lacos_app/features/services/application/providers/service_providers.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 
 void main() {
@@ -106,6 +109,216 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(formatAppointmentDateLabel(agendaDate)), findsNothing);
+    });
+  });
+
+  group('AppointmentFormBottomSheet initialClient', () {
+    late CreateAppointmentUseCase useCase;
+
+    setUp(() {
+      useCase = CreateAppointmentUseCase(
+        appointmentRepository: _FakeAppointmentRepository(),
+        appointmentServiceRepository: _FakeAppointmentServiceRepository(),
+        availabilityEngine: const AvailabilityEngine(),
+      );
+    });
+
+    Future<void> pumpForm(
+      WidgetTester tester, {
+      Client? initialClient,
+      AppointmentFormMode mode = AppointmentFormMode.create,
+      AppointmentDetails? initialData,
+      Key? formKey,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            createAppointmentUseCaseProvider.overrideWithValue(useCase),
+            appointmentsByDayProvider.overrideWith(
+              (ref, day) async => const [],
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                height: 900,
+                width: 420,
+                child: AppointmentFormBottomSheet(
+                  key: formKey,
+                  mode: mode,
+                  initialClient: initialClient,
+                  initialData: initialData,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+    }
+
+    testWidgets('create sem initialClient exige seleção manual de cliente', (
+      tester,
+    ) async {
+      await pumpForm(tester);
+
+      expect(
+        find.text(AppStrings.appointmentChooseClientPrompt),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('create com initialClient exibe cliente selecionada', (
+      tester,
+    ) async {
+      await pumpForm(tester, initialClient: _initialClient());
+
+      expect(find.text('Maria Silva'), findsOneWidget);
+      expect(find.text(AppStrings.appointmentChooseClientPrompt), findsNothing);
+    });
+
+    testWidgets('edit mode ignora initialClient', (tester) async {
+      await pumpForm(
+        tester,
+        mode: AppointmentFormMode.edit,
+        initialClient: _alternateClient(),
+        initialData: _appointmentDetails(startAt: DateTime(2026, 7, 12, 14)),
+      );
+
+      expect(find.text('Maria Silva'), findsOneWidget);
+      expect(find.text('João Souza'), findsNothing);
+    });
+
+    testWidgets('nova abertura reaplica initialClient sem estado anterior', (
+      tester,
+    ) async {
+      await pumpForm(
+        tester,
+        initialClient: _initialClient(),
+        formKey: const ValueKey('form-1'),
+      );
+      expect(find.text('Maria Silva'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+
+      await pumpForm(
+        tester,
+        initialClient: _alternateClient(),
+        formKey: const ValueKey('form-2'),
+      );
+
+      expect(find.text('João Souza'), findsOneWidget);
+      expect(find.text('Maria Silva'), findsNothing);
+    });
+
+    testWidgets('cliente inicial pode ser trocada pelo picker', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            createAppointmentUseCaseProvider.overrideWithValue(useCase),
+            appointmentsByDayProvider.overrideWith(
+              (ref, day) async => const [],
+            ),
+            clientsProvider.overrideWith(
+              (ref) async => [_initialClient(), _alternateClient()],
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                height: 900,
+                width: 420,
+                child: AppointmentFormBottomSheet(
+                  initialClient: _initialClient(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Maria Silva'), findsOneWidget);
+
+      await tester.tap(find.text('Maria Silva'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('João Souza'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('João Souza'), findsOneWidget);
+      expect(find.text('Maria Silva'), findsNothing);
+    });
+
+    testWidgets('submit envia clientId da initialClient', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(420, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final appointmentRepository = _RecordingAppointmentRepository();
+      final createUseCase = CreateAppointmentUseCase(
+        appointmentRepository: appointmentRepository,
+        appointmentServiceRepository: _FakeAppointmentServiceRepository(),
+        availabilityEngine: const AvailabilityEngine(),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
+            appointmentsByDayProvider.overrideWith(
+              (ref, day) async => const [],
+            ),
+            professionalsProvider.overrideWith(
+              (ref) async => [_formProfessional()],
+            ),
+            servicesProvider.overrideWith((ref) async => [_formService()]),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: AppointmentFormBottomSheet(initialClient: _initialClient()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final professionalPrompt = find.text(
+        AppStrings.appointmentChooseProfessionalPrompt,
+      );
+      await tester.ensureVisible(professionalPrompt);
+      await tester.tap(professionalPrompt);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ana Profissional'));
+      await tester.pumpAndSettle();
+
+      final addService = find.text(AppStrings.appointmentAddServicePrompt);
+      await tester.ensureVisible(addService);
+      await tester.tap(addService);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Corte'));
+      await tester.pumpAndSettle();
+
+      final tomorrowChip = find.text(AppStrings.appointmentDateTomorrow);
+      await tester.ensureVisible(tomorrowChip);
+      await tester.tap(tomorrowChip);
+      await tester.pumpAndSettle();
+
+      final timeSlot = find.text('10:00');
+      await tester.ensureVisible(timeSlot);
+      await tester.tap(timeSlot);
+      await tester.pumpAndSettle();
+
+      final saveButton = find.text(AppStrings.appointmentFormCreateAction);
+      await tester.ensureVisible(saveButton);
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
+
+      expect(appointmentRepository.lastCreatedClientId, 'client-1');
     });
   });
 
@@ -304,6 +517,120 @@ AppointmentDetails _appointmentDetails({required DateTime startAt}) {
   );
 }
 
+Client _initialClient() {
+  final now = DateTime(2026, 7, 7, 10);
+
+  return Client(
+    id: 'client-1',
+    name: 'Maria Silva',
+    phone: '11999999999',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+Client _alternateClient() {
+  final now = DateTime(2026, 7, 7, 10);
+
+  return Client(
+    id: 'client-2',
+    name: 'João Souza',
+    phone: '11988888888',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+Professional _formProfessional() {
+  final now = DateTime(2026, 7, 7, 10);
+
+  return Professional(
+    id: 'professional-1',
+    name: 'Ana Profissional',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+Service _formService() {
+  final now = DateTime(2026, 7, 7, 10);
+
+  return Service(
+    id: 'service-1',
+    name: 'Corte',
+    durationMinutes: 60,
+    price: 80,
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+class _RecordingAppointmentRepository implements AppointmentRepository {
+  String? lastCreatedClientId;
+
+  @override
+  Future<Appointment> create(Appointment appointment) async {
+    lastCreatedClientId = appointment.clientId;
+    return Appointment(
+      id: 'appointment-1',
+      salonId: appointment.salonId,
+      ownerId: appointment.ownerId,
+      clientId: appointment.clientId,
+      professionalId: appointment.professionalId,
+      startAt: appointment.startAt,
+      endAt: appointment.endAt,
+      status: appointment.status,
+      notes: appointment.notes,
+      isActive: appointment.isActive,
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+    );
+  }
+
+  @override
+  Future<Appointment> cancel({
+    required String appointmentId,
+    required AppointmentCanceledBy canceledBy,
+    String? cancellationReason,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Appointment> complete(String appointmentId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
+
+  @override
+  Future<List<Appointment>> findByDay(DateTime day) async => const [];
+
+  @override
+  Future<Set<DateTime>> findActiveAppointmentDaysInRange({
+    required DateTime start,
+    required DateTime end,
+  }) async => const {};
+
+  @override
+  Future<Appointment> findById(String appointmentId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Appointment> update(Appointment appointment) {
+    throw UnimplementedError();
+  }
+}
+
 class _FakeAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> cancel({
@@ -320,12 +647,13 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> create(Appointment appointment) {
-    throw UnimplementedError();
-  }
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
 
   @override
-  Future<void> delete(String appointmentId) {
+  Future<Appointment> create(Appointment appointment) {
     throw UnimplementedError();
   }
 
@@ -429,12 +757,13 @@ class _FakeUpdateAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<Appointment> create(Appointment appointment) {
-    throw UnimplementedError();
-  }
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
 
   @override
-  Future<void> delete(String appointmentId) {
+  Future<Appointment> create(Appointment appointment) {
     throw UnimplementedError();
   }
 }

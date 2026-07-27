@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/session/application/providers/session_providers.dart';
+import 'package:lacos_app/core/session/domain/exceptions/auth_session_exception.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
 import 'package:lacos_app/features/auth/domain/entities/authenticated_user.dart';
@@ -61,7 +62,13 @@ class AuthController extends Notifier<AuthState> {
       final user = await ref
           .read(authRepositoryProvider)
           .signIn(email: email, password: password);
-      await ref.read(sessionRepositoryProvider).syncAuthenticatedUser();
+
+      // Com exchange ON, Parse só após e-mail verificado (contrato Cloud Code).
+      // Com legado, mantém sync imediato (comportamento existente).
+      if (_shouldSyncParseAfterAuth(user)) {
+        await ref.read(sessionRepositoryProvider).syncAuthenticatedUser();
+      }
+
       state = AuthAuthenticated(user);
     } on Object catch (error) {
       state = AuthError(_resolveErrorMessage(error));
@@ -83,13 +90,15 @@ class AuthController extends Notifier<AuthState> {
         password: password,
       );
 
-      try {
-        await sessionRepository.syncAuthenticatedUser();
-      } on Object catch (error) {
-        await _rollbackCreatedAccount(authRepository, error);
-        throw const FormatException(
-          'Não foi possível finalizar seu cadastro. Tente novamente.',
-        );
+      if (_shouldSyncParseAfterAuth(user)) {
+        try {
+          await sessionRepository.syncAuthenticatedUser();
+        } on Object catch (error) {
+          await _rollbackCreatedAccount(authRepository, error);
+          throw const FormatException(
+            'Não foi possível finalizar seu cadastro. Tente novamente.',
+          );
+        }
       }
 
       await authRepository.sendEmailVerification();
@@ -124,18 +133,43 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Logout: Parse → Firebase → invalidar workspace.
+  /// Se uma etapa falhar, tenta completar as demais.
   Future<bool> signOut() async {
     state = const AuthLoading();
 
+    Object? firstError;
+
+    try {
+      await ref.read(sessionRepositoryProvider).signOut();
+    } on Object catch (error) {
+      firstError = error;
+      _debugLog('Parse signOut failed: $error');
+    }
+
     try {
       await ref.read(authRepositoryProvider).signOut();
-      await ref.read(sessionRepositoryProvider).signOut();
-      ref.invalidate(workspaceProvider);
-      return true;
     } on Object catch (error) {
-      state = AuthError(_resolveLogoutErrorMessage(error));
+      firstError ??= error;
+      _debugLog('Firebase signOut failed: $error');
+    }
+
+    ref.invalidate(workspaceProvider);
+
+    if (firstError != null) {
+      state = AuthError(_resolveLogoutErrorMessage(firstError));
       return false;
     }
+
+    return true;
+  }
+
+  bool _shouldSyncParseAfterAuth(AuthenticatedUser user) {
+    final useExchange = ref.read(authFeatureFlagsProvider);
+    if (!useExchange) {
+      return true;
+    }
+    return user.isEmailVerified;
   }
 
   Future<void> _rollbackCreatedAccount(
@@ -162,6 +196,7 @@ class AuthController extends Notifier<AuthState> {
 
 String _resolveErrorMessage(Object error) {
   return switch (error) {
+    AuthSessionException(:final message) => message,
     FormatException(message: final message) => message,
     StateError(message: final message) => message,
     _ => 'Não foi possível entrar. Tente novamente.',
@@ -170,6 +205,7 @@ String _resolveErrorMessage(Object error) {
 
 String _resolveLogoutErrorMessage(Object error) {
   return switch (error) {
+    AuthSessionException(:final message) => message,
     FormatException(message: final message) => message,
     StateError(message: final message) => message,
     _ => AppStrings.logoutError,

@@ -33,6 +33,13 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Cloud Code
+cloud/node_modules/
+cloud/coverage/
+cloud/.env
+cloud/.env.*
+!cloud/.env.example
+
 # Symbolication related
 app.*.symbols
 

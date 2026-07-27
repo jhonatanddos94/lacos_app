@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_params.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
@@ -28,7 +26,7 @@ class CompleteAppointmentUseCase {
   final ClientMemoryRepository _clientMemoryRepository;
 
   Future<ServiceRecord> call(CompleteAppointmentParams params) async {
-    debugPrint('[AppointmentComplete] usecase start');
+    final now = DateTime.now();
 
     final appointment = await _findAppointment(params.appointmentId);
     _validateAppointmentForCompletion(appointment, params);
@@ -36,11 +34,13 @@ class CompleteAppointmentUseCase {
     final serviceRecord = await _resolveServiceRecord(
       appointment: appointment,
       params: params,
+      now: now,
     );
 
     await _ensureServiceRecordServices(
       serviceRecord: serviceRecord,
       params: params,
+      now: now,
     );
 
     await _completeAppointmentIfNeeded(
@@ -50,7 +50,6 @@ class CompleteAppointmentUseCase {
 
     await _markMentionedMemories(params.mentionedMemoryIds);
 
-    debugPrint('[AppointmentComplete] success');
     return serviceRecord;
   }
 
@@ -90,19 +89,19 @@ class CompleteAppointmentUseCase {
   Future<ServiceRecord> _resolveServiceRecord({
     required Appointment appointment,
     required CompleteAppointmentParams params,
+    required DateTime now,
   }) async {
     final existingRecord = await _serviceRecordRepository.findByAppointmentId(
       appointment.id,
     );
     if (existingRecord != null) {
-      debugPrint('[AppointmentComplete] service record already exists');
       return existingRecord;
     }
 
-    debugPrint('[AppointmentComplete] service record create start');
     final serviceRecordDraft = _buildServiceRecord(
       appointment: appointment,
       params: params,
+      now: now,
     );
 
     try {
@@ -114,9 +113,6 @@ class CompleteAppointmentUseCase {
       final recoveredRecord = await _serviceRecordRepository
           .findByAppointmentId(appointment.id);
       if (recoveredRecord != null) {
-        debugPrint(
-          '[AppointmentComplete] service record recovered after create',
-        );
         return recoveredRecord;
       }
       rethrow;
@@ -126,10 +122,12 @@ class CompleteAppointmentUseCase {
   Future<void> _ensureServiceRecordServices({
     required ServiceRecord serviceRecord,
     required CompleteAppointmentParams params,
+    required DateTime now,
   }) async {
     final expectedServices = _buildServiceRecordServices(
       serviceRecord: serviceRecord,
       params: params,
+      now: now,
     );
 
     if (expectedServices.isEmpty) {
@@ -150,7 +148,6 @@ class CompleteAppointmentUseCase {
       return;
     }
 
-    debugPrint('[AppointmentComplete] service record services create start');
     await _serviceRecordServiceRepository.createMany(
       serviceRecordId: serviceRecord.id,
       services: missingServices,
@@ -173,9 +170,7 @@ class CompleteAppointmentUseCase {
     // Quando houver suporte transacional,
     // concluir Appointment e criar ServiceRecord
     // dentro de uma única transação.
-    debugPrint('[AppointmentComplete] repository complete start');
     await _appointmentRepository.complete(appointmentId);
-    debugPrint('[AppointmentComplete] repository complete saved');
   }
 
   Future<void> _markMentionedMemories(List<String> memoryIds) async {
@@ -185,27 +180,20 @@ class CompleteAppointmentUseCase {
 
     try {
       await _clientMemoryRepository.touchMentioned(memoryIds: memoryIds);
-    } on Object catch (error) {
-      debugPrint('[AppointmentComplete] touchMentioned failed: $error');
+    } on Object catch (_) {
+      // Best effort: falha ao marcar memórias não invalida a conclusão.
     }
   }
 
   Future<Appointment> _findAppointment(String appointmentId) async {
-    try {
-      return await _appointmentRepository.findById(appointmentId);
-    } on StateError {
-      throw const AppointmentNotFoundException();
-    } on FormatException {
-      throw const AppointmentNotFoundException();
-    }
+    return _appointmentRepository.findById(appointmentId);
   }
 
   ServiceRecord _buildServiceRecord({
     required Appointment appointment,
     required CompleteAppointmentParams params,
+    required DateTime now,
   }) {
-    final now = DateTime.now();
-
     return ServiceRecord(
       id: '',
       appointmentId: appointment.id,
@@ -228,9 +216,8 @@ class CompleteAppointmentUseCase {
   List<ServiceRecordService> _buildServiceRecordServices({
     required ServiceRecord serviceRecord,
     required CompleteAppointmentParams params,
+    required DateTime now,
   }) {
-    final now = DateTime.now();
-
     return params.services
         .map(
           (service) => ServiceRecordService(

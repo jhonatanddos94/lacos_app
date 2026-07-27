@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_memory_highlights_section.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
@@ -44,6 +47,10 @@ void main() {
       expect(find.text(AppStrings.memoryImportantTitle), findsOneWidget);
       expect(find.text('Prefere água morna'), findsOneWidget);
       expect(find.text(AppStrings.memoryImportantViewAll), findsOneWidget);
+      expect(
+        find.byKey(ClientMemoryHighlightsSection.memorySkeletonLineKey),
+        findsNothing,
+      );
     });
 
     testWidgets('seção permanece oculta quando não há memória válida', (
@@ -55,6 +62,113 @@ void main() {
 
       expect(find.text(AppStrings.memoryImportantTitle), findsNothing);
       expect(find.text(AppStrings.memoryImportantViewAll), findsNothing);
+    });
+
+    testWidgets('loading exibe título e skeleton sem spinner', (tester) async {
+      final completer = Completer<List<ClientMemory>>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            clientMemoriesProvider('client-1').overrideWith((ref) {
+              return completer.future;
+            }),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ClientMemoryHighlightsSection(
+                clientId: 'client-1',
+                onViewAll: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text(AppStrings.memoryImportantTitle), findsOneWidget);
+      expect(
+        find.byKey(ClientMemoryHighlightsSection.memorySkeletonLineKey),
+        findsOneWidget,
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text(AppStrings.memoryImportantViewAll), findsNothing);
+    });
+
+    testWidgets('erro exibe retry e remove skeleton', (tester) async {
+      var loadCount = 0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            clientMemoriesProvider('client-1').overrideWith((ref) async {
+              loadCount++;
+              if (loadCount == 1) {
+                throw StateError('Falha simulada');
+              }
+              return const [];
+            }),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ClientMemoryHighlightsSection(
+                clientId: 'client-1',
+                onViewAll: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(AppStrings.clientMemoriesLoadError), findsOneWidget);
+      expect(find.text(AppStrings.tryAgain), findsOneWidget);
+      expect(
+        find.byKey(ClientMemoryHighlightsSection.memorySkeletonLineKey),
+        findsNothing,
+      );
+
+      await tester.tap(find.text(AppStrings.tryAgain));
+      await tester.pumpAndSettle();
+
+      expect(loadCount, 2);
+    });
+
+    testWidgets('skeleton respeita largura reduzida e text scale', (
+      tester,
+    ) async {
+      final completer = Completer<List<ClientMemory>>();
+
+      await tester.binding.setSurfaceSize(const Size(320, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
+          child: ProviderScope(
+            overrides: [
+              clientMemoriesProvider('client-1').overrideWith((ref) {
+                return completer.future;
+              }),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: ClientMemoryHighlightsSection(
+                  clientId: 'client-1',
+                  onViewAll: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(ClientMemoryHighlightsSection.memorySkeletonLineKey),
+        findsOneWidget,
+      );
     });
   });
 }

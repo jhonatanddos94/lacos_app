@@ -6,6 +6,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 
 void main() {
@@ -84,6 +85,17 @@ void main() {
         AppStrings.appointmentCannotCancelCompleted,
       );
     });
+
+    test('mapeia AppointmentNotFoundException', () async {
+      repository.shouldThrowNotFoundOnFindById = true;
+      controller.setCanceledBy(AppointmentCanceledBy.client);
+
+      final result = await controller.cancel('appointment-1');
+
+      expect(result, isNull);
+      expect(controller.state.errorMessage, AppStrings.appointmentNotFound);
+      expect(repository.cancelCalls, 0);
+    });
   });
 }
 
@@ -110,6 +122,7 @@ Appointment _appointment({
 class _FakeAppointmentRepository implements AppointmentRepository {
   Appointment? appointment;
   var cancelCalls = 0;
+  var shouldThrowNotFoundOnFindById = false;
   AppointmentCanceledBy? lastCanceledBy;
   String? lastCancellationReason;
   Future<void>? cancelDelay;
@@ -138,9 +151,10 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<void> delete(String appointmentId) {
-    throw UnimplementedError();
-  }
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async => null;
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) {
@@ -157,6 +171,9 @@ class _FakeAppointmentRepository implements AppointmentRepository {
 
   @override
   Future<Appointment> findById(String appointmentId) async {
+    if (shouldThrowNotFoundOnFindById) {
+      throw const AppointmentNotFoundException();
+    }
     final current = appointment;
     if (current == null) {
       throw StateError('Agendamento não encontrado.');

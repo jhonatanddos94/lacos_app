@@ -1,6 +1,5 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
@@ -10,6 +9,7 @@ import 'package:lacos_app/features/appointments/domain/exceptions/appointment_ex
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/infrastructure/errors/parse_appointment_error_mapper.dart';
 import 'package:lacos_app/features/appointments/infrastructure/mappers/appointment_mapper.dart';
+import 'package:lacos_app/features/salon/domain/entities/salon.dart';
 import 'package:lacos_app/features/salon/domain/repositories/salon_repository.dart';
 
 class ParseAppointmentRepository implements AppointmentRepository {
@@ -32,12 +32,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
   @override
   Future<List<Appointment>> findByDay(DateTime day) async {
     try {
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
       final dayStart = DateTime(day.year, day.month, day.day);
       final dayEnd = dayStart.add(const Duration(days: 1));
@@ -51,9 +46,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
             ..orderByAscending('startAt');
 
       final response = await query.query<ParseObject>();
-      if (!response.success) {
-        throw FormatException(_errorMapper.toMessage(response.error));
-      }
+      _throwIfQueryFailed(response);
 
       final results = response.results;
       if (results == null || results.isEmpty) {
@@ -85,12 +78,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
     required DateTime end,
   }) async {
     try {
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
       final rangeStart = DateTime(start.year, start.month, start.day);
       final rangeEnd = DateTime(
@@ -108,9 +96,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
             ..orderByAscending('startAt');
 
       final response = await query.query<ParseObject>();
-      if (!response.success) {
-        throw FormatException(_errorMapper.toMessage(response.error));
-      }
+      _throwIfQueryFailed(response);
 
       final results = response.results;
       if (results == null || results.isEmpty) {
@@ -159,12 +145,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
         );
       }
 
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
       final owner = ParseUser.forQuery()..objectId = currentUser.objectId;
       final parseAppointment = ParseObject(_appointmentClassName)
@@ -186,11 +167,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
       }
 
       final response = await parseAppointment.save();
-      if (!response.success) {
-        throw FormatException(
-          _errorMapper.toMessage(response.error, forSave: true),
-        );
-      }
+      _throwIfSaveFailed(response);
 
       return _mapper.toDomain(parseAppointment);
     } on StateError {
@@ -210,23 +187,18 @@ class ParseAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> findById(String appointmentId) async {
     try {
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
-      final parseAppointment = await _fetchParseAppointment(appointmentId);
+      final parseAppointment = await _fetchParseAppointmentById(appointmentId);
       final appointment = _mapper.toDomain(parseAppointment);
 
       if (appointment.salonId != salon.id) {
-        throw StateError(
-          'Não foi possível carregar o agendamento. Tente novamente.',
-        );
+        throw const AppointmentNotFoundException();
       }
 
       return appointment;
+    } on AppointmentNotFoundException {
+      rethrow;
     } on StateError {
       rethrow;
     } on FormatException {
@@ -248,20 +220,13 @@ class ParseAppointmentRepository implements AppointmentRepository {
     String? cancellationReason,
   }) async {
     try {
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
-      final parseAppointment = await _fetchParseAppointment(appointmentId);
+      final parseAppointment = await _fetchParseAppointmentById(appointmentId);
       final appointment = _mapper.toDomain(parseAppointment);
 
       if (appointment.salonId != salon.id) {
-        throw StateError(
-          'Não foi possível cancelar o agendamento. Tente novamente.',
-        );
+        throw const AppointmentNotFoundException();
       }
 
       if (appointment.status == AppointmentStatus.completed) {
@@ -280,16 +245,14 @@ class ParseAppointmentRepository implements AppointmentRepository {
       );
 
       final response = await parseAppointment.save();
-      if (!response.success) {
-        throw FormatException(
-          _errorMapper.toMessage(response.error, forSave: true),
-        );
-      }
+      _throwIfSaveFailed(response);
 
       return _mapper.toDomain(parseAppointment);
     } on AppointmentAlreadyCanceledException {
       rethrow;
     } on AppointmentCannotCancelCompletedException {
+      rethrow;
+    } on AppointmentNotFoundException {
       rethrow;
     } on StateError {
       rethrow;
@@ -308,17 +271,9 @@ class ParseAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> complete(String appointmentId) async {
     try {
-      debugPrint('[AppointmentComplete] repository complete start');
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
-      final parseAppointment = await _fetchParseAppointmentForComplete(
-        appointmentId,
-      );
+      final parseAppointment = await _fetchParseAppointmentById(appointmentId);
       final appointment = _mapper.toDomain(parseAppointment);
 
       if (appointment.salonId != salon.id) {
@@ -326,9 +281,6 @@ class ParseAppointmentRepository implements AppointmentRepository {
       }
 
       if (appointment.status == AppointmentStatus.completed) {
-        debugPrint(
-          '[AppointmentComplete] repository complete already completed',
-        );
         return appointment;
       }
 
@@ -342,13 +294,8 @@ class ParseAppointmentRepository implements AppointmentRepository {
         ..set<DateTime>('completedAt', completedAt);
 
       final response = await parseAppointment.save();
-      if (!response.success) {
-        throw FormatException(
-          _errorMapper.toMessage(response.error, forSave: true),
-        );
-      }
+      _throwIfSaveFailed(response);
 
-      debugPrint('[AppointmentComplete] repository complete saved');
       return _mapper.toDomain(parseAppointment);
     } on AppointmentNotFoundException {
       rethrow;
@@ -371,14 +318,9 @@ class ParseAppointmentRepository implements AppointmentRepository {
   @override
   Future<Appointment> update(Appointment appointment) async {
     try {
-      final salon = await _salonRepository.getCurrentSalon();
-      if (salon == null) {
-        throw StateError(
-          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
-        );
-      }
+      final salon = await _requireCurrentSalon();
 
-      final parseAppointment = await _fetchParseAppointment(appointment.id);
+      final parseAppointment = await _fetchParseAppointmentById(appointment.id);
       final existingAppointment = _mapper.toDomain(parseAppointment);
 
       if (existingAppointment.salonId != salon.id) {
@@ -405,11 +347,7 @@ class ParseAppointmentRepository implements AppointmentRepository {
       );
 
       final response = await parseAppointment.save();
-      if (!response.success) {
-        throw FormatException(
-          _errorMapper.toMessage(response.error, forSave: true),
-        );
-      }
+      _throwIfSaveFailed(response);
 
       return _mapper.toDomain(parseAppointment);
     } on AppointmentCannotEditException {
@@ -431,8 +369,77 @@ class ParseAppointmentRepository implements AppointmentRepository {
   }
 
   @override
-  Future<void> delete(String appointmentId) {
-    throw UnimplementedError('delete() será implementado em etapa futura.');
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  }) async {
+    if (clientId.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final salon = await _requireCurrentSalon();
+
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentClassName))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('client', _clientPointer(clientId))
+            ..whereEqualTo('isActive', true)
+            ..whereContainedIn('status', [
+              AppointmentStatus.pending.toParse(),
+              AppointmentStatus.confirmed.toParse(),
+            ])
+            ..whereGreaterThan('endAt', now)
+            ..orderByAscending('startAt')
+            ..setLimit(1);
+
+      final response = await query.query<ParseObject>();
+      _throwIfQueryFailed(response);
+
+      final results = response.results;
+      if (results == null || results.isEmpty) {
+        return null;
+      }
+
+      return _mapper.toDomain(results.first as ParseObject);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback:
+              'Não foi possível carregar os agendamentos. Tente novamente.',
+        ),
+      );
+    }
+  }
+
+  Future<Salon> _requireCurrentSalon() async {
+    final salon = await _salonRepository.getCurrentSalon();
+    if (salon == null) {
+      throw StateError(
+        'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+      );
+    }
+
+    return salon;
+  }
+
+  void _throwIfQueryFailed(ParseResponse response) {
+    if (!response.success) {
+      throw FormatException(_errorMapper.toMessage(response.error));
+    }
+  }
+
+  void _throwIfSaveFailed(ParseResponse response) {
+    if (!response.success) {
+      throw FormatException(
+        _errorMapper.toMessage(response.error, forSave: true),
+      );
+    }
   }
 
   ParseObject _clientPointer(String clientId) {
@@ -447,26 +454,17 @@ class ParseAppointmentRepository implements AppointmentRepository {
     return ParseObject(_salonClassName)..objectId = salonId;
   }
 
-  Future<ParseObject> _fetchParseAppointment(String appointmentId) async {
-    return _fetchParseAppointmentById(appointmentId);
-  }
-
-  Future<ParseObject> _fetchParseAppointmentForComplete(
-    String appointmentId,
-  ) async {
-    try {
-      return await _fetchParseAppointmentById(appointmentId);
-    } on FormatException {
+  Future<ParseObject> _fetchParseAppointmentById(String appointmentId) async {
+    if (appointmentId.trim().isEmpty) {
       throw const AppointmentNotFoundException();
     }
-  }
 
-  Future<ParseObject> _fetchParseAppointmentById(String appointmentId) async {
     final parseAppointment = ParseObject(_appointmentClassName)
       ..objectId = appointmentId;
 
+    ParseResponse response;
     try {
-      await parseAppointment.fetch();
+      response = await parseAppointment.getObject(appointmentId);
     } on Object catch (error) {
       throw FormatException(
         ParseTemporaryErrorMapper.messageForThrowable(
@@ -476,6 +474,37 @@ class ParseAppointmentRepository implements AppointmentRepository {
       );
     }
 
-    return parseAppointment;
+    if (response.error?.code == ParseError.objectNotFound) {
+      throw const AppointmentNotFoundException();
+    }
+
+    if (!response.success) {
+      throw FormatException(_errorMapper.toMessage(response.error));
+    }
+
+    final results = response.results;
+    if (results == null || results.isEmpty) {
+      throw FormatException(
+        'Não foi possível carregar o agendamento. Tente novamente.',
+      );
+    }
+
+    final fetched = results.first as ParseObject;
+    if (!_isFetchedAppointmentHydrated(fetched)) {
+      throw FormatException(
+        'Não foi possível carregar o agendamento. Tente novamente.',
+      );
+    }
+
+    return fetched;
+  }
+
+  bool _isFetchedAppointmentHydrated(ParseObject object) {
+    return object.get<ParseObject>('salon')?.objectId?.isNotEmpty == true &&
+        object.get<ParseObject>('client')?.objectId?.isNotEmpty == true &&
+        object.get<ParseObject>('professional')?.objectId?.isNotEmpty == true &&
+        object.get<DateTime>('startAt') != null &&
+        object.get<DateTime>('endAt') != null &&
+        object.get<String>('status')?.isNotEmpty == true;
   }
 }

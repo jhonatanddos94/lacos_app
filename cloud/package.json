@@ -1,0 +1,23 @@
+{
+  "name": "lacos-cloud",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloud Code foundation for the Laços multi-tenant backend",
+  "main": "main.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "node tests/run.js",
+    "validate": "npm run lint && npm run test",
+    "test:staging": "node tests/staging/smoke.staging.js"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

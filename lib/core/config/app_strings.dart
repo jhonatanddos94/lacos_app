@@ -71,6 +71,7 @@ abstract final class AppStrings {
   static const String whatsapp = 'WhatsApp';
   static const String talk = 'Conversar';
   static const String schedule = 'Agendar';
+  static const String scheduleActionSubtitle = 'Novo horário';
   static const String newMemory = 'Nova memória';
   static const String memoryRegisterTitle = 'Registrar memória';
   static const String newMemorySubtitle =
@@ -151,6 +152,10 @@ abstract final class AppStrings {
   static const String memoryImportantRecentGroup = 'Mencionadas recentemente';
   static const String memoryImportantUsedAction = '✓ Utilizada';
   static const String memoryImportantViewAll = 'Ver todas →';
+  static const String clientMemoryImportantLoadingLabel =
+      'Carregando memórias importantes';
+  static const String clientNextAppointmentLoadingLabel =
+      'Carregando próximo atendimento';
   static const String deleteMemory = 'Excluir memória';
   static const String deleteMemoryTitle = 'Excluir memória?';
   static const String deleteMemoryMessage =
@@ -454,6 +459,22 @@ abstract final class AppStrings {
   static const String appointmentNotesMaxLengthError =
       'As observações devem ter no máximo 200 caracteres.';
   static const String clientNoNextAppointment = 'Nenhum atendimento agendado.';
+  static const String clientNextAppointmentEmpty =
+      'Nenhum próximo atendimento.';
+  static const String clientNextAppointmentLoadError =
+      'Não foi possível carregar o próximo atendimento.';
+  static const String clientNextAppointmentProfessionalUnavailable =
+      'Profissional não encontrado';
+  static const String clientNextAppointmentServicesUnavailable = 'Serviços';
+  static const String clientNextAppointmentSingleService = '1 serviço';
+  static String clientNextAppointmentMultipleServices(int count) =>
+      '$count serviços';
+  static String clientNextAppointmentServicesAndMore(
+    String firstServiceName,
+    int remainingCount,
+  ) => '$firstServiceName e mais $remainingCount';
+  static const String clientNextAppointmentOpenDetailsLabel =
+      'Abrir detalhes do próximo atendimento';
   static const String clientHistoryComingSoon =
       'Os atendimentos realizados aparecerão aqui com todos os detalhes.';
   static const String clientNextAppointmentComingSoon =

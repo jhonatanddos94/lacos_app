@@ -27,6 +27,11 @@ class FakeUnauthenticatedAuthRepository implements AuthRepository {
   Future<AuthenticatedUser?> reloadUser() async => null;
 
   @override
+  Future<String> getIdToken({bool forceRefresh = false}) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> sendEmailVerification() {
     throw UnimplementedError();
   }

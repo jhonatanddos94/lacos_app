@@ -22,7 +22,9 @@ final workspaceProvider = FutureProvider<Workspace?>((ref) async {
   final salonRepository = ref.watch(salonRepositoryProvider);
   final professionalRepository = ref.watch(professionalRepositoryProvider);
 
-  await sessionRepository.syncAuthenticatedUser();
+  // Restore/bootstrap: o coordenador reutiliza sessão Parse válida (evita
+  // exchange duplicado após login). forceRefresh só entra se precisar sync.
+  await sessionRepository.syncAuthenticatedUser(forceRefreshIdToken: true);
 
   final salon = await salonRepository.getCurrentSalon();
   final professional = salon == null

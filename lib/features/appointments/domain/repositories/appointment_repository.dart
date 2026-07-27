@@ -23,5 +23,8 @@ abstract interface class AppointmentRepository {
 
   Future<Appointment> complete(String appointmentId);
 
-  Future<void> delete(String appointmentId);
+  Future<Appointment?> findNextByClientId(
+    String clientId, {
+    required DateTime now,
+  });
 }

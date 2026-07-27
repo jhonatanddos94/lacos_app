@@ -133,11 +133,23 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     final updatedDay = AgendaDay.from(updatedAppointment.startAt);
 
     if (updatedAppointment.status == AppointmentStatus.completed) {
+      invalidateAppointmentAfterCompletion(
+        ref,
+        appointmentId: updatedAppointment.id,
+        clientId: appointment.clientId,
+        day: updatedAppointment.startAt,
+      );
       await _handleAppointmentStatusChange(day: updatedDay);
       return;
     }
 
     if (updatedAppointment.status == AppointmentStatus.canceled) {
+      invalidateAppointmentAfterCancellation(
+        ref,
+        appointmentId: updatedAppointment.id,
+        clientId: appointment.clientId,
+        day: updatedAppointment.startAt,
+      );
       await _handleAppointmentStatusChange(
         day: updatedDay,
         message: AppStrings.appointmentCancelSuccess,
@@ -148,6 +160,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     await _handleAppointmentUpdated(
       originalDay: originalDay,
       updatedAppointment: updatedAppointment,
+      originalClientId: appointment.clientId,
     );
   }
 
@@ -203,6 +216,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   Future<void> _handleAppointmentUpdated({
     required AgendaDay originalDay,
     required Appointment updatedAppointment,
+    required String originalClientId,
   }) async {
     final updatedDay = AgendaDay.from(updatedAppointment.startAt);
 
@@ -224,6 +238,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
         appointmentId: updatedAppointment.id,
         updatedDay: updatedAppointment.startAt,
         originalDay: originalDay.toDateTime(),
+        originalClientId: originalClientId,
+        updatedClientId: updatedAppointment.clientId,
       );
 
       await _refreshAppointmentsForDays([originalDay, updatedDay]);
@@ -323,6 +339,12 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     });
 
     try {
+      invalidateAppointmentAfterCreate(
+        ref,
+        clientId: createdAppointment.appointment.clientId,
+        day: createdAppointment.appointment.startAt,
+      );
+
       await _refreshAppointmentsForDay(createdDay);
       if (!mounted) return;
 

@@ -18,11 +18,14 @@ import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_memory_highlights_section.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_next_appointment_section.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
-import 'package:lacos_app/features/memories/application/models/client_memory_profile_preview.dart';
-import 'package:lacos_app/features/memories/presentation/widgets/client_memory_highlights_card.dart';
 import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
+import 'package:lacos_app/features/appointments/application/helpers/appointment_provider_invalidation.dart';
+import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
+import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 
 class ClientDetailsPage extends ConsumerStatefulWidget {
   const ClientDetailsPage({required this.client, super.key});
@@ -37,6 +40,7 @@ class ClientDetailsPage extends ConsumerStatefulWidget {
 
 class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   late Client _client;
+  var _isOpeningSchedule = false;
 
   @override
   void initState() {
@@ -132,6 +136,35 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
     _showMessage(AppStrings.memorySavedSuccess);
   }
 
+  Future<void> _openScheduleAppointment() async {
+    if (_isOpeningSchedule || _client.id.trim().isEmpty) return;
+
+    _isOpeningSchedule = true;
+    try {
+      final createdAppointment = await showModalBottomSheet<CreatedAppointment>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
+        builder: (context) =>
+            AppointmentFormBottomSheet(initialClient: _client),
+      );
+
+      if (!mounted || createdAppointment == null) return;
+
+      invalidateAppointmentAfterCreate(
+        ref,
+        clientId: createdAppointment.appointment.clientId,
+        day: createdAppointment.appointment.startAt,
+      );
+
+      _showMessage(AppStrings.appointmentCreatedSuccess);
+    } finally {
+      _isOpeningSchedule = false;
+    }
+  }
+
   Future<void> _openDeleteClientDialog() async {
     final deleted = await showDialog<bool>(
       context: context,
@@ -151,9 +184,6 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final isPhotoLoading = ref.watch(clientFormControllerProvider).isLoading;
-    final profilePreview = ref.watch(
-      clientMemoryProfilePreviewProvider(_client.id),
-    );
 
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
@@ -181,26 +211,18 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 onEdit: _openEditClientSheet,
                 onPhotoTap: _changeClientPhoto,
                 onNewMemory: _openNewMemorySheet,
+                onSchedule: _openScheduleAppointment,
                 isPhotoLoading: isPhotoLoading,
               ),
               const SizedBox(height: AppSpacing.sm),
               _ClientDataCard(client: _client),
               const SizedBox(height: AppSpacing.sm),
-              if (profilePreview.hasContent)
-                _ClientMemoryHighlightsPreviewSection(
-                  preview: profilePreview,
-                  onViewAll: () =>
-                      context.push(RoutePaths.clientMemories, extra: _client),
-                ),
-              if (profilePreview.hasContent)
-                const SizedBox(height: AppSpacing.sm),
-              const _HighlightSectionCard(
-                title: AppStrings.clientNextAppointment,
-                titleIcon: Icons.event_available_outlined,
-                emptyTitle: AppStrings.clientNoNextAppointment,
-                message: AppStrings.clientNextAppointmentComingSoon,
-                bodyIcon: Icons.event_note_outlined,
+              ClientMemoryHighlightsSection(
+                clientId: _client.id,
+                onViewAll: () =>
+                    context.push(RoutePaths.clientMemories, extra: _client),
               ),
+              ClientNextAppointmentSection(clientId: _client.id),
               const SizedBox(height: AppSpacing.sm),
               const _HighlightSectionCard(
                 title: AppStrings.clientServiceHistory,
@@ -227,6 +249,7 @@ class _ProfileCard extends StatelessWidget {
     required this.onEdit,
     required this.onPhotoTap,
     required this.onNewMemory,
+    required this.onSchedule,
     required this.isPhotoLoading,
   });
 
@@ -234,6 +257,7 @@ class _ProfileCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onPhotoTap;
   final VoidCallback onNewMemory;
+  final VoidCallback onSchedule;
   final bool isPhotoLoading;
 
   @override
@@ -307,6 +331,7 @@ class _ProfileCard extends StatelessWidget {
             client: client,
             onEdit: onEdit,
             onNewMemory: onNewMemory,
+            onSchedule: onSchedule,
           ),
         ],
       ),
@@ -348,11 +373,13 @@ class _QuickActions extends StatelessWidget {
     required this.client,
     required this.onEdit,
     required this.onNewMemory,
+    required this.onSchedule,
   });
 
   final Client client;
   final VoidCallback onEdit;
   final VoidCallback onNewMemory;
+  final VoidCallback onSchedule;
 
   @override
   Widget build(BuildContext context) {
@@ -373,8 +400,8 @@ class _QuickActions extends StatelessWidget {
             child: _QuickActionButton(
               icon: Icons.calendar_month_outlined,
               title: AppStrings.schedule,
-              subtitle: AppStrings.comingSoon,
-              onTap: () => _showMessage(context, AppStrings.openLinkComingSoon),
+              subtitle: AppStrings.scheduleActionSubtitle,
+              onTap: onSchedule,
             ),
           ),
           const VerticalDivider(width: 1, color: AppColors.divider),
@@ -974,34 +1001,6 @@ class _SoftChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ClientMemoryHighlightsPreviewSection extends StatelessWidget {
-  const _ClientMemoryHighlightsPreviewSection({
-    required this.preview,
-    required this.onViewAll,
-  });
-
-  final ClientMemoryProfilePreview preview;
-  final VoidCallback onViewAll;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: AppSpacing.paddingSm,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.borderMd,
-        boxShadow: AppShadows.level1,
-        border: Border.all(color: AppColors.purple100),
-      ),
-      child: ClientMemoryHighlightsPreviewCard(
-        preview: preview,
-        onViewAll: onViewAll,
       ),
     );
   }

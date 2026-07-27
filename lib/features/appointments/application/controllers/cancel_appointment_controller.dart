@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
@@ -45,7 +44,6 @@ class CancelAppointmentController
       return null;
     }
 
-    debugPrint('[AppointmentCancel] started');
     _submissionInFlight = true;
     state = state.copyWith(
       isLoading: true,
@@ -67,10 +65,8 @@ class CancelAppointmentController
         success: true,
         clearErrorMessage: true,
       );
-      debugPrint('[AppointmentCancel] success');
       return canceledAppointment;
     } on Object catch (error) {
-      debugPrint('[AppointmentCancel] failed: $error');
       state = state.copyWith(
         isLoading: false,
         success: false,
@@ -109,6 +105,7 @@ class CancelAppointmentController
     }
 
     return switch (error) {
+      AppointmentNotFoundException() => AppStrings.appointmentNotFound,
       AppointmentCannotCancelCompletedException() =>
         AppStrings.appointmentCannotCancelCompleted,
       AppointmentAlreadyCanceledException() =>

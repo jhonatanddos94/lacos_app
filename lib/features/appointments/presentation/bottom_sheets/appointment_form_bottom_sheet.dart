@@ -37,6 +37,7 @@ class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
     this.mode = AppointmentFormMode.create,
     this.initialData,
     this.initialDate,
+    this.initialClient,
     super.key,
   }) : assert(
          mode == AppointmentFormMode.create || initialData != null,
@@ -46,6 +47,7 @@ class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
   final AppointmentFormMode mode;
   final AppointmentDetails? initialData;
   final DateTime? initialDate;
+  final Client? initialClient;
 
   @override
   ConsumerState<AppointmentFormBottomSheet> createState() =>
@@ -101,6 +103,7 @@ class _AppointmentFormBottomSheetState
         mode: widget.mode,
         initialDate: widget.initialDate,
       );
+      _selectedClient = widget.initialClient;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

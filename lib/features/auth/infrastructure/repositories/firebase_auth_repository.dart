@@ -95,6 +95,25 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<String> getIdToken({bool forceRefresh = false}) async {
+    try {
+      final currentUser = _firebaseAuth.currentUser;
+      if (currentUser == null) {
+        throw StateError('Não encontramos uma sessão ativa. Entre novamente.');
+      }
+
+      final token = await currentUser.getIdToken(forceRefresh);
+      if (token == null || token.isEmpty) {
+        throw StateError('Não foi possível validar sua sessão. Tente novamente.');
+      }
+
+      return token;
+    } on FirebaseAuthException catch (error) {
+      throw FormatException(_errorMapper.toMessage(error.code));
+    }
+  }
+
+  @override
   Future<void> deleteCurrentUser() async {
     try {
       await _firebaseAuth.currentUser?.delete();
