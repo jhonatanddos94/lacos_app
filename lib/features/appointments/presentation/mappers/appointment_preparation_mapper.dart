@@ -7,6 +7,12 @@ import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 class AppointmentPreparationMapper {
   const AppointmentPreparationMapper._();
 
+  static AppointmentPreparationData fromDisplay(
+    AgendaAppointmentDisplay appointment,
+  ) {
+    return from(appointment: appointment, memories: const []);
+  }
+
   static AppointmentPreparationData from({
     required AgendaAppointmentDisplay appointment,
     required List<ClientMemory> memories,

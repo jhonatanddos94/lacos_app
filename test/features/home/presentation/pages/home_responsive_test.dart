@@ -14,6 +14,8 @@ import 'package:lacos_app/features/home/presentation/widgets/home_attention_sect
 import 'package:lacos_app/features/home/presentation/widgets/home_next_appointment_card.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_quick_actions_section.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_upcoming_days_section.dart';
+import 'package:lacos_app/features/services/application/providers/service_providers.dart';
+import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
 import 'package:lacos_app/features/shell/presentation/pages/app_shell_page.dart';
 
@@ -70,6 +72,7 @@ void main() {
             homeUpcomingDaysProvider.overrideWith(
               (ref) async => resolvedUpcomingDays,
             ),
+            servicesProvider.overrideWith((ref) async => const <Service>[]),
             ...extraOverrides,
           ],
           child: const MaterialApp(home: AppShellPage()),
@@ -85,7 +88,9 @@ void main() {
       expectNoRenderOverflow(tester);
     });
 
-    testWidgets('320x640 textScale 1.3 scroll até terceira linha', (tester) async {
+    testWidgets('320x640 textScale 1.3 scroll até terceira linha', (
+      tester,
+    ) async {
       await pumpCompactShell(tester, textScaler: TextScaler.linear(1.3));
 
       final thirdRow = find.byKey(
@@ -98,7 +103,9 @@ void main() {
       expect(rowBox.bottom, lessThan(navBarBox.top));
     });
 
-    testWidgets('320x640 textScale 1.3 linha clicável após scroll', (tester) async {
+    testWidgets('320x640 textScale 1.3 linha clicável após scroll', (
+      tester,
+    ) async {
       await pumpCompactShell(tester, textScaler: TextScaler.linear(1.3));
 
       final tomorrowRow = find.byKey(
@@ -119,11 +126,16 @@ void main() {
       expect(selected.day.day, 14);
     });
 
-    testWidgets('320x640 textScale 1.3 ações rápidas sem overflow', (tester) async {
+    testWidgets('320x640 textScale 1.3 ações rápidas sem overflow', (
+      tester,
+    ) async {
       await pumpCompactShell(tester, textScaler: TextScaler.linear(1.3));
 
       expect(find.byKey(HomeQuickActionsSection.sectionKey), findsOneWidget);
-      expect(find.text(AppStrings.homeQuickActionNewAppointment), findsOneWidget);
+      expect(
+        find.text(AppStrings.homeQuickActionNewAppointment),
+        findsOneWidget,
+      );
       expect(find.text(AppStrings.homeQuickActionNewClient), findsOneWidget);
       expect(find.text(AppStrings.homeQuickActionSearchClient), findsOneWidget);
       expectNoRenderOverflow(tester);
@@ -147,7 +159,9 @@ void main() {
       expect(selected.isToday, isTrue);
     });
 
-    testWidgets('320x640 textScale 1.5 estresse máximo realista', (tester) async {
+    testWidgets('320x640 textScale 1.5 estresse máximo realista', (
+      tester,
+    ) async {
       await pumpCompactShell(
         tester,
         textScaler: TextScaler.linear(1.5),

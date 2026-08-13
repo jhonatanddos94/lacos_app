@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
@@ -21,7 +20,6 @@ void resetAgendaAppointmentOpenGuardForTest() {
 
 Future<Object?> openAgendaAppointmentFlow({
   required BuildContext context,
-  required WidgetRef ref,
   required AgendaAppointmentDisplay appointment,
   DateTime? now,
 }) async {
@@ -33,16 +31,16 @@ Future<Object?> openAgendaAppointmentFlow({
 
   try {
     final referenceNow = now ?? DateTime.now();
-
-    if (AppointmentPreparationEligibility.isEligible(
+    final isEligible = AppointmentPreparationEligibility.isEligible(
       status: appointment.status,
       startAt: appointment.startAt,
       endAt: appointment.endAt,
       now: referenceNow,
-    )) {
+    );
+
+    if (isEligible) {
       final preparationAction = await showAppointmentPreparationBottomSheet(
         context: context,
-        ref: ref,
         appointment: appointment,
       );
 

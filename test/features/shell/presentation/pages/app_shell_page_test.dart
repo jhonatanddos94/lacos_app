@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/theme/app_theme.dart';
 import 'package:lacos_app/core/time/application/providers/clock_providers.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
@@ -19,6 +20,9 @@ import 'package:lacos_app/features/home/application/models/home_upcoming_day.dar
 import 'package:lacos_app/features/home/application/providers/home_upcoming_days_provider.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_today_summary_section.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_upcoming_days_section.dart';
+import 'package:lacos_app/features/services/application/providers/service_providers.dart';
+import 'package:lacos_app/features/services/domain/entities/service.dart';
+import 'package:lacos_app/features/services/presentation/pages/services_page.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
 import 'package:lacos_app/features/shell/presentation/pages/app_shell_page.dart';
 
@@ -45,6 +49,7 @@ void main() {
             (ref, view) async => const {},
           ),
           clientsProvider.overrideWith((ref) async => const <Client>[]),
+          servicesProvider.overrideWith((ref) async => const <Service>[]),
           homeUpcomingDaysProvider.overrideWith((ref) async => []),
         ],
         child: const MaterialApp(home: AppShellPage()),
@@ -70,6 +75,7 @@ void main() {
             (ref, view) async => const {},
           ),
           clientsProvider.overrideWith((ref) async => const <Client>[]),
+          servicesProvider.overrideWith((ref) async => const <Service>[]),
           homeUpcomingDaysProvider.overrideWith(
             (ref) async => [
               HomeUpcomingDay(day: DateTime(2026, 8, 14), appointmentCount: 1),
@@ -111,6 +117,26 @@ void main() {
     expect(stack.index, AppShellTab.agenda.index);
     expect(find.byType(AgendaPage), findsOneWidget);
     expect(find.byType(AgendaPage, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('tab Serviços mostra o catálogo e não o placeholder', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Serviços'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final nav = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(nav.selectedIndex, AppShellTab.services.index);
+    expect(find.byType(ServicesPage), findsOneWidget);
+    expect(find.text('Serviços em breve'), findsNothing);
+    expect(find.text(AppStrings.servicesEmptyTitle), findsOneWidget);
   });
 
   testWidgets('IndexedStack preserva o estado da Agenda na troca pela nav', (
@@ -176,6 +202,7 @@ void main() {
             (ref, view) async => const {},
           ),
           clientsProvider.overrideWith((ref) async => const <Client>[]),
+          servicesProvider.overrideWith((ref) async => const <Service>[]),
         ],
         child: const MaterialApp(home: AppShellPage()),
       ),
@@ -260,7 +287,9 @@ void main() {
   ) async {
     await pumpShellWithUpcomingDays(tester);
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))),
+    );
     await tester.pumpAndSettle();
 
     expect(
@@ -276,7 +305,9 @@ void main() {
   ) async {
     await pumpShellWithUpcomingDays(tester);
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))),
+    );
     await tester.pumpAndSettle();
 
     expect(selectedChip(tester).day.day, 15);
@@ -285,14 +316,18 @@ void main() {
   testWidgets('Próximos dias: datas diferentes em sequência', (tester) async {
     await pumpShellWithUpcomingDays(tester);
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))),
+    );
     await tester.pumpAndSettle();
     expect(selectedChip(tester).day.day, 14);
 
     await tester.tap(find.text('Início'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))),
+    );
     await tester.pumpAndSettle();
     expect(selectedChip(tester).day.day, 15);
   });
@@ -302,7 +337,9 @@ void main() {
   ) async {
     await pumpShellWithUpcomingDays(tester);
 
-    final row = find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15)));
+    final row = find.byKey(
+      HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15)),
+    );
 
     await tester.tap(row);
     await tester.pumpAndSettle();
@@ -316,7 +353,9 @@ void main() {
     expect(selectedChip(tester).day.day, 15);
   });
 
-  testWidgets('Próximos dias: Agenda já ativa apenas muda o dia', (tester) async {
+  testWidgets('Próximos dias: Agenda já ativa apenas muda o dia', (
+    tester,
+  ) async {
     await pumpShellWithUpcomingDays(tester);
 
     await tester.tap(find.text('Agenda'));
@@ -338,14 +377,18 @@ void main() {
     await tester.tap(find.text('Início'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 14))),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(AgendaPage), findsOneWidget);
     expect(selectedChip(tester).day.day, 14);
   });
 
-  testWidgets('Ver agenda abre hoje e linha abre o dia da linha', (tester) async {
+  testWidgets('Ver agenda abre hoje e linha abre o dia da linha', (
+    tester,
+  ) async {
     await pumpShellWithUpcomingDays(tester);
 
     await tester.tap(find.byKey(HomeUpcomingDaysSection.openAgendaKey));
@@ -356,7 +399,9 @@ void main() {
     await tester.tap(find.text('Início'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))),
+    );
     await tester.pumpAndSettle();
     expect(selectedChip(tester).day.day, 15);
   });
@@ -383,6 +428,7 @@ void main() {
             (ref, view) async => const {},
           ),
           clientsProvider.overrideWith((ref) async => const <Client>[]),
+          servicesProvider.overrideWith((ref) async => const <Service>[]),
           homeUpcomingDaysProvider.overrideWith(
             (ref) async => [
               HomeUpcomingDay(day: DateTime(2026, 8, 15), appointmentCount: 1),
@@ -396,7 +442,9 @@ void main() {
 
     requestedDays.clear();
 
-    await tester.tap(find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))));
+    await tester.tap(
+      find.byKey(HomeUpcomingDaysSection.rowKey(DateTime(2026, 8, 15))),
+    );
     await tester.pumpAndSettle();
 
     expect(requestedDays.where((day) => day.day == 15), isNotEmpty);

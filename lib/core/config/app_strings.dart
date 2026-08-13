@@ -380,7 +380,25 @@ abstract final class AppStrings {
   static const String servicePickerNewServiceComingSoon =
       'Cadastro de serviço em breve.';
   static const String servicesLoadError =
-      'Não foi possível carregar os serviços.';
+      'Não foi possível carregar seus serviços.';
+  static const String servicesPageTitle = 'Serviços';
+  static const String servicesPageSubtitle =
+      'Gerencie os serviços oferecidos pelo salão';
+  static const String servicesListTitle = 'Seus serviços';
+  static const String servicesSearchHint = 'Buscar serviço';
+  static const String servicesSearchEmptyTitle = 'Nenhum serviço encontrado';
+  static const String servicesSearchEmptyMessage =
+      'Tente buscar por outro nome.';
+  static const String servicesSearchClear = 'Limpar busca';
+  static const String servicesEmptyTitle = 'Nenhum serviço cadastrado';
+  static const String servicesEmptyMessage =
+      'Cadastre os serviços que você oferece para começar a criar agendamentos.';
+  static const String servicesEmptyCta = 'Cadastrar primeiro serviço';
+  static const String servicesOpenLabel = 'Toque para editar';
+  static const String servicesAddLabel = 'Cadastrar serviço';
+  static String servicesActiveCount(int count) =>
+      count == 1 ? '1 ativo' : '$count ativos';
+  static String servicesMenuSemantics(String name) => 'Mais ações para $name.';
   static const String professionalPickerTitle = 'Escolher profissional';
   static const String professionalPickerSearchHint =
       'Buscar por nome ou especialidade';

@@ -142,7 +142,6 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
 
       final updatedResult = await openAgendaAppointmentFlow(
         context: context,
-        ref: ref,
         appointment: appointment,
       );
 

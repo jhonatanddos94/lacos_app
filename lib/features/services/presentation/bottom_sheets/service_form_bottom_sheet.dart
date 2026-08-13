@@ -220,6 +220,7 @@ class _ServiceFormBottomSheetState
                             DropdownButtonFormField<String?>(
                               key: ValueKey(_selectedCategory),
                               initialValue: _selectedCategory,
+                              isExpanded: true,
                               decoration: const InputDecoration(
                                 labelText: AppStrings.serviceCategoryLabel,
                                 prefixIcon: Icon(Icons.category_outlined),
@@ -245,6 +246,7 @@ class _ServiceFormBottomSheetState
                             DropdownButtonFormField<int?>(
                               key: ValueKey(_selectedDurationMinutes),
                               initialValue: _selectedDurationMinutes,
+                              isExpanded: true,
                               decoration: InputDecoration(
                                 labelText: AppStrings.serviceDurationLabel,
                                 helperText: _durationError == null

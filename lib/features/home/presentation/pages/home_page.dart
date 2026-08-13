@@ -118,7 +118,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     return _runGuarded(() async {
       await openAgendaAppointmentFlow(
         context: context,
-        ref: ref,
         appointment: appointment,
         now: ref.read(appClockProvider).now(),
       );

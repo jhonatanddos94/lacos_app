@@ -10,10 +10,11 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/clients_search_bar.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_empty_state.dart';
+import 'package:lacos_app/features/services/application/helpers/service_provider_invalidation.dart';
 import 'package:lacos_app/features/services/application/providers/service_providers.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/services/presentation/bottom_sheets/service_actions_bottom_sheet.dart';
-import 'package:lacos_app/features/services/presentation/bottom_sheets/service_form_bottom_sheet.dart';
+import 'package:lacos_app/features/services/presentation/helpers/service_form_sheet.dart';
 import 'package:lacos_app/features/services/presentation/widgets/service_delete_dialog.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
@@ -81,18 +82,14 @@ class _ServicePickerBottomSheetState
   }
 
   Future<void> _openEditServiceForm(Service service) async {
-    final updatedService = await showModalBottomSheet<Service>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => ServiceFormBottomSheet(service: service),
+    final updatedService = await showServiceFormBottomSheet(
+      context,
+      service: service,
     );
 
     if (!mounted || updatedService == null) return;
 
-    ref.invalidate(servicesProvider);
+    invalidateServicesProvider(ref);
     _showMessage(AppStrings.serviceUpdatedSuccess);
   }
 
@@ -104,23 +101,16 @@ class _ServicePickerBottomSheetState
 
     if (!mounted || deleted != true) return;
 
-    ref.invalidate(servicesProvider);
+    invalidateServicesProvider(ref);
     _showMessage(AppStrings.serviceDeletedSuccess);
   }
 
   Future<void> _openCreateServiceForm() async {
-    final createdService = await showModalBottomSheet<Service>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderTopLg),
-      builder: (context) => const ServiceFormBottomSheet(),
-    );
+    final createdService = await showServiceFormBottomSheet(context);
 
     if (!mounted || createdService == null) return;
 
-    ref.invalidate(servicesProvider);
+    invalidateServicesProvider(ref);
     _selectService(createdService);
   }
 
@@ -244,7 +234,7 @@ class _ServicePickerBottomSheetState
                       ),
                       error: (error, stackTrace) => _ServicePickerErrorState(
                         message: _resolveErrorMessage(error),
-                        onRetry: () => ref.invalidate(servicesProvider),
+                        onRetry: () => invalidateServicesProvider(ref),
                         bottomPadding: _listBottomPadding,
                       ),
                     ),

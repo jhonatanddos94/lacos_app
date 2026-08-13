@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +51,7 @@ void main() {
   Future<void> pumpHome(
     WidgetTester tester, {
     List<AgendaAppointmentDisplay> appointments = const [],
+    ClientMemoryRepository? memoryRepository,
   }) async {
     await tester.binding.setSurfaceSize(const Size(400, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -66,7 +69,7 @@ void main() {
           appointmentsByDayProvider.overrideWith((ref, day) async => const []),
           clientRepositoryProvider.overrideWithValue(_FakeClientRepository()),
           clientMemoryRepositoryProvider.overrideWithValue(
-            _FakeClientMemoryRepository(),
+            memoryRepository ?? _FakeClientMemoryRepository(),
           ),
           appointmentDetailsProvider.overrideWith((ref, query) async {
             return AppointmentDetails(
@@ -209,6 +212,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AppointmentDetailsBottomSheet), findsOneWidget);
+  });
+
+  testWidgets('atendimento current abre preparação imediatamente', (
+    tester,
+  ) async {
+    final memoryRepository = _PendingClientMemoryRepository();
+
+    await pumpHome(
+      tester,
+      appointments: [
+        homeTestAppointment(
+          id: 'current',
+          clientName: 'Josefa',
+          startAt: DateTime(2026, 8, 13, 13, 30),
+        ),
+      ],
+      memoryRepository: memoryRepository,
+    );
+
+    await tester.tap(find.byKey(HomeNextAppointmentCard.sectionKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byType(AppointmentPreparationBottomSheet), findsOneWidget);
+    expect(find.text('Josefa'), findsWidgets);
+    expect(
+      find.byKey(AppointmentPreparationBottomSheet.memoriesLoadingKey),
+      findsOneWidget,
+    );
+    expect(memoryRepository.findByClientCalls, 1);
   });
 
   testWidgets('um overdue abre o atendimento', (tester) async {
@@ -358,6 +391,20 @@ class _FakeClientRepository implements ClientRepository {
   @override
   Future<Client> update(Client client, {String? photoPath}) {
     throw UnimplementedError();
+  }
+}
+
+class _PendingClientMemoryRepository extends _FakeClientMemoryRepository {
+  final _pending = Completer<List<ClientMemory>>();
+  var findByClientCalls = 0;
+
+  @override
+  Future<List<ClientMemory>> findByClient({
+    required String clientId,
+    bool includeArchived = false,
+  }) {
+    findByClientCalls++;
+    return _pending.future;
   }
 }
 

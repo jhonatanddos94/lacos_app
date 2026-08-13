@@ -99,7 +99,6 @@ class _ClientNextAppointmentSectionState
   Future<void> _openDetails(ClientNextAppointmentPreview preview) async {
     final result = await openAgendaAppointmentFlow(
       context: context,
-      ref: ref,
       appointment: preview.toAgendaDisplay(),
     );
 

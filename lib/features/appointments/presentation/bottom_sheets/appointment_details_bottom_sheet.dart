@@ -114,22 +114,25 @@ class _AppointmentDetailsBottomSheetState
                     ),
                   ),
                 ),
-                data: (details) => _AppointmentDetailsContent(
-                  details: details,
-                  isBusy: isBusy,
-                  cancelError: _cancelError,
-                  completeError: _completeError,
-                  onEdit: details.appointment.status.canBeEdited && !isBusy
-                      ? () => _openEditAppointment(context, details)
-                      : null,
-                  onComplete:
-                      details.appointment.status.canBeCompleted && !isBusy
-                      ? () => _confirmCompleteAppointment(details)
-                      : null,
-                  onCancel: details.appointment.status.canBeCanceled && !isBusy
-                      ? () => _confirmCancelAppointment(details)
-                      : null,
-                ),
+                data: (details) {
+                  return _AppointmentDetailsContent(
+                    details: details,
+                    isBusy: isBusy,
+                    cancelError: _cancelError,
+                    completeError: _completeError,
+                    onEdit: details.appointment.status.canBeEdited && !isBusy
+                        ? () => _openEditAppointment(context, details)
+                        : null,
+                    onComplete:
+                        details.appointment.status.canBeCompleted && !isBusy
+                        ? () => _confirmCompleteAppointment(details)
+                        : null,
+                    onCancel:
+                        details.appointment.status.canBeCanceled && !isBusy
+                        ? () => _confirmCancelAppointment(details)
+                        : null,
+                  );
+                },
               ),
             ),
           ],

@@ -45,6 +45,9 @@ void main() {
       required AgendaAppointmentDisplay appointment,
       required DateTime now,
     }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -52,14 +55,13 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, _) {
+              body: Builder(
+                builder: (context) {
                   return Center(
                     child: ElevatedButton(
                       onPressed: () {
                         openAgendaAppointmentFlow(
                           context: context,
-                          ref: ref,
                           appointment: appointment,
                           now: now,
                         );
@@ -166,20 +168,18 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, _) {
+              body: Builder(
+                builder: (context) {
                   return Center(
                     child: ElevatedButton(
                       onPressed: () {
                         openAgendaAppointmentFlow(
                           context: context,
-                          ref: ref,
                           appointment: appointment,
                           now: now,
                         );
                         openAgendaAppointmentFlow(
                           context: context,
-                          ref: ref,
                           appointment: appointment,
                           now: now,
                         ).then((result) => secondResult = result);
@@ -202,8 +202,9 @@ void main() {
       expect(secondResult, isNull);
       expect(isOpeningAgendaAppointmentForTest, isTrue);
 
-      Navigator.of(tester.element(find.byType(AppointmentDetailsBottomSheet)))
-          .pop();
+      Navigator.of(
+        tester.element(find.byType(AppointmentDetailsBottomSheet)),
+      ).pop();
       await tester.pumpAndSettle();
 
       expect(isOpeningAgendaAppointmentForTest, isFalse);

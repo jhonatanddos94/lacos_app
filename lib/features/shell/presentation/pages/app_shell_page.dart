@@ -8,6 +8,7 @@ import 'package:lacos_app/core/theme/app_theme.dart';
 import 'package:lacos_app/features/agenda/presentation/pages/agenda_page.dart';
 import 'package:lacos_app/features/clients/presentation/pages/clients_page.dart';
 import 'package:lacos_app/features/home/presentation/pages/home_page.dart';
+import 'package:lacos_app/features/services/presentation/pages/services_page.dart';
 import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
 import 'package:lacos_app/features/shell/presentation/widgets/app_navigation_bar.dart';
 
@@ -28,7 +29,7 @@ class AppShellPage extends ConsumerWidget {
             AgendaPage(),
             ClientsPage(),
             HomePage(),
-            _ShellPlaceholder(label: 'Serviços'),
+            ServicesPage(),
             _ShellPlaceholder(label: 'Mais'),
           ],
         ),

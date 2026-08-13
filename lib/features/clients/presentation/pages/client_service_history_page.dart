@@ -303,7 +303,6 @@ class _HistoryTimelineBody extends ConsumerWidget {
 
     await openAgendaAppointmentFlow(
       context: context,
-      ref: ref,
       appointment: AgendaAppointmentDisplay(
         appointmentId: item.appointmentId!,
         clientId: item.clientId,
