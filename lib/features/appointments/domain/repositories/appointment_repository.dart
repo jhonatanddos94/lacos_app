@@ -1,8 +1,15 @@
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 
 abstract interface class AppointmentRepository {
   Future<List<Appointment>> findByDay(DateTime day);
+
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  });
 
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
     required DateTime start,
@@ -27,4 +34,7 @@ abstract interface class AppointmentRepository {
     String clientId, {
     required DateTime now,
   });
+
+  /// Appointments cancelados da cliente no salão atual (`isActive` + status canceled).
+  Future<List<Appointment>> findCanceledByClientId(String clientId);
 }

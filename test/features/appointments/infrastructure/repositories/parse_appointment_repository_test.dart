@@ -401,6 +401,56 @@ void main() {
       );
     });
 
+    group('findByDateRange', () {
+      test('monta query com intervalo semiaberto e status', () async {
+        parseClient.handler = (request) async {
+          final uri = Uri.parse(request.path);
+          final whereRaw = uri.queryParameters['where'];
+          expect(whereRaw, isNotNull);
+
+          final where = jsonDecode(whereRaw!) as Map<String, dynamic>;
+          expect(where['salon'], {
+            '__type': 'Pointer',
+            'className': 'Salon',
+            'objectId': _currentSalonId,
+          });
+          expect(where['isActive'], isTrue);
+          expect(where['startAt'], {
+            '\$gte': _parseDate(DateTime(2026, 8, 14)),
+            '\$lt': _parseDate(DateTime(2026, 8, 21)),
+          });
+          expect(where['status'], {
+            '\$in': ['pending', 'confirmed'],
+          });
+          expect(uri.queryParameters['order'], 'startAt');
+
+          return _successResponse(<String, dynamic>{'results': <dynamic>[]});
+        };
+
+        final result = await repository.findByDateRange(
+          startInclusive: DateTime(2026, 8, 14),
+          endExclusive: DateTime(2026, 8, 21),
+          statuses: const [
+            AppointmentStatus.pending,
+            AppointmentStatus.confirmed,
+          ],
+        );
+
+        expect(result, isEmpty);
+        expect(parseClient.getCallCount, 1);
+      });
+
+      test('retorna lista vazia quando intervalo é inválido', () async {
+        final result = await repository.findByDateRange(
+          startInclusive: DateTime(2026, 8, 14),
+          endExclusive: DateTime(2026, 8, 14),
+        );
+
+        expect(result, isEmpty);
+        expect(parseClient.getCallCount, 0);
+      });
+    });
+
     group('findNextByClientId', () {
       test(
         'retorna null para id vazio sem consultar salão nem Parse',

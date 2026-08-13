@@ -169,6 +169,11 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<Appointment> cancel({
     required String appointmentId,
     required AppointmentCanceledBy canceledBy,
@@ -189,6 +194,13 @@ class _FakeAppointmentRepository implements AppointmentRepository {
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) async => const [];
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({

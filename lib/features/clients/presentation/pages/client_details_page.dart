@@ -20,6 +20,7 @@ import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.da
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_memory_highlights_section.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_next_appointment_section.dart';
+import 'package:lacos_app/features/clients/presentation/widgets/client_service_history_section.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/presentation/helpers/memory_form_sheet_host.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_photo_picker.dart';
@@ -224,12 +225,12 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
               ),
               ClientNextAppointmentSection(clientId: _client.id),
               const SizedBox(height: AppSpacing.sm),
-              const _HighlightSectionCard(
-                title: AppStrings.clientServiceHistory,
-                titleIcon: Icons.history_rounded,
-                emptyTitle: AppStrings.noServiceHistoryYet,
-                message: AppStrings.clientHistoryComingSoon,
-                bodyIcon: Icons.receipt_long_outlined,
+              ClientServiceHistorySection(
+                client: _client,
+                onViewAll: () => context.push(
+                  RoutePaths.clientServiceHistory,
+                  extra: _client,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               _DeleteClientCard(onDelete: _openDeleteClientDialog),
@@ -662,70 +663,6 @@ class _TrailingActionIcon extends StatelessWidget {
   }
 }
 
-class _HighlightSectionCard extends StatelessWidget {
-  const _HighlightSectionCard({
-    required this.title,
-    required this.titleIcon,
-    required this.emptyTitle,
-    required this.message,
-    required this.bodyIcon,
-  });
-
-  final String title;
-  final IconData titleIcon;
-  final String emptyTitle;
-  final String message;
-  final IconData bodyIcon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return _DetailsCard(
-      title: title,
-      titleIcon: titleIcon,
-      showChevron: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: const BoxDecoration(
-              color: AppColors.purple50,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(bodyIcon, color: AppColors.purple700),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  emptyTitle,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: AppColors.graphite,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxxs),
-                Text(
-                  message,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DeleteClientCard extends StatelessWidget {
   const _DeleteClientCard({required this.onDelete});
 
@@ -892,12 +829,10 @@ class _DetailsCard extends StatelessWidget {
     required this.child,
     this.title,
     this.titleIcon,
-    this.showChevron = false,
   });
 
   final String? title;
   final IconData? titleIcon;
-  final bool showChevron;
   final Widget child;
 
   @override
@@ -932,11 +867,6 @@ class _DetailsCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (showChevron)
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.graphite,
-                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),

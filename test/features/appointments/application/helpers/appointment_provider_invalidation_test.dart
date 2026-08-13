@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
+import 'package:lacos_app/features/agenda/application/models/agenda_calendar_view.dart';
 import 'package:lacos_app/features/agenda/application/providers/agenda_providers.dart';
 import 'package:lacos_app/features/appointments/application/helpers/appointment_provider_invalidation.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
@@ -9,13 +10,16 @@ import 'package:lacos_app/features/appointments/application/models/appointment_d
 import 'package:lacos_app/features/appointments/application/providers/appointment_details_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/clients/application/providers/client_next_appointment_providers.dart';
+import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
-import 'package:lacos_app/features/clients/application/providers/client_next_appointment_providers.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
+import 'package:lacos_app/features/home/application/models/home_upcoming_day.dart';
+import 'package:lacos_app/features/home/application/providers/home_upcoming_days_provider.dart';
 
 void main() {
   testWidgets('invalidateAppointmentAfterUpdate invalida detalhes e agenda', (
@@ -132,6 +136,7 @@ void main() {
   ) async {
     var serviceRecordByAppointmentCalls = 0;
     var serviceRecordsByClientCalls = 0;
+    var clientServiceHistoryCalls = 0;
     late WidgetRef widgetRef;
 
     await tester.pumpWidget(
@@ -146,6 +151,10 @@ void main() {
           }),
           serviceRecordsByClientProvider.overrideWith((ref, clientId) {
             serviceRecordsByClientCalls++;
+            return Future.value(const []);
+          }),
+          clientServiceHistoryProvider.overrideWith((ref, clientId) {
+            clientServiceHistoryCalls++;
             return Future.value(const []);
           }),
         ],
@@ -169,10 +178,12 @@ void main() {
         serviceRecordByAppointmentProvider(appointmentId).future,
       );
       await widgetRef.read(serviceRecordsByClientProvider(clientId).future);
+      await widgetRef.read(clientServiceHistoryProvider(clientId).future);
     });
 
     expect(serviceRecordByAppointmentCalls, 1);
     expect(serviceRecordsByClientCalls, 1);
+    expect(clientServiceHistoryCalls, 1);
 
     invalidateAppointmentAfterCompletion(
       widgetRef,
@@ -186,10 +197,59 @@ void main() {
         serviceRecordByAppointmentProvider(appointmentId).future,
       );
       await widgetRef.read(serviceRecordsByClientProvider(clientId).future);
+      await widgetRef.read(clientServiceHistoryProvider(clientId).future);
     });
 
     expect(serviceRecordByAppointmentCalls, 2);
     expect(serviceRecordsByClientCalls, 2);
+    expect(clientServiceHistoryCalls, 2);
+  });
+
+  testWidgets('invalidateAppointmentAfterCancellation invalida histórico', (
+    tester,
+  ) async {
+    var clientServiceHistoryCalls = 0;
+    late WidgetRef widgetRef;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clientServiceHistoryProvider.overrideWith((ref, clientId) {
+            clientServiceHistoryCalls++;
+            return Future.value(const []);
+          }),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) {
+              widgetRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+
+    const appointmentId = 'appointment-1';
+    const clientId = 'client-1';
+    final day = DateTime(2026, 8, 22, 10);
+
+    await tester.runAsync(() async {
+      await widgetRef.read(clientServiceHistoryProvider(clientId).future);
+    });
+    expect(clientServiceHistoryCalls, 1);
+
+    invalidateAppointmentAfterCancellation(
+      widgetRef,
+      appointmentId: appointmentId,
+      clientId: clientId,
+      day: day,
+    );
+
+    await tester.runAsync(() async {
+      await widgetRef.read(clientServiceHistoryProvider(clientId).future);
+    });
+    expect(clientServiceHistoryCalls, 2);
   });
 
   testWidgets('invalidateAppointmentAfterCreate invalida próximo atendimento', (
@@ -286,6 +346,220 @@ void main() {
       });
 
       expect(invalidatedClients, containsAll(['client-1', 'client-2']));
+    },
+  );
+
+  testWidgets(
+    'invalidateAppointmentAfterCreate invalida homeUpcomingDays e calendário',
+    (tester) async {
+      var upcomingCalls = 0;
+      var calendarCalls = 0;
+      late WidgetRef widgetRef;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            homeUpcomingDaysProvider.overrideWith((ref) async {
+              upcomingCalls++;
+              return [
+                HomeUpcomingDay(
+                  day: DateTime(2026, 8, 14),
+                  appointmentCount: 1,
+                ),
+              ];
+            }),
+            agendaCalendarAppointmentDaysProvider.overrideWith(
+              (ref, view) async {
+                calendarCalls++;
+                return {DateTime(2026, 8, 14)};
+              },
+            ),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                widgetRef = ref;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      const view = AgendaCalendarView(year: 2026, month: 8);
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+        await widgetRef.read(
+          agendaCalendarAppointmentDaysProvider(view).future,
+        );
+      });
+
+      expect(upcomingCalls, 1);
+      expect(calendarCalls, 1);
+
+      invalidateAppointmentAfterCreate(
+        widgetRef,
+        clientId: 'client-1',
+        day: DateTime(2026, 8, 14, 10),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+        await widgetRef.read(
+          agendaCalendarAppointmentDaysProvider(view).future,
+        );
+      });
+
+      expect(upcomingCalls, 2);
+      expect(calendarCalls, 2);
+    },
+  );
+
+  testWidgets(
+    'invalidateAppointmentAfterUpdate invalida homeUpcomingDays e calendário',
+    (tester) async {
+      var upcomingCalls = 0;
+      var calendarCalls = 0;
+      late WidgetRef widgetRef;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            homeUpcomingDaysProvider.overrideWith((ref) async {
+              upcomingCalls++;
+              return [];
+            }),
+            agendaCalendarAppointmentDaysProvider.overrideWith(
+              (ref, view) async {
+                calendarCalls++;
+                return const {};
+              },
+            ),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                widgetRef = ref;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      const view = AgendaCalendarView(year: 2026, month: 8);
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+        await widgetRef.read(
+          agendaCalendarAppointmentDaysProvider(view).future,
+        );
+      });
+
+      invalidateAppointmentAfterUpdate(
+        widgetRef,
+        appointmentId: 'appointment-1',
+        updatedDay: DateTime(2026, 8, 22, 10),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+        await widgetRef.read(
+          agendaCalendarAppointmentDaysProvider(view).future,
+        );
+      });
+
+      expect(upcomingCalls, 2);
+      expect(calendarCalls, 2);
+    },
+  );
+
+  testWidgets(
+    'invalidateAppointmentAfterCancellation invalida homeUpcomingDays',
+    (tester) async {
+      var upcomingCalls = 0;
+      late WidgetRef widgetRef;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            homeUpcomingDaysProvider.overrideWith((ref) async {
+              upcomingCalls++;
+              return [];
+            }),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                widgetRef = ref;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+      });
+
+      invalidateAppointmentAfterCancellation(
+        widgetRef,
+        appointmentId: 'appointment-1',
+        clientId: 'client-1',
+        day: DateTime(2026, 8, 22, 10),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+      });
+
+      expect(upcomingCalls, 2);
+    },
+  );
+
+  testWidgets(
+    'invalidateAppointmentAfterCompletion invalida homeUpcomingDays',
+    (tester) async {
+      var upcomingCalls = 0;
+      late WidgetRef widgetRef;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            homeUpcomingDaysProvider.overrideWith((ref) async {
+              upcomingCalls++;
+              return [];
+            }),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                widgetRef = ref;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+      });
+
+      invalidateAppointmentAfterCompletion(
+        widgetRef,
+        appointmentId: 'appointment-1',
+        clientId: 'client-1',
+        day: DateTime(2026, 8, 22, 10),
+      );
+
+      await tester.runAsync(() async {
+        await widgetRef.read(homeUpcomingDaysProvider.future);
+      });
+
+      expect(upcomingCalls, 2);
     },
   );
 }

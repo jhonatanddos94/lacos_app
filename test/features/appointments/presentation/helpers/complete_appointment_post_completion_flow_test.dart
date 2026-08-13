@@ -9,6 +9,10 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
+import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
+import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
+import 'package:lacos_app/features/services/domain/entities/service.dart';
+import 'package:lacos_app/features/services/domain/repositories/service_repository.dart';
 import 'package:lacos_app/features/appointments/presentation/dialogs/complete_appointment_dialog.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_service_mapper.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/complete_appointment_success_sheet_host.dart';
@@ -19,13 +23,14 @@ import 'package:lacos_app/features/service_records/domain/entities/service_recor
 import 'package:lacos_app/features/service_records/domain/entities/service_record_service.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_service_repository.dart';
-import 'package:lacos_app/features/services/domain/entities/service.dart';
 
 void main() {
   group('Complete appointment post-completion flow', () {
     late _FakeAppointmentRepository appointmentRepository;
     late _FakeServiceRecordRepository serviceRecordRepository;
     late _FakeServiceRecordServiceRepository serviceRecordServiceRepository;
+    late _FakeAppointmentServiceRepository appointmentServiceRepository;
+    late _FakeServiceRepositoryForHistory serviceRepository;
     late _NoopClientMemoryRepository memoryRepository;
     late CompleteAppointmentUseCase useCase;
 
@@ -33,9 +38,13 @@ void main() {
       appointmentRepository = _FakeAppointmentRepository();
       serviceRecordRepository = _FakeServiceRecordRepository();
       serviceRecordServiceRepository = _FakeServiceRecordServiceRepository();
+      appointmentServiceRepository = _FakeAppointmentServiceRepository();
+      serviceRepository = _FakeServiceRepositoryForHistory();
       memoryRepository = _NoopClientMemoryRepository();
       useCase = CompleteAppointmentUseCase(
         appointmentRepository: appointmentRepository,
+        appointmentServiceRepository: appointmentServiceRepository,
+        serviceRepository: serviceRepository,
         serviceRecordRepository: serviceRecordRepository,
         serviceRecordServiceRepository: serviceRecordServiceRepository,
         clientMemoryRepository: memoryRepository,
@@ -277,9 +286,23 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<List<Appointment>> findByDay(DateTime day) {
     throw UnimplementedError();
   }
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) {
+    throw UnimplementedError();
+  }
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
@@ -334,6 +357,13 @@ class _FakeServiceRecordServiceRepository
   ) async {
     return const [];
   }
+
+  @override
+  Future<List<ServiceRecordService>> findByServiceRecordIds(
+    List<String> serviceRecordIds,
+  ) async {
+    return const [];
+  }
 }
 
 class _NoopClientMemoryRepository implements ClientMemoryRepository {
@@ -375,4 +405,76 @@ class _NoopClientMemoryRepository implements ClientMemoryRepository {
 
   @override
   Future<ClientMemory> restore(String memoryId) => throw UnimplementedError();
+}
+
+
+class _FakeAppointmentServiceRepository implements AppointmentServiceRepository {
+  List<AppointmentService> lines = const [];
+
+  @override
+  Future<List<AppointmentService>> findByAppointment(String appointmentId) async {
+    return lines
+        .where((line) => line.appointmentId == appointmentId)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<AppointmentService>> findByAppointments(
+    List<String> appointmentIds,
+  ) async {
+    final ids = appointmentIds.toSet();
+    return lines
+        .where((line) => ids.contains(line.appointmentId))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<AppointmentService>> createMany({
+    required String appointmentId,
+    required List<AppointmentService> services,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> deleteByAppointment(String appointmentId) async {}
+}
+
+class _FakeServiceRepositoryForHistory implements ServiceRepository {
+  List<Service> services = [
+    Service(
+      id: 'service-1',
+      name: 'Corte',
+      durationMinutes: 60,
+      price: 80,
+      isActive: true,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    ),
+    Service(
+      id: 'service-2',
+      name: 'Hidratação',
+      durationMinutes: 45,
+      price: 100,
+      isActive: true,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    ),
+  ];
+
+  @override
+  Future<List<Service>> findAll() async => services;
+
+  @override
+  Future<Service> create({
+    required String name,
+    required int durationMinutes,
+    String? category,
+    double? price,
+    String? description,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Service> update(Service service) => throw UnimplementedError();
+
+  @override
+  Future<void> delete(String serviceId) => throw UnimplementedError();
 }

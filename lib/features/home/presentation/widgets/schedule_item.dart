@@ -180,76 +180,88 @@ class ScheduleItem extends StatelessWidget {
                           ),
                           const SizedBox(width: AppSpacing.xs),
                           Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Wrap(
+                              spacing: AppSpacing.xs,
+                              runSpacing: AppSpacing.xxxs,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                Text(
-                                  appointment.clientName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: AppColors.graphite,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.2,
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      appointment.clientName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.visible,
+                                      softWrap: true,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                        color: AppColors.graphite,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    if (_hasServiceLabel) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        appointment.serviceName,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: true,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: AppColors.graphite.withValues(
+                                            alpha: 0.68,
+                                          ),
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                    if (appointment.statusSubtitle != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        appointment.statusSubtitle!,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: true,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                    if (appointment.statusDetail != null) ...[
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        appointment.statusDetail!,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: true,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                          color: AppColors.textSecondary
+                                              .withValues(alpha: 0.88),
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                AppointmentOperationalBadgeChip(
+                                  presentation: badgePresentation,
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: AppIconSizes.md,
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.55,
                                   ),
                                 ),
-                                if (_hasServiceLabel) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    appointment.serviceName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.graphite.withValues(
-                                        alpha: 0.68,
-                                      ),
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ],
-                                if (appointment.statusSubtitle != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    appointment.statusSubtitle!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ],
-                                if (appointment.statusDetail != null) ...[
-                                  const SizedBox(height: 1),
-                                  Text(
-                                    appointment.statusDetail!,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: AppColors.textSecondary.withValues(
-                                        alpha: 0.88,
-                                      ),
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.25,
-                                    ),
-                                  ),
-                                ],
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.xxs),
-                          AppointmentOperationalBadgeChip(
-                            presentation: badgePresentation,
-                          ),
-                          const SizedBox(width: AppSpacing.xxxs),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: AppIconSizes.md,
-                            color: AppColors.textSecondary.withValues(
-                              alpha: 0.55,
                             ),
                           ),
                         ],

@@ -9,6 +9,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_operati
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/clients/application/models/client_next_appointment_preview.dart';
 import 'package:lacos_app/features/clients/application/providers/client_next_appointment_providers.dart';
+import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_next_appointment_section.dart';
@@ -35,6 +36,9 @@ void main() {
         ProviderScope(
           overrides: [
             clientMemoryRepositoryProvider.overrideWithValue(memoryRepository),
+            clientServiceHistoryProvider('client-1').overrideWith(
+              (ref) async => const [],
+            ),
             clientNextAppointmentProvider('client-1').overrideWith((ref) {
               return load();
             }),
@@ -69,6 +73,9 @@ void main() {
         ProviderScope(
           overrides: [
             clientMemoryRepositoryProvider.overrideWithValue(memoryRepository),
+            clientServiceHistoryProvider('client-1').overrideWith(
+              (ref) async => const [],
+            ),
             clientNextAppointmentProvider('client-1').overrideWith((ref) async {
               loadCount++;
               if (loadCount == 1) {

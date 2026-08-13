@@ -8,6 +8,7 @@ import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/agenda/presentation/helpers/agenda_date_formatters.dart';
 import 'package:lacos_app/features/agenda/presentation/pages/agenda_page.dart';
 import 'package:lacos_app/features/agenda/presentation/widgets/agenda_day_chip.dart';
+import 'package:lacos_app/features/agenda/presentation/widgets/calendar/agenda_calendar_month_grid.dart';
 
 void main() {
   group('AgendaPage calendar navigation', () {
@@ -29,13 +30,17 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    Future<void> openCalendar(WidgetTester tester) async {
+      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('abre calendário ao tocar no ícone do header', (
       WidgetTester tester,
     ) async {
       await pumpAgendaPage(tester);
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
+      await openCalendar(tester);
 
       expect(find.textContaining('2026'), findsWidgets);
     });
@@ -45,12 +50,8 @@ void main() {
     ) async {
       await pumpAgendaPage(tester);
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Agosto'));
-      await tester.pumpAndSettle();
-
+      await openCalendar(tester);
+      await _navigateToMonth(tester, year: 2026, month: 8);
       await tester.tap(find.byKey(const Key('agenda-calendar-day-2026-8-21')));
       await tester.pumpAndSettle();
 
@@ -77,19 +78,13 @@ void main() {
     ) async {
       await pumpAgendaPage(tester);
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Agosto'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Setembro'));
-      await tester.pumpAndSettle();
+      await openCalendar(tester);
+      await _navigateToMonth(tester, year: 2026, month: 9);
 
       await tester.tap(find.byKey(const Key('agenda-calendar-day-2026-9-21')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
+      await openCalendar(tester);
 
       await tester.tap(find.byKey(const Key('agenda-calendar-today')));
       await tester.pumpAndSettle();
@@ -108,11 +103,8 @@ void main() {
     ) async {
       await pumpAgendaPage(tester);
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Agosto'));
-      await tester.pumpAndSettle();
+      await openCalendar(tester);
+      await _navigateToMonth(tester, year: 2026, month: 8);
 
       expect(
         find.byKey(const Key('agenda-calendar-indicator-2026-8-21')),
@@ -143,11 +135,8 @@ void main() {
       await tester.pumpAndSettle();
       loadedDays.clear();
 
-      await tester.tap(find.byTooltip(AppStrings.agendaOpenCalendar));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Agosto'));
-      await tester.pumpAndSettle();
+      await openCalendar(tester);
+      await _navigateToMonth(tester, year: 2026, month: 8);
       await tester.tap(find.byKey(const Key('agenda-calendar-day-2026-8-21')));
       await tester.pumpAndSettle();
 
@@ -159,4 +148,60 @@ void main() {
       );
     });
   });
+}
+
+Future<void> _navigateToMonth(
+  WidgetTester tester, {
+  required int year,
+  required int month,
+}) async {
+  final targetTitle = '${AgendaCalendarMonthGrid.monthName(month)} $year';
+
+  for (var step = 0; step < 36; step++) {
+    if (find.text(targetTitle).evaluate().isNotEmpty) {
+      return;
+    }
+
+    final titleFinder = find.textContaining(RegExp(r'\d{4}$'));
+    expect(titleFinder, findsWidgets);
+
+    final titleText = tester.widget<Text>(titleFinder.first).data ?? '';
+    final currentMonth = _monthFromTitle(titleText);
+    final currentYear = _yearFromTitle(titleText) ?? year;
+
+    final currentIndex = currentYear * 12 + currentMonth;
+    final targetIndex = year * 12 + month;
+
+    if (targetIndex > currentIndex) {
+      final nextLabel = AgendaCalendarMonthGrid.monthName(
+        currentMonth == 12 ? 1 : currentMonth + 1,
+      );
+      await tester.tap(find.text(nextLabel));
+    } else if (targetIndex < currentIndex) {
+      final previousLabel = AgendaCalendarMonthGrid.monthName(
+        currentMonth == 1 ? 12 : currentMonth - 1,
+      );
+      await tester.tap(find.text(previousLabel));
+    } else {
+      return;
+    }
+    await tester.pumpAndSettle();
+  }
+
+  fail('Calendário não chegou em $year-$month.');
+}
+
+int _monthFromTitle(String title) {
+  for (var month = 1; month <= 12; month++) {
+    final name = AgendaCalendarMonthGrid.monthName(month);
+    if (title.startsWith(name)) {
+      return month;
+    }
+  }
+  fail('Mês não reconhecido no título do calendário: $title');
+}
+
+int? _yearFromTitle(String title) {
+  final match = RegExp(r'(\d{4})').firstMatch(title);
+  return match == null ? null : int.parse(match.group(1)!);
 }

@@ -25,6 +25,7 @@ import 'package:lacos_app/features/appointments/infrastructure/repositories/pars
 import 'package:lacos_app/features/salon/application/providers/salon_providers.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_service_providers.dart';
+import 'package:lacos_app/features/services/application/providers/service_providers.dart';
 
 final availabilityEngineProvider = Provider<AvailabilityEngine>((ref) {
   return const AvailabilityEngine();
@@ -84,6 +85,10 @@ final completeAppointmentUseCaseProvider = Provider<CompleteAppointmentUseCase>(
   (ref) {
     return CompleteAppointmentUseCase(
       appointmentRepository: ref.watch(appointmentRepositoryProvider),
+      appointmentServiceRepository: ref.watch(
+        appointmentServiceRepositoryProvider,
+      ),
+      serviceRepository: ref.watch(serviceRepositoryProvider),
       serviceRecordRepository: ref.watch(serviceRecordRepositoryProvider),
       serviceRecordServiceRepository: ref.watch(
         serviceRecordServiceRepositoryProvider,

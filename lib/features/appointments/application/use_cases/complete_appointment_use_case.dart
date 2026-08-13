@@ -1,26 +1,35 @@
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_params.dart';
+import 'package:lacos_app/features/appointments/application/services/complete_appointment_historical_snapshot.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
+import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record.dart';
 import 'package:lacos_app/features/service_records/domain/entities/service_record_service.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_repository.dart';
 import 'package:lacos_app/features/service_records/domain/repositories/service_record_service_repository.dart';
+import 'package:lacos_app/features/services/domain/repositories/service_repository.dart';
 
 class CompleteAppointmentUseCase {
   const CompleteAppointmentUseCase({
     required AppointmentRepository appointmentRepository,
+    required AppointmentServiceRepository appointmentServiceRepository,
+    required ServiceRepository serviceRepository,
     required ServiceRecordRepository serviceRecordRepository,
     required ServiceRecordServiceRepository serviceRecordServiceRepository,
     required ClientMemoryRepository clientMemoryRepository,
   }) : _appointmentRepository = appointmentRepository,
+       _appointmentServiceRepository = appointmentServiceRepository,
+       _serviceRepository = serviceRepository,
        _serviceRecordRepository = serviceRecordRepository,
        _serviceRecordServiceRepository = serviceRecordServiceRepository,
        _clientMemoryRepository = clientMemoryRepository;
 
   final AppointmentRepository _appointmentRepository;
+  final AppointmentServiceRepository _appointmentServiceRepository;
+  final ServiceRepository _serviceRepository;
   final ServiceRecordRepository _serviceRecordRepository;
   final ServiceRecordServiceRepository _serviceRecordServiceRepository;
   final ClientMemoryRepository _clientMemoryRepository;
@@ -31,15 +40,20 @@ class CompleteAppointmentUseCase {
     final appointment = await _findAppointment(params.appointmentId);
     _validateAppointmentForCompletion(appointment, params);
 
-    final serviceRecord = await _resolveServiceRecord(
+    final snapshotParams = await _resolveHistoricalSnapshotParams(
       appointment: appointment,
       params: params,
+    );
+
+    final serviceRecord = await _resolveServiceRecord(
+      appointment: appointment,
+      params: snapshotParams,
       now: now,
     );
 
     await _ensureServiceRecordServices(
       serviceRecord: serviceRecord,
-      params: params,
+      params: snapshotParams,
       now: now,
     );
 
@@ -51,6 +65,22 @@ class CompleteAppointmentUseCase {
     await _markMentionedMemories(params.mentionedMemoryIds);
 
     return serviceRecord;
+  }
+
+  Future<CompleteAppointmentParams> _resolveHistoricalSnapshotParams({
+    required Appointment appointment,
+    required CompleteAppointmentParams params,
+  }) async {
+    final (appointmentServices, catalogServices) = await (
+      _appointmentServiceRepository.findByAppointment(appointment.id),
+      _serviceRepository.findAll(),
+    ).wait;
+
+    return CompleteAppointmentHistoricalSnapshot.enrich(
+      params: params,
+      appointmentServices: appointmentServices,
+      catalogServices: catalogServices,
+    );
   }
 
   void _validateAppointmentForCompletion(

@@ -612,7 +612,19 @@ class _RecordingAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<List<Appointment>> findByDay(DateTime day) async => const [];
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
@@ -653,12 +665,24 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<Appointment> create(Appointment appointment) {
     throw UnimplementedError();
   }
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) async => const [];
+
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({
@@ -731,6 +755,13 @@ class _FakeUpdateAppointmentRepository implements AppointmentRepository {
   Future<List<Appointment>> findByDay(DateTime day) async => dayAppointments;
 
   @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
+
+  @override
   Future<Appointment> update(Appointment appointment) async {
     this.appointment = appointment;
     return appointment;
@@ -761,6 +792,11 @@ class _FakeUpdateAppointmentRepository implements AppointmentRepository {
     String clientId, {
     required DateTime now,
   }) async => null;
+
+  @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
 
   @override
   Future<Appointment> create(Appointment appointment) {

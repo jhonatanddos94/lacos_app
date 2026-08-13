@@ -14,9 +14,12 @@ import 'package:lacos_app/features/clients/presentation/widgets/clients_header.d
 import 'package:lacos_app/features/clients/presentation/widgets/clients_list_section.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/clients_search_bar.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
+import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
 
 class ClientsPage extends ConsumerStatefulWidget {
   const ClientsPage({super.key});
+
+  static const searchBarKey = Key('clients-page-search');
 
   @override
   ConsumerState<ClientsPage> createState() => _ClientsPageState();
@@ -24,6 +27,7 @@ class ClientsPage extends ConsumerStatefulWidget {
 
 class _ClientsPageState extends ConsumerState<ClientsPage> {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   String _searchText = '';
 
   static const _fabSize = 56.0;
@@ -32,6 +36,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -100,6 +105,19 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
     final clients = ref.watch(clientsProvider);
     final bottomInset = AppSpacing.sm + _fabSize + AppSpacing.md;
 
+    ref.listen<int>(clientsFocusSearchRequestProvider, (previous, next) {
+      if (previous == next) {
+        return;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _searchFocusNode.requestFocus();
+      });
+    });
+
     return SafeArea(
       bottom: false,
       child: Stack(
@@ -123,7 +141,9 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                         const ClientsHeader(),
                         const SizedBox(height: AppSpacing.md),
                         ClientsSearchBar(
+                          key: ClientsPage.searchBarKey,
                           controller: _searchController,
+                          focusNode: _searchFocusNode,
                           onChanged: _handleSearchChanged,
                           onClear: _clearSearch,
                         ),

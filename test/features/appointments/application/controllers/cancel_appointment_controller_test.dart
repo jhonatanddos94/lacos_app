@@ -157,9 +157,23 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<List<Appointment>> findByDay(DateTime day) {
     throw UnimplementedError();
   }
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) {
+    throw UnimplementedError();
+  }
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({

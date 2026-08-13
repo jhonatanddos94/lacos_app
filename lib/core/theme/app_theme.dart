@@ -17,6 +17,20 @@ abstract final class AppTheme {
 
   static ThemeData get dark => _buildTheme(Brightness.dark);
 
+  /// Overlay para fundos claros (Shell, Home e telas claras).
+  ///
+  /// No iOS, [SystemUiOverlayStyle.statusBarBrightness] descreve o fundo da
+  /// status bar: [Brightness.light] produz hora e ícones escuros. No Android,
+  /// [statusBarIconBrightness] [Brightness.dark] produz o mesmo resultado.
+  static const SystemUiOverlayStyle lightStatusBarOverlay =
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: AppColors.warmWhite,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      );
+
   static ThemeData _buildTheme(Brightness brightness) {
     final isLight = brightness == Brightness.light;
     final colorScheme = isLight ? _lightColorScheme : _darkColorScheme;
@@ -43,7 +57,7 @@ abstract final class AppTheme {
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: textTheme.titleLarge,
         systemOverlayStyle: isLight
-            ? SystemUiOverlayStyle.dark
+            ? lightStatusBarOverlay
             : SystemUiOverlayStyle.light,
       ),
       cardTheme: CardThemeData(

@@ -11,6 +11,7 @@ class ClientsSearchBar extends StatelessWidget {
     required this.controller,
     required this.onChanged,
     required this.onClear,
+    this.focusNode,
     this.hintText = AppStrings.clientsSearchHint,
     super.key,
   });
@@ -20,6 +21,7 @@ class ClientsSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
+  final FocusNode? focusNode;
   final String hintText;
 
   bool get _hasText => controller.text.trim().isNotEmpty;
@@ -39,6 +41,7 @@ class ClientsSearchBar extends StatelessWidget {
         ),
         child: TextField(
           controller: controller,
+          focusNode: focusNode,
           onChanged: onChanged,
           textInputAction: TextInputAction.search,
           style: theme.textTheme.bodyMedium?.copyWith(

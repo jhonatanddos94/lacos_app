@@ -4,6 +4,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
@@ -130,6 +131,11 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<Appointment> findById(String appointmentId) {
     throw UnimplementedError();
   }
@@ -139,6 +145,13 @@ class _FakeAppointmentRepository implements AppointmentRepository {
     findByDayCalls++;
     return const [];
   }
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({

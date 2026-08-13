@@ -6,6 +6,8 @@ import 'package:lacos_app/features/appointments/application/models/appointment_d
 import 'package:lacos_app/features/appointments/application/providers/appointment_details_providers.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/clients/application/providers/client_next_appointment_providers.dart';
+import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
+import 'package:lacos_app/features/home/application/providers/home_upcoming_days_provider.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 
 void invalidateClientNextAppointment(WidgetRef ref, String clientId) {
@@ -57,6 +59,19 @@ void invalidateAppointmentAgendaProviders(
   ref.invalidate(appointmentsByDayProvider(day));
 }
 
+void invalidateHomeUpcomingDaysProvider(WidgetRef ref) {
+  ref.invalidate(homeUpcomingDaysProvider);
+}
+
+void invalidateAgendaCalendarAppointmentDaysProvider(WidgetRef ref) {
+  ref.invalidate(agendaCalendarAppointmentDaysProvider);
+}
+
+void _invalidateHomeAndCalendarProviders(WidgetRef ref) {
+  invalidateHomeUpcomingDaysProvider(ref);
+  invalidateAgendaCalendarAppointmentDaysProvider(ref);
+}
+
 void invalidateAppointmentAfterCreate(
   WidgetRef ref, {
   required String clientId,
@@ -64,6 +79,7 @@ void invalidateAppointmentAfterCreate(
 }) {
   invalidateAppointmentAgendaProviders(ref, day: AgendaDay.from(day));
   invalidateClientNextAppointment(ref, clientId);
+  _invalidateHomeAndCalendarProviders(ref);
 }
 
 void invalidateAppointmentAfterUpdate(
@@ -96,6 +112,8 @@ void invalidateAppointmentAfterUpdate(
     originalClientId: originalClientId,
     updatedClientId: updatedClientId ?? originalClientId,
   );
+
+  _invalidateHomeAndCalendarProviders(ref);
 }
 
 void invalidateAppointmentAfterCancellation(
@@ -111,6 +129,7 @@ void invalidateAppointmentAfterCancellation(
     originalClientId: clientId,
     updatedClientId: clientId,
   );
+  ref.invalidate(clientServiceHistoryProvider(clientId));
 }
 
 void invalidateAppointmentAfterCompletion(
@@ -128,6 +147,7 @@ void invalidateAppointmentAfterCompletion(
   );
   ref.invalidate(serviceRecordByAppointmentProvider(appointmentId));
   ref.invalidate(serviceRecordsByClientProvider(clientId));
+  ref.invalidate(clientServiceHistoryProvider(clientId));
 }
 
 bool _isSameDay(DateTime a, DateTime b) {

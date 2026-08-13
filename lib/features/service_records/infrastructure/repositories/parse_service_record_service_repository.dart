@@ -30,6 +30,23 @@ class ParseServiceRecordServiceRepository
   Future<List<ServiceRecordService>> findByServiceRecord(
     String serviceRecordId,
   ) async {
+    return findByServiceRecordIds([serviceRecordId]);
+  }
+
+  @override
+  Future<List<ServiceRecordService>> findByServiceRecordIds(
+    List<String> serviceRecordIds,
+  ) async {
+    final ids = serviceRecordIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (ids.isEmpty) {
+      return const [];
+    }
+
     try {
       final salon = await _salonRepository.getCurrentSalon();
       if (salon == null) {
@@ -38,12 +55,11 @@ class ParseServiceRecordServiceRepository
         );
       }
 
+      final pointers = ids.map(_serviceRecordPointer).toList(growable: false);
+
       final query =
           QueryBuilder<ParseObject>(ParseObject(_serviceRecordServiceClassName))
-            ..whereEqualTo(
-              'serviceRecord',
-              _serviceRecordPointer(serviceRecordId),
-            )
+            ..whereContainedIn('serviceRecord', pointers)
             ..whereEqualTo('salon', _salonPointer(salon.id))
             ..whereEqualTo('isActive', true)
             ..orderByAscending('createdAt');

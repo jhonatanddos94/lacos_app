@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_memory_highlights_section.dart';
@@ -27,6 +28,9 @@ void main() {
         ProviderScope(
           overrides: [
             clientMemoryRepositoryProvider.overrideWithValue(repository),
+            clientServiceHistoryProvider('client-1').overrideWith(
+              (ref) async => const [],
+            ),
           ],
           child: MaterialApp(home: ClientDetailsPage(client: _client())),
         ),

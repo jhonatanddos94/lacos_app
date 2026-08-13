@@ -19,6 +19,7 @@ class AgendaHeader extends StatelessWidget {
     required this.onCalendarPressed,
     this.isPastDay = false,
     this.referenceNow,
+    this.today,
     super.key,
   });
 
@@ -28,12 +29,13 @@ class AgendaHeader extends StatelessWidget {
   final VoidCallback onCalendarPressed;
   final bool isPastDay;
   final DateTime? referenceNow;
+  final DateTime? today;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final today = DateTime.now();
-    final isToday = isSameAppointmentDate(selectedDay, today);
+    final referenceToday = today ?? DateTime.now();
+    final isToday = isSameAppointmentDate(selectedDay, referenceToday);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

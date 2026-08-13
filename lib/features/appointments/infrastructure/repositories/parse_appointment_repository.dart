@@ -31,19 +31,67 @@ class ParseAppointmentRepository implements AppointmentRepository {
 
   @override
   Future<List<Appointment>> findByDay(DateTime day) async {
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+
+    return _findByDateRangeInternal(
+      startInclusive: dayStart,
+      endExclusive: dayEnd,
+    );
+  }
+
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async {
+    return _findByDateRangeInternal(
+      startInclusive: startInclusive,
+      endExclusive: endExclusive,
+      statuses: statuses,
+    );
+  }
+
+  Future<List<Appointment>> _findByDateRangeInternal({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async {
     try {
       final salon = await _requireCurrentSalon();
 
-      final dayStart = DateTime(day.year, day.month, day.day);
-      final dayEnd = dayStart.add(const Duration(days: 1));
+      final rangeStart = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final rangeEnd = DateTime(
+        endExclusive.year,
+        endExclusive.month,
+        endExclusive.day,
+      );
+
+      if (!rangeEnd.isAfter(rangeStart)) {
+        return const [];
+      }
 
       final query =
           QueryBuilder<ParseObject>(ParseObject(_appointmentClassName))
             ..whereEqualTo('salon', _salonPointer(salon.id))
             ..whereEqualTo('isActive', true)
-            ..whereGreaterThanOrEqualsTo('startAt', dayStart)
-            ..whereLessThan('startAt', dayEnd)
+            ..whereGreaterThanOrEqualsTo('startAt', rangeStart)
+            ..whereLessThan('startAt', rangeEnd)
             ..orderByAscending('startAt');
+
+      if (statuses != null) {
+        final statusValues = statuses
+            .map((status) => status.toParse())
+            .toList(growable: false);
+        if (statusValues.isNotEmpty) {
+          query.whereContainedIn('status', statusValues);
+        }
+      }
 
       final response = await query.query<ParseObject>();
       _throwIfQueryFailed(response);
@@ -402,6 +450,50 @@ class ParseAppointmentRepository implements AppointmentRepository {
       }
 
       return _mapper.toDomain(results.first as ParseObject);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object catch (error) {
+      throw FormatException(
+        ParseTemporaryErrorMapper.messageForThrowable(
+          error,
+          fallback:
+              'Não foi possível carregar os agendamentos. Tente novamente.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    if (clientId.trim().isEmpty) {
+      return const [];
+    }
+
+    try {
+      final salon = await _requireCurrentSalon();
+
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_appointmentClassName))
+            ..whereEqualTo('salon', _salonPointer(salon.id))
+            ..whereEqualTo('client', _clientPointer(clientId))
+            ..whereEqualTo('isActive', true)
+            ..whereEqualTo('status', AppointmentStatus.canceled.toParse())
+            ..orderByDescending('startAt');
+
+      final response = await query.query<ParseObject>();
+      _throwIfQueryFailed(response);
+
+      final results = response.results;
+      if (results == null || results.isEmpty) {
+        return const [];
+      }
+
+      return results
+          .whereType<ParseObject>()
+          .map(_mapper.toDomain)
+          .toList(growable: false);
     } on StateError {
       rethrow;
     } on FormatException {

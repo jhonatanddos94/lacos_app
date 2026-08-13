@@ -11,6 +11,14 @@ void main() {
       expect(isOperationalAgendaDay(yesterday), isFalse);
     });
 
+    test('isPastAgendaDay usa o today injetado', () {
+      final today = DateTime(2026, 8, 13);
+      final yesterday = DateTime(2026, 8, 12);
+
+      expect(isPastAgendaDay(yesterday, today: today), isTrue);
+      expect(isPastAgendaDay(today, today: today), isFalse);
+    });
+
     test('isOperationalAgendaDay retorna true para hoje e futuro', () {
       final today = DateTime.now();
       final tomorrow = DateTime(today.year, today.month, today.day + 1);

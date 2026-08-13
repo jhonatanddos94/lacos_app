@@ -214,6 +214,51 @@ abstract final class AppStrings {
   static const String agendaOperationalSummaryOverdue = 'aguardando conclusão';
   static const String agendaOperationalSummaryCurrent = 'em andamento';
   static const String agendaOperationalSummaryUpcoming = 'próximos';
+  static const String homeTodayTitle = 'HOJE';
+  static const String homeNextAppointmentTitle = 'PRÓXIMO ATENDIMENTO';
+  static const String homeInProgressTitle = 'EM ATENDIMENTO';
+  static const String homeAttentionTitle = 'ATENÇÃO';
+  static const String homeQuickActionsTitle = 'AÇÕES RÁPIDAS';
+  static const String homeUpcomingDaysTitle = 'PRÓXIMOS DIAS';
+  static const String homeUpcomingDaysOpenAgenda = 'Ver agenda →';
+  static const String homeUpcomingDaysOpenAgendaSemantic = 'Ver agenda';
+  static const String homeUpcomingDayOpenAgendaSemantic = 'Abrir agenda.';
+  static const String homeAgendaFreeToday = 'Agenda livre';
+  static const String homeEmptyDayDescription = 'Nenhum atendimento hoje.';
+  static const String homeNewAppointmentCta = '+ Agendar';
+  static const String homeNoNextAppointment = 'Nenhum próximo horário hoje.';
+  static const String homeDayLoadError =
+      'Não foi possível carregar os atendimentos de hoje.';
+  static const String homeWorkspaceLoadError =
+      'Não foi possível carregar sua área de trabalho.';
+  static const String homeQuickActionNewAppointment = 'Agendar';
+  static const String homeQuickActionNewClient = 'Nova cliente';
+  static const String homeQuickActionSearchClient = 'Buscar cliente';
+  static const String homeQuickActionNewAppointmentSemantic =
+      'Novo agendamento';
+  static const String homeQuickActionNewClientSemantic = 'Nova cliente';
+  static const String homeQuickActionSearchClientSemantic = 'Buscar cliente';
+  static const String homeAppointmentSingular = 'atendimento';
+  static const String homeAppointmentPlural = 'atendimentos';
+  static const String homeSummaryCompletedSingular = 'concluído';
+  static const String homeSummaryCompletedPlural = 'concluídos';
+  static const String homeSummaryCurrent = 'em andamento';
+  static const String homeSummaryUpcomingSingular = 'próximo';
+  static const String homeSummaryUpcomingPlural = 'próximos';
+  static const String homeSummaryCanceledSingular = 'cancelado';
+  static const String homeSummaryCanceledPlural = 'cancelados';
+  static const String homeAttentionWaitingSingular =
+      'atendimento aguardando conclusão';
+  static const String homeAttentionWaitingPlural =
+      'atendimentos aguardando conclusão';
+  static const String homeDefaultProfessionalName = 'Profissional';
+  static const String homeDefaultSalonName = 'Seu salão';
+  static const String homeOpenTodayAgendaLabel = 'Abrir agenda de hoje';
+  static const String homeOpenNextAppointmentLabel =
+      'Abrir próximo atendimento';
+  static const String homeOpenCurrentAppointmentLabel =
+      'Abrir atendimento em andamento';
+  static const String homeOpenAttentionLabel = 'Abrir atendimento em atraso';
   static const String appointmentCanceledByClientLabel = 'Cliente cancelou';
   static const String appointmentCanceledBySalonLabel = 'Salão cancelou';
   static const String appointmentCancellationReasonNotProvided =
@@ -486,11 +531,36 @@ abstract final class AppStrings {
   static const String clientNextAppointmentOpenDetailsLabel =
       'Abrir detalhes do próximo atendimento';
   static const String clientHistoryComingSoon =
-      'Os atendimentos realizados aparecerão aqui com todos os detalhes.';
+      'O histórico dos atendimentos realizados aparecerá aqui.';
   static const String clientNextAppointmentComingSoon =
       'Quando houver um agendamento, ele aparecerá aqui.';
   static const String noServiceHistoryYet =
       'Nenhum atendimento registrado ainda.';
+  static const String clientServiceHistoryViewAll = 'Ver histórico completo';
+  static const String clientServiceHistoryLoadError =
+      'Não foi possível carregar o histórico de atendimentos.';
+  static const String clientServiceHistoryLoadingLabel =
+      'Carregando histórico de atendimentos';
+  static const String clientServiceHistoryServicesUnavailable =
+      'Serviços não disponíveis';
+  static String clientServiceHistoryServicesAndMore(
+    String first,
+    String second,
+    int remainingCount,
+  ) => '$first + $second +$remainingCount';
+  static const String clientServiceHistoryOpenDetailsLabel =
+      'Abrir detalhes do atendimento';
+  static const String clientServiceHistoryOpenFullLabel =
+      'Abrir histórico completo de atendimentos';
+  static const String clientServiceHistoryFilterAll = 'Todos';
+  static const String clientServiceHistoryFilterCompleted = 'Concluídos';
+  static const String clientServiceHistoryFilterCanceled = 'Cancelados';
+  static const String clientServiceHistoryEmptyCompleted =
+      'Nenhum atendimento concluído.';
+  static const String clientServiceHistoryEmptyCanceled =
+      'Nenhum atendimento cancelado.';
+  static String clientServiceHistoryCancellationReasonLabel(String reason) =>
+      'Motivo: $reason';
   static const String deleteClient = 'Excluir cliente';
   static const String deleteClientTitle = 'Excluir cliente?';
   static const String deleteClientMessage =

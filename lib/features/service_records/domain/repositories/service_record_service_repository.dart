@@ -5,6 +5,11 @@ abstract interface class ServiceRecordServiceRepository {
     String serviceRecordId,
   );
 
+  /// Carrega linhas de vários ServiceRecords em uma única query (evita N+1).
+  Future<List<ServiceRecordService>> findByServiceRecordIds(
+    List<String> serviceRecordIds,
+  );
+
   Future<List<ServiceRecordService>> createMany({
     required String serviceRecordId,
     required List<ServiceRecordService> services,

@@ -10,15 +10,19 @@ class AgendaDaySelector extends StatelessWidget {
     required this.days,
     required this.selectedDay,
     required this.onDaySelected,
+    this.today,
     super.key,
   });
 
   final List<DateTime> days;
   final DateTime selectedDay;
   final ValueChanged<DateTime> onDaySelected;
+  final DateTime? today;
 
   @override
   Widget build(BuildContext context) {
+    final referenceToday = today ?? DateTime.now();
+
     return SizedBox(
       height: 72,
       child: ListView.separated(
@@ -28,8 +32,8 @@ class AgendaDaySelector extends StatelessWidget {
         itemBuilder: (context, index) {
           final day = days[index];
           final isSelected = isSameAppointmentDate(day, selectedDay);
-          final isToday = isSameAppointmentDate(day, DateTime.now());
-          final isPast = isPastAgendaDay(day);
+          final isToday = isSameAppointmentDate(day, referenceToday);
+          final isPast = isPastAgendaDay(day, today: referenceToday);
 
           return AgendaDayChip(
             day: day,

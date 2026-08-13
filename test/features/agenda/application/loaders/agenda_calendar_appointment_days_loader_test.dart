@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/features/agenda/application/loaders/agenda_calendar_appointment_days_loader.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 
 void main() {
@@ -61,9 +62,23 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<List<Appointment>> findByDay(DateTime day) {
     throw UnimplementedError();
   }
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) {
+    throw UnimplementedError();
+  }
+
 
   @override
   Future<Appointment> findById(String appointmentId) {

@@ -7,9 +7,11 @@ import 'package:lacos_app/features/appointments/application/use_cases/create_app
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_canceled_by.dart';
+import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
@@ -38,6 +40,9 @@ void main() {
         ProviderScope(
           overrides: [
             clientMemoryRepositoryProvider.overrideWithValue(memoryRepository),
+            clientServiceHistoryProvider('client-1').overrideWith(
+              (ref) async => const [],
+            ),
             createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
           ],
           child: MaterialApp(home: ClientDetailsPage(client: _client())),
@@ -159,7 +164,19 @@ class _FakeAppointmentRepository implements AppointmentRepository {
   }) async => null;
 
   @override
+  Future<List<Appointment>> findCanceledByClientId(String clientId) async {
+    return const [];
+  }
+
+  @override
   Future<List<Appointment>> findByDay(DateTime day) async => const [];
+  @override
+  Future<List<Appointment>> findByDateRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    Iterable<AppointmentStatus>? statuses,
+  }) async => const [];
+
 
   @override
   Future<Set<DateTime>> findActiveAppointmentDaysInRange({

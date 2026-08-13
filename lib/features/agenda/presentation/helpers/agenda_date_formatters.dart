@@ -34,6 +34,19 @@ String formatAgendaShortWeekday(int weekday) {
   };
 }
 
+String formatAgendaUpcomingDayWeekday(int weekday) {
+  return switch (weekday) {
+    DateTime.monday => 'Segunda',
+    DateTime.tuesday => 'Terça',
+    DateTime.wednesday => 'Quarta',
+    DateTime.thursday => 'Quinta',
+    DateTime.friday => 'Sexta',
+    DateTime.saturday => 'Sábado',
+    DateTime.sunday => 'Domingo',
+    _ => '',
+  };
+}
+
 String fullAgendaWeekdayName(int weekday) {
   return switch (weekday) {
     DateTime.monday => 'Segunda-feira',
