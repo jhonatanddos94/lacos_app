@@ -52,6 +52,37 @@ void main() {
     });
 
     test(
+      'RISCO: professional inativa some do findAll e o loader falha',
+      () async {
+        appointmentRepository.appointment = _appointment();
+        appointmentServiceRepository.activeServices = [
+          _appointmentService(id: 'line-1', serviceId: 'service-1'),
+        ];
+        loader = AppointmentDetailsLoader(
+          appointmentRepository: appointmentRepository,
+          clientRepository: _FakeClientRepository(),
+          professionalRepository: _InactiveProfessionalRepository(),
+          appointmentServiceRepository: appointmentServiceRepository,
+          serviceRepository: _FakeServiceRepository(),
+        );
+
+        expect(
+          () => loader.load(
+            appointmentId: 'appointment-1',
+            day: DateTime(2026, 8, 21),
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              'Profissional não encontrada.',
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
       'resolve serviços via snapshot quando catálogo não contém o item',
       () async {
         appointmentRepository.appointment = _appointment();
@@ -228,6 +259,14 @@ class _FakeProfessionalRepository implements ProfessionalRepository {
       updatedAt: DateTime(2026, 1, 1),
     ),
   ];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _InactiveProfessionalRepository implements ProfessionalRepository {
+  @override
+  Future<List<Professional>> findAll() async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

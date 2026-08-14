@@ -312,6 +312,14 @@ abstract final class AppStrings {
       'Escolha uma cliente para continuar.';
   static const String appointmentProfessionalRequired =
       'Escolha uma profissional.';
+  static const String appointmentProfessionalNotConfigured =
+      'Perfil profissional não configurado.';
+  static const String appointmentProfessionalIncompleteHint =
+      'Conclua seu perfil para criar agendamentos.';
+  static const String appointmentProfessionalCompleteProfileCta =
+      'Concluir perfil';
+  static const String appointmentProfessionalLoadError =
+      'Não foi possível carregar a profissional.';
   static const String appointmentDateRequired =
       'Escolha a data do atendimento.';
   static const String appointmentStartTimeRequired =

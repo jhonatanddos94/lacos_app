@@ -16,6 +16,7 @@ import 'package:lacos_app/features/appointments/domain/entities/appointment.dart
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_details_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
+import 'package:lacos_app/features/appointments/presentation/widgets/appointment_professional_section.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_preparation_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/agenda_appointment_open_flow.dart';
 import 'package:lacos_app/features/auth/presentation/bottom_sheets/account_actions_bottom_sheet.dart';
@@ -34,6 +35,7 @@ import 'package:lacos_app/features/memories/application/memory_providers.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
@@ -62,6 +64,17 @@ void main() {
           appClockProvider.overrideWithValue(FakeAppClock(now)),
           calendarTodayProvider.overrideWithValue(today),
           workspaceProvider.overrideWith((ref) async => homeTestWorkspace()),
+          professionalsProvider.overrideWith(
+            (ref) async => [
+              Professional(
+                id: 'professional-1',
+                name: 'Maria Santos',
+                isActive: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
           agendaAppointmentsDisplayProvider.overrideWith(
             (ref, day) async => appointments,
           ),
@@ -131,7 +144,9 @@ void main() {
     expect(find.text(AppStrings.profile), findsOneWidget);
   });
 
-  testWidgets('novo agendamento abre o formulário oficial', (tester) async {
+  testWidgets('O: Home → Agendar auto-seleciona a única Professional', (
+    tester,
+  ) async {
     await pumpHome(tester);
 
     await tester.ensureVisible(
@@ -141,6 +156,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AppointmentFormBottomSheet), findsOneWidget);
+    expect(find.text(AppStrings.appointmentChooseProfessionalPrompt), findsNothing);
+    expect(find.byKey(AppointmentProfessionalSection.readOnlyKey), findsOneWidget);
   });
 
   testWidgets('nova cliente abre o formulário oficial', (tester) async {
@@ -173,6 +190,17 @@ void main() {
           appClockProvider.overrideWithValue(FakeAppClock(now)),
           calendarTodayProvider.overrideWithValue(today),
           workspaceProvider.overrideWith((ref) async => homeTestWorkspace()),
+          professionalsProvider.overrideWith(
+            (ref) async => [
+              Professional(
+                id: 'professional-1',
+                name: 'Maria Santos',
+                isActive: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
           agendaAppointmentsDisplayProvider.overrideWith(
             (ref, day) async => const [],
           ),
@@ -274,6 +302,17 @@ void main() {
           appClockProvider.overrideWithValue(FakeAppClock(now)),
           calendarTodayProvider.overrideWithValue(today),
           workspaceProvider.overrideWith((ref) async => homeTestWorkspace()),
+          professionalsProvider.overrideWith(
+            (ref) async => [
+              Professional(
+                id: 'professional-1',
+                name: 'Maria Santos',
+                isActive: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
           agendaAppointmentsDisplayProvider.overrideWith(
             (ref, day) async => [
               homeTestAppointment(

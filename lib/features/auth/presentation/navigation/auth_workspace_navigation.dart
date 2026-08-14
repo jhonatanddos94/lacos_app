@@ -9,9 +9,7 @@ Future<void> navigateFromAuthenticatedWorkspace(
   WidgetRef ref,
   BuildContext context,
 ) async {
-  ref.invalidate(workspaceProvider);
-
-  final workspace = await ref.read(workspaceProvider.future);
+  final workspace = await ref.refresh(workspaceProvider.future);
 
   if (!context.mounted) return;
 

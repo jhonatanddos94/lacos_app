@@ -17,6 +17,8 @@ class LoginFormActions extends StatelessWidget {
   final ValueChanged<bool> onRememberMeChanged;
   final bool enabled;
 
+  static const rememberMeKey = Key('login-remember-me');
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -35,6 +37,7 @@ class LoginFormActions extends StatelessWidget {
                   height: 24,
                   width: 24,
                   child: Checkbox(
+                    key: LoginFormActions.rememberMeKey,
                     value: rememberMe,
                     onChanged: enabled
                         ? (value) => onRememberMeChanged(value ?? false)

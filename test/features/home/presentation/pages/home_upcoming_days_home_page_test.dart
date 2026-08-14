@@ -14,6 +14,8 @@ import 'package:lacos_app/features/home/application/providers/home_upcoming_days
 import 'package:lacos_app/features/home/presentation/pages/home_page.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_quick_actions_section.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_upcoming_days_section.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
+import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
 import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
 
@@ -36,6 +38,17 @@ void main() {
           appClockProvider.overrideWithValue(FakeAppClock(now)),
           calendarTodayProvider.overrideWithValue(today),
           workspaceProvider.overrideWith((ref) async => homeTestWorkspace()),
+          professionalsProvider.overrideWith(
+            (ref) async => [
+              Professional(
+                id: 'professional-1',
+                name: 'Maria Santos',
+                isActive: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
           agendaAppointmentsDisplayProvider.overrideWith(
             (ref, day) async => const [],
           ),

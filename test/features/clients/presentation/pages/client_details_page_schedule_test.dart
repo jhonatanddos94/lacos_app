@@ -15,6 +15,8 @@ import 'package:lacos_app/features/clients/application/providers/client_service_
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
 import 'package:lacos_app/features/memories/application/memory_providers.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
+import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/memories/domain/entities/client_memory.dart';
 import 'package:lacos_app/features/memories/domain/repositories/client_memory_repository.dart';
 
@@ -44,6 +46,17 @@ void main() {
               (ref) async => const [],
             ),
             createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
+            professionalsProvider.overrideWith(
+              (ref) async => [
+                Professional(
+                  id: 'professional-1',
+                  name: 'Leticia',
+                  isActive: true,
+                  createdAt: DateTime(2026, 7, 8),
+                  updatedAt: DateTime(2026, 7, 8),
+                ),
+              ],
+            ),
           ],
           child: MaterialApp(home: ClientDetailsPage(client: _client())),
         ),
@@ -66,7 +79,7 @@ void main() {
     });
 
     testWidgets(
-      'toque abre AppointmentFormBottomSheet com cliente preenchida',
+      'Q: Agendar na ficha auto-seleciona a única Professional',
       (tester) async {
         await pumpPage(tester);
         await openScheduleForm(tester);
@@ -78,6 +91,11 @@ void main() {
         expect(find.text('Maria'), findsAtLeastNWidgets(1));
         expect(
           find.text(AppStrings.appointmentChooseClientPrompt),
+          findsNothing,
+        );
+        expect(find.text('Leticia'), findsOneWidget);
+        expect(
+          find.text(AppStrings.appointmentChooseProfessionalPrompt),
           findsNothing,
         );
       },

@@ -49,6 +49,9 @@ void main() {
             appointmentsByDayProvider.overrideWith(
               (ref, day) async => const [],
             ),
+            professionalsProvider.overrideWith(
+              (ref) async => [_formProfessional()],
+            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -137,6 +140,9 @@ void main() {
             appointmentsByDayProvider.overrideWith(
               (ref, day) async => const [],
             ),
+            professionalsProvider.overrideWith(
+              (ref) async => [_formProfessional()],
+            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -221,6 +227,9 @@ void main() {
             appointmentsByDayProvider.overrideWith(
               (ref, day) async => const [],
             ),
+            professionalsProvider.overrideWith(
+              (ref) async => [_formProfessional()],
+            ),
             clientsProvider.overrideWith(
               (ref) async => [_initialClient(), _alternateClient()],
             ),
@@ -285,16 +294,6 @@ void main() {
       );
       await tester.pump();
 
-      final professionalPrompt = find.text(
-        AppStrings.appointmentChooseProfessionalPrompt,
-      );
-      await tester.ensureVisible(professionalPrompt);
-      await tester.tap(professionalPrompt);
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Ana Profissional'));
-      await tester.pumpAndSettle();
-
       final addService = find.text(AppStrings.appointmentAddServicePrompt);
       await tester.ensureVisible(addService);
       await tester.tap(addService);
@@ -338,6 +337,9 @@ void main() {
     List<Override> buildOverrides() => [
       updateAppointmentUseCaseProvider.overrideWithValue(updateUseCase),
       appointmentsByDayProvider.overrideWith((ref, day) async => const []),
+      professionalsProvider.overrideWith(
+        (ref) async => [_formProfessional()],
+      ),
     ];
 
     Future<void> mountEditForm(

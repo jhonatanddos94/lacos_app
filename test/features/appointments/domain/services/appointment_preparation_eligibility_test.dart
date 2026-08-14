@@ -92,4 +92,80 @@ void main() {
       );
     });
   });
+
+  group('AppointmentPreparationEligibility frozen now 2026-08-13 15:00', () {
+    final now = DateTime(2026, 8, 13, 15);
+
+    test('1: mesmo appointment no dia anterior não é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.pending,
+          startAt: DateTime(2026, 8, 12, 14, 30),
+          endAt: DateTime(2026, 8, 12, 15, 30),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('2: futuro fora da janela de 30 min não é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.pending,
+          startAt: DateTime(2026, 8, 13, 16),
+          endAt: DateTime(2026, 8, 13, 17),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('3: appointment dentro da janela é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.pending,
+          startAt: DateTime(2026, 8, 13, 15, 20),
+          endAt: DateTime(2026, 8, 13, 16, 20),
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('4: current 14:30–15:30 é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.pending,
+          startAt: DateTime(2026, 8, 13, 14, 30),
+          endAt: DateTime(2026, 8, 13, 15, 30),
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('5: completed não é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.completed,
+          startAt: DateTime(2026, 8, 13, 14, 30),
+          endAt: DateTime(2026, 8, 13, 15, 30),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('5: canceled não é elegível', () {
+      expect(
+        AppointmentPreparationEligibility.isEligible(
+          status: AppointmentStatus.canceled,
+          startAt: DateTime(2026, 8, 13, 14, 30),
+          endAt: DateTime(2026, 8, 13, 15, 30),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+  });
 }

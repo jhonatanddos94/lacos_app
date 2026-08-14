@@ -118,25 +118,63 @@ void main() {
       expect(available, isNot(contains(DateTime(2025, 7, 6, 14, 30))));
     });
     test(
-      'isIntervalAvailable bloqueia sobreposição para a mesma profissional',
+      'M: 14:00–15:00 e 14:30–15:30 na mesma profissional entram em conflito',
       () {
         final isAvailable = engine.isIntervalAvailable(
-          startAt: DateTime(2025, 7, 6, 9),
-          endAt: DateTime(2025, 7, 6, 10),
-          professionalId: 'professional-1',
+          startAt: DateTime(2026, 8, 13, 14, 30),
+          endAt: DateTime(2026, 8, 13, 15, 30),
+          professionalId: 'professional-x',
           existingAppointments: [
             _appointment(
-              start: DateTime(2025, 7, 6, 9),
-              end: DateTime(2025, 7, 6, 10),
+              start: DateTime(2026, 8, 13, 14),
+              end: DateTime(2026, 8, 13, 15),
+              professionalId: 'professional-x',
             ),
           ],
-          openingTime: openingTime,
-          closingTime: closingTime,
+          openingTime: DateTime(2026, 8, 13, 9),
+          closingTime: DateTime(2026, 8, 13, 18),
         );
 
         expect(isAvailable, isFalse);
       },
     );
+
+    test('N: intervalos adjacentes na mesma profissional são permitidos', () {
+      final isAvailable = engine.isIntervalAvailable(
+        startAt: DateTime(2026, 8, 13, 15),
+        endAt: DateTime(2026, 8, 13, 16),
+        professionalId: 'professional-x',
+        existingAppointments: [
+          _appointment(
+            start: DateTime(2026, 8, 13, 14),
+            end: DateTime(2026, 8, 13, 15),
+            professionalId: 'professional-x',
+          ),
+        ],
+        openingTime: DateTime(2026, 8, 13, 9),
+        closingTime: DateTime(2026, 8, 13, 18),
+      );
+
+      expect(isAvailable, isTrue);
+    });
+
+    test('isIntervalAvailable bloqueia conflito no mesmo horário', () {
+      final isAvailable = engine.isIntervalAvailable(
+        startAt: DateTime(2025, 7, 6, 9),
+        endAt: DateTime(2025, 7, 6, 10),
+        professionalId: 'professional-1',
+        existingAppointments: [
+          _appointment(
+            start: DateTime(2025, 7, 6, 9),
+            end: DateTime(2025, 7, 6, 10),
+          ),
+        ],
+        openingTime: openingTime,
+        closingTime: closingTime,
+      );
+
+      expect(isAvailable, isFalse);
+    });
 
     test('isIntervalAvailable permite horário encostado', () {
       final isAvailable = engine.isIntervalAvailable(
@@ -262,6 +300,7 @@ Appointment _appointment({
   required DateTime end,
   bool isActive = true,
   AppointmentStatus status = AppointmentStatus.confirmed,
+  String professionalId = 'professional-1',
 }) {
   final now = DateTime(2025, 7, 6);
 
@@ -270,7 +309,7 @@ Appointment _appointment({
     salonId: 'salon-1',
     ownerId: 'owner-1',
     clientId: 'client-1',
-    professionalId: 'professional-1',
+    professionalId: professionalId,
     startAt: start,
     endAt: end,
     status: status,

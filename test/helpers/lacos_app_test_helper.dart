@@ -1,16 +1,22 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lacos_app/app/app.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
+import 'package:lacos_app/features/auth/application/providers/remember_me_providers.dart';
 import 'fake_auth_repository.dart';
+import 'in_memory_remember_me_preference_repository.dart';
 
 List<Override> unauthenticatedAppOverrides() {
   return [
     workspaceProvider.overrideWith((ref) async => null),
     authRepositoryProvider.overrideWithValue(
       FakeUnauthenticatedAuthRepository(),
+    ),
+    rememberMePreferenceRepositoryProvider.overrideWithValue(
+      InMemoryRememberMePreferenceRepository(),
     ),
   ];
 }
@@ -20,7 +26,11 @@ Future<void> pumpLacosApp(
   List<Override> overrides = const [],
 }) async {
   await tester.pumpWidget(
-    ProviderScope(overrides: overrides, child: const LacosApp()),
+    ProviderScope(
+      key: UniqueKey(),
+      overrides: overrides,
+      child: const LacosApp(),
+    ),
   );
 }
 

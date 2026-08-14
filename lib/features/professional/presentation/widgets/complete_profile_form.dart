@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lacos_app/core/router/app_route_resolver.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
@@ -71,6 +72,8 @@ class _CompleteProfileFormState extends ConsumerState<CompleteProfileForm> {
 
         if (previous?.isLoading == true && next.valueOrNull != null) {
           _showMessage('Perfil profissional criado com sucesso.');
+          ref.invalidate(workspaceProvider);
+          ref.invalidate(professionalsProvider);
           context.go(AppRouteResolver.resolveAfterProfessionalCreated());
         }
       },

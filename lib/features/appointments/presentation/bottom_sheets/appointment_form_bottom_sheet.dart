@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:lacos_app/app/app.dart';
 import 'package:lacos_app/core/config/app_durations.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/core/formatters/service_display_formatters.dart';
+import 'package:lacos_app/core/router/route_paths.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
+import 'package:lacos_app/features/appointments/application/policies/scheduling_professional_policy.dart';
 import 'package:lacos_app/features/appointments/application/providers/appointment_providers.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
@@ -26,6 +29,7 @@ import 'package:lacos_app/features/appointments/presentation/widgets/appointment
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_services_section.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/bottom_sheets/client_picker_bottom_sheet.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/presentation/bottom_sheets/professional_picker_bottom_sheet.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
@@ -196,13 +200,19 @@ class _AppointmentFormBottomSheetState
 
     if (ref.read(createAppointmentControllerProvider).isLoading) return;
 
+    final createProfessional = _resolvedProfessional(
+      SchedulingProfessionalPolicy.resolve(ref.read(professionalsProvider)),
+    );
+    if (createProfessional == null) return;
+    _selectedProfessional = createProfessional;
+
     setState(() => _saveError = null);
 
     final createdAppointment = await ref
         .read(createAppointmentControllerProvider.notifier)
         .save(
           clientId: _selectedClient!.id,
-          professionalId: _selectedProfessional!.id,
+          professionalId: createProfessional.id,
           services: _selectedServices,
           startAt: _buildStartAt(),
           endAt: _buildEndAt(),
@@ -273,15 +283,16 @@ class _AppointmentFormBottomSheetState
   }
 
   bool _validateForm() {
+    final resolution = SchedulingProfessionalPolicy.resolve(
+      ref.read(professionalsProvider),
+    );
     final clientError = _selectedClient == null
         ? AppStrings.appointmentClientRequired
         : null;
     final servicesError = _selectedServices.isEmpty
         ? AppStrings.appointmentAddAtLeastOneService
         : null;
-    final professionalError = _selectedProfessional == null
-        ? AppStrings.appointmentProfessionalRequired
-        : null;
+    final professionalError = _resolveProfessionalError(resolution);
     final dateError = _selectedDate == null
         ? AppStrings.appointmentDateRequired
         : null;
@@ -319,6 +330,77 @@ class _AppointmentFormBottomSheetState
     return true;
   }
 
+  String? _resolveProfessionalError(
+    SchedulingProfessionalResolution resolution,
+  ) {
+    if (_isEditMode) {
+      return _selectedProfessional == null
+          ? AppStrings.appointmentProfessionalRequired
+          : null;
+    }
+
+    return switch (resolution) {
+      SchedulingProfessionalLoading() || SchedulingProfessionalFailed() =>
+        AppStrings.appointmentProfessionalLoadError,
+      SchedulingProfessionalNone() =>
+        AppStrings.appointmentProfessionalNotConfigured,
+      SchedulingProfessionalUnique() => null,
+      SchedulingProfessionalMultiple() => _selectedProfessional == null
+          ? AppStrings.appointmentProfessionalRequired
+          : null,
+    };
+  }
+
+  void _syncCreateProfessionalSelection(
+    SchedulingProfessionalResolution resolution,
+  ) {
+    if (_isEditMode) return;
+
+    final unique = switch (resolution) {
+      SchedulingProfessionalUnique(:final professional) => professional,
+      _ => null,
+    };
+    if (unique == null) return;
+    if (_selectedProfessional?.id == unique.id) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isEditMode) return;
+      if (_selectedProfessional?.id == unique.id) return;
+      setState(() {
+        _selectedProfessional = unique;
+        _professionalError = null;
+      });
+    });
+  }
+
+  AppointmentProfessionalUiMode _professionalUiMode(
+    SchedulingProfessionalResolution resolution,
+  ) {
+    if (_isEditMode) {
+      return switch (resolution) {
+        SchedulingProfessionalMultiple() =>
+          AppointmentProfessionalUiMode.selectable,
+        _ => AppointmentProfessionalUiMode.readOnly,
+      };
+    }
+
+    return switch (resolution) {
+      SchedulingProfessionalLoading() => AppointmentProfessionalUiMode.loading,
+      SchedulingProfessionalFailed() => AppointmentProfessionalUiMode.error,
+      SchedulingProfessionalNone() => AppointmentProfessionalUiMode.incomplete,
+      SchedulingProfessionalUnique() => AppointmentProfessionalUiMode.readOnly,
+      SchedulingProfessionalMultiple() =>
+        AppointmentProfessionalUiMode.selectable,
+    };
+  }
+
+  void _openCompleteProfile() {
+    final router = GoRouter.maybeOf(context);
+    if (router == null) return;
+    Navigator.of(context).pop();
+    router.go(RoutePaths.completeProfile);
+  }
+
   void _scrollToSection(GlobalKey key) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -341,9 +423,20 @@ class _AppointmentFormBottomSheetState
     );
   }
 
-  bool get _canCalculateAvailableTimes {
+  Professional? _resolvedProfessional(
+    SchedulingProfessionalResolution resolution,
+  ) {
+    if (_isEditMode) return _selectedProfessional;
+
+    return switch (resolution) {
+      SchedulingProfessionalUnique(:final professional) => professional,
+      _ => _selectedProfessional,
+    };
+  }
+
+  bool _canCalculateAvailableTimes(Professional? professional) {
     return _selectedDate != null &&
-        _selectedProfessional != null &&
+        professional != null &&
         _selectedServices.isNotEmpty &&
         _totalDurationMinutes > 0;
   }
@@ -549,6 +642,11 @@ class _AppointmentFormBottomSheetState
   }
 
   Future<void> _openProfessionalPicker() async {
+    final resolution = SchedulingProfessionalPolicy.resolve(
+      ref.read(professionalsProvider),
+    );
+    if (resolution is! SchedulingProfessionalMultiple) return;
+
     final professional = await showModalBottomSheet<Professional>(
       context: context,
       isScrollControlled: true,
@@ -627,12 +725,10 @@ class _AppointmentFormBottomSheetState
 
   List<DateTime> _calculateAvailableStartTimes(
     List<Appointment> dayAppointments,
+    Professional professional,
   ) {
-    final date = _selectedDate!;
-    final professional = _selectedProfessional!;
-
     return _availabilityCalculator.calculateAvailableStartTimes(
-      day: date,
+      day: _selectedDate!,
       durationMinutes: _totalDurationMinutes,
       dayAppointments: _filterDayAppointmentsForAvailability(dayAppointments),
       professionalId: professional.id,
@@ -695,14 +791,27 @@ class _AppointmentFormBottomSheetState
     List<DateTime> availableStartTimes = const [];
     var showNoAvailableTimesMessage = false;
 
-    if (_canCalculateAvailableTimes) {
+    final professionalResolution = SchedulingProfessionalPolicy.resolve(
+      ref.watch(professionalsProvider),
+    );
+    _syncCreateProfessionalSelection(professionalResolution);
+    final resolvedProfessional = _resolvedProfessional(professionalResolution);
+    final professionalUiMode = _professionalUiMode(professionalResolution);
+    final canCalculateAvailableTimes = _canCalculateAvailableTimes(
+      resolvedProfessional,
+    );
+
+    if (canCalculateAvailableTimes) {
       final appointmentsAsync = ref.watch(
         appointmentsByDayProvider(AgendaDay.from(_selectedDate!)),
       );
 
       appointmentsAsync.when(
         data: (dayAppointments) {
-          availableStartTimes = _calculateAvailableStartTimes(dayAppointments);
+          availableStartTimes = _calculateAvailableStartTimes(
+            dayAppointments,
+            resolvedProfessional!,
+          );
           displayedStartTimeMinutes = _availabilityCalculator
               .toDisplayedStartTimeMinutes(availableStartTimes);
           showNoAvailableTimesMessage = availableStartTimes.isEmpty;
@@ -783,9 +892,28 @@ class _AppointmentFormBottomSheetState
                             KeyedSubtree(
                               key: _professionalSectionKey,
                               child: AppointmentProfessionalSection(
-                                selectedProfessional: _selectedProfessional,
+                                mode: professionalUiMode,
+                                selectedProfessional: resolvedProfessional,
                                 errorText: _professionalError,
-                                onTap: _openProfessionalPicker,
+                                onTap:
+                                    professionalUiMode ==
+                                        AppointmentProfessionalUiMode
+                                            .selectable
+                                    ? _openProfessionalPicker
+                                    : null,
+                                onRetry: professionalUiMode ==
+                                        AppointmentProfessionalUiMode.error
+                                    ? () => ref.invalidate(
+                                        professionalsProvider,
+                                      )
+                                    : null,
+                                onCompleteProfileTap:
+                                    professionalUiMode ==
+                                            AppointmentProfessionalUiMode
+                                                .incomplete &&
+                                        GoRouter.maybeOf(context) != null
+                                    ? _openCompleteProfile
+                                    : null,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.lg),
@@ -807,7 +935,7 @@ class _AppointmentFormBottomSheetState
                                 appointmentSummaryLabel:
                                     _buildAppointmentSummaryLabel(),
                                 canCalculateAvailableTimes:
-                                    _canCalculateAvailableTimes,
+                                    canCalculateAvailableTimes,
                                 isLoadingAvailableTimes:
                                     isLoadingAvailableTimes,
                                 availabilityError: availabilityError,
@@ -821,7 +949,7 @@ class _AppointmentFormBottomSheetState
                                 onSelectStartTime: _setSelectedStartTime,
                                 onCustomStartTimeTap: () =>
                                     _openTimePicker(availableStartTimes),
-                                onRetryAvailability: _canCalculateAvailableTimes
+                                onRetryAvailability: canCalculateAvailableTimes
                                     ? _retryLoadAvailableTimes
                                     : null,
                               ),
@@ -848,7 +976,12 @@ class _AppointmentFormBottomSheetState
                               label: _submitLabel,
                               icon: Icons.check_circle_outline_rounded,
                               isLoading: isSaving,
-                              onPressed: isSaving ? null : _submitForm,
+                              onPressed:
+                                  isSaving ||
+                                      (!_isEditMode &&
+                                          resolvedProfessional == null)
+                                  ? null
+                                  : _submitForm,
                             ),
                           ],
                         ),

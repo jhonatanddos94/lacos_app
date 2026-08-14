@@ -30,73 +30,86 @@ class AppointmentFormSelectTile extends StatelessWidget {
     final theme = Theme.of(context);
     final borderColor = hasError ? theme.colorScheme.error : AppColors.divider;
 
+    final decoration = BoxDecoration(
+      color: backgroundColor,
+      borderRadius: AppRadius.borderMd,
+      border: Border.all(color: borderColor),
+    );
+    const padding = EdgeInsets.symmetric(
+      horizontal: AppSpacing.sm,
+      vertical: AppSpacing.xs,
+    );
+    final row = Row(
+      children: [
+        if (leading != null) ...[
+          leading!,
+          const SizedBox(width: AppSpacing.xs),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: AppColors.graphite,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.xxxs),
+                Text(
+                  subtitle!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+              if (detail != null) ...[
+                const SizedBox(height: AppSpacing.xxxs),
+                Text(
+                  detail!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (onTap != null) ...[
+          const SizedBox(width: AppSpacing.xxs),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.textSecondary.withValues(alpha: 0.7),
+            size: AppIconSizes.md,
+          ),
+        ],
+      ],
+    );
+
+    if (onTap == null) {
+      return DecoratedBox(
+        decoration: decoration,
+        child: Padding(padding: padding, child: row),
+      );
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.borderMd,
         child: Ink(
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: AppRadius.borderMd,
-            border: Border.all(color: borderColor),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
-          ),
-          child: Row(
-            children: [
-              if (leading != null) ...[
-                leading!,
-                const SizedBox(width: AppSpacing.xs),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: AppColors.graphite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: AppSpacing.xxxs),
-                      Text(
-                        subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                    if (detail != null) ...[
-                      const SizedBox(height: AppSpacing.xxxs),
-                      Text(
-                        detail!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xxs),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textSecondary.withValues(alpha: 0.7),
-                size: AppIconSizes.md,
-              ),
-            ],
-          ),
+          decoration: decoration,
+          padding: padding,
+          child: row,
         ),
       ),
     );

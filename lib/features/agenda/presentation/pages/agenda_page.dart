@@ -8,6 +8,7 @@ import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/core/time/application/providers/clock_providers.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/agenda/application/models/agenda_appointment_display.dart';
 import 'package:lacos_app/features/agenda/application/providers/agenda_providers.dart';
@@ -143,6 +144,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
       final updatedResult = await openAgendaAppointmentFlow(
         context: context,
         appointment: appointment,
+        now: ref.read(appClockProvider).now(),
       );
 
       if (!mounted || updatedResult == null) return;

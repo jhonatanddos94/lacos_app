@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/session/application/providers/session_providers.dart';
 import 'package:lacos_app/core/session/domain/exceptions/auth_session_exception.dart';
-import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
 import 'package:lacos_app/features/auth/domain/entities/authenticated_user.dart';
 import 'package:lacos_app/features/auth/domain/repositories/auth_repository.dart';
@@ -34,31 +33,43 @@ final class AuthError extends AuthState {
 }
 
 class AuthController extends Notifier<AuthState> {
+  /// True while [signIn]/[createAccount] own the state machine.
+  ///
+  /// Firebase [AuthRepository.authenticatedUser] can emit as soon as
+  /// `signInWithEmailAndPassword` succeeds, before Parse session sync.
+  /// Those emissions must not replace [AuthLoading] or the login UI will
+  /// treat the flow as finished (re-enable Entrar, navigate too early).
+  var _isAuthOperationInProgress = false;
+
   @override
   AuthState build() {
     final repository = ref.watch(authRepositoryProvider);
 
     final subscription = repository.authenticatedUser.listen(
       (user) {
+        if (_isAuthOperationInProgress) return;
         state = switch (user) {
           null => const AuthUnauthenticated(),
           final user => AuthAuthenticated(user),
         };
       },
       onError: (error) {
+        if (_isAuthOperationInProgress) return;
         state = AuthError(_resolveErrorMessage(error));
       },
     );
 
     ref.onDispose(subscription.cancel);
 
-    return const AuthUnauthenticated();
+    final current = repository.currentUser;
+    return switch (current) {
+      null => const AuthUnauthenticated(),
+      final user => AuthAuthenticated(user),
+    };
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    state = const AuthLoading();
-
-    try {
+    await _runExclusiveAuthOperation(() async {
       final user = await ref
           .read(authRepositoryProvider)
           .signIn(email: email, password: password);
@@ -70,18 +81,14 @@ class AuthController extends Notifier<AuthState> {
       }
 
       state = AuthAuthenticated(user);
-    } on Object catch (error) {
-      state = AuthError(_resolveErrorMessage(error));
-    }
+    });
   }
 
   Future<void> createAccount({
     required String email,
     required String password,
   }) async {
-    state = const AuthLoading();
-
-    try {
+    await _runExclusiveAuthOperation(() async {
       final authRepository = ref.read(authRepositoryProvider);
       final sessionRepository = ref.read(sessionRepositoryProvider);
 
@@ -103,8 +110,21 @@ class AuthController extends Notifier<AuthState> {
 
       await authRepository.sendEmailVerification();
       state = AuthAuthenticated(user);
+    });
+  }
+
+  Future<void> _runExclusiveAuthOperation(
+    Future<void> Function() operation,
+  ) async {
+    _isAuthOperationInProgress = true;
+    state = const AuthLoading();
+
+    try {
+      await operation();
     } on Object catch (error) {
       state = AuthError(_resolveErrorMessage(error));
+    } finally {
+      _isAuthOperationInProgress = false;
     }
   }
 
@@ -133,8 +153,9 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  /// Logout: Parse → Firebase → invalidar workspace.
+  /// Logout: Parse → Firebase.
   /// Se uma etapa falhar, tenta completar as demais.
+  /// Workspace zera sozinho ao sair de [AuthAuthenticated].
   Future<bool> signOut() async {
     state = const AuthLoading();
 
@@ -153,8 +174,6 @@ class AuthController extends Notifier<AuthState> {
       firstError ??= error;
       _debugLog('Firebase signOut failed: $error');
     }
-
-    ref.invalidate(workspaceProvider);
 
     if (firstError != null) {
       state = AuthError(_resolveLogoutErrorMessage(firstError));

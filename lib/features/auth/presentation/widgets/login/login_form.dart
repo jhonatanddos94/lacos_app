@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/auth/application/controllers/auth_controller.dart';
 import 'package:lacos_app/features/auth/application/providers/auth_providers.dart';
+import 'package:lacos_app/features/auth/application/providers/remember_me_providers.dart';
 import 'package:lacos_app/features/auth/presentation/navigation/auth_workspace_navigation.dart';
 import 'package:lacos_app/features/auth/presentation/validators/email_validator.dart';
 import 'package:lacos_app/features/auth/presentation/validators/password_validator.dart';
@@ -28,9 +29,23 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-  bool _rememberMe = true;
+  bool _rememberMe = false;
+  bool _isSubmitting = false;
   String? _emailError;
   String? _passwordError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberMePreference();
+  }
+
+  Future<void> _loadRememberMePreference() async {
+    final rememberMe = await ref
+        .read(rememberMePreferenceRepositoryProvider)
+        .read();
+    _setStateIfMounted(() => _rememberMe = rememberMe);
+  }
 
   @override
   void dispose() {
@@ -44,8 +59,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     setState(update);
   }
 
-  void _signIn() {
-    if (ref.read(authControllerProvider) is AuthLoading) return;
+  Future<void> _signIn() async {
+    if (_isSubmitting || ref.read(authControllerProvider) is AuthLoading) {
+      return;
+    }
 
     final email = _emailController.text;
     final password = _passwordController.text;
@@ -60,9 +77,32 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
     if (emailError != null || passwordError != null) return;
 
-    ref
-        .read(authControllerProvider.notifier)
-        .signIn(email: email.trim(), password: password);
+    _isSubmitting = true;
+    _setStateIfMounted(() {});
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .signIn(email: email.trim(), password: password);
+
+      if (!mounted) return;
+
+      if (ref.read(authControllerProvider) is AuthAuthenticated) {
+        try {
+          await ref
+              .read(rememberMePreferenceRepositoryProvider)
+              .write(_rememberMe);
+        } on Object {
+          // Preferência não pode falhar o login já autenticado.
+        }
+
+        if (!mounted) return;
+        await navigateFromAuthenticatedWorkspace(ref, context);
+      }
+    } finally {
+      _isSubmitting = false;
+      _setStateIfMounted(() {});
+    }
   }
 
   void _showAuthError(String message) {
@@ -72,25 +112,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _handleAuthenticated(AuthAuthenticated state) async {
-    if (!mounted) return;
-
-    await navigateFromAuthenticatedWorkspace(ref, context);
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final isLoading = authState is AuthLoading;
+    final isLoading = _isSubmitting || authState is AuthLoading;
 
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (next case AuthError(:final message)) {
         _showAuthError(message);
-        return;
-      }
-
-      if (next case final AuthAuthenticated state) {
-        _handleAuthenticated(state);
       }
     });
 
