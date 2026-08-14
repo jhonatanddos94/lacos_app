@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lacos_app/core/router/app_router.dart';
 import 'package:lacos_app/core/theme/app_theme.dart';
+import 'package:lacos_app/features/monetization/application/monetization_providers.dart';
 
 /// Widget raiz do aplicativo Laços.
 class LacosApp extends ConsumerWidget {
@@ -13,6 +14,7 @@ class LacosApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    ref.watch(adsBootstrapProvider);
 
     return MaterialApp.router(
       title: 'Laços',

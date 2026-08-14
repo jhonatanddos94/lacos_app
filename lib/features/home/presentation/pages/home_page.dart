@@ -14,7 +14,6 @@ import 'package:lacos_app/features/appointments/application/helpers/appointment_
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/agenda_appointment_open_flow.dart';
-import 'package:lacos_app/features/auth/presentation/account/account_actions_flow.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_form_bottom_sheet.dart';
@@ -30,6 +29,9 @@ import 'package:lacos_app/features/home/presentation/widgets/home_next_appointme
 import 'package:lacos_app/features/home/presentation/widgets/home_quick_actions_section.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_today_summary_section.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_upcoming_days_section.dart';
+import 'package:lacos_app/features/monetization/presentation/widgets/home_ad_slot.dart';
+import 'package:lacos_app/features/professional/presentation/navigation/professional_profile_navigation.dart';
+import 'package:lacos_app/features/salon/presentation/navigation/salon_navigation.dart';
 import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -53,8 +55,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  Future<void> _openAccount() {
-    return _runGuarded(() => showAccountActionsFlow(context, ref));
+  Future<void> _openProfile() {
+    return _runGuarded(() => openProfessionalProfile(context));
+  }
+
+  Future<void> _openSalon() {
+    return _runGuarded(() => openSalonPage(context));
   }
 
   Future<void> _openNewAppointment() {
@@ -163,7 +169,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: AppSpacing.screenPadding.copyWith(
             top: AppSpacing.sm,
-            bottom: AppSpacing.xl,
+            bottom: AppSpacing.sm,
           ),
           child: Align(
             alignment: Alignment.topCenter,
@@ -183,7 +189,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                     onRetry: workspaceState.hasError
                         ? () => ref.invalidate(workspaceProvider)
                         : null,
-                    onAccountTap: _openAccount,
+                    onProfileTap: _openProfile,
+                    onSalonTap: _openSalon,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _buildDayContent(dayState, now),
@@ -203,6 +210,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       onOpenDay: _openAgendaOn,
                     ),
                   ],
+                  const HomeAdSlot(),
                 ],
               ),
             ),

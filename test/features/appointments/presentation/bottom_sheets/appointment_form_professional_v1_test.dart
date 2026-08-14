@@ -364,6 +364,15 @@ class _CountingProfessionalRepository implements ProfessionalRepository {
   }
 
   @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Professional?> getCurrentProfessional() async =>
       professionals.length == 1 ? professionals.single : null;
 }

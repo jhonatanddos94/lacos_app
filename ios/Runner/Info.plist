@@ -26,6 +26,11 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>GADApplicationIdentifier</key>
+	<!-- TODO release iOS: cadastrar Laços iOS no AdMob, obter App ID iOS (~) e Banner Unit Home (/), substituir este sample, validar SKAdNetwork e UMP/ATT. Não reutilizar IDs Android. -->
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Usamos este identificador apenas para exibir anúncios de forma mais relevante, quando você permitir.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Precisamos acessar a câmera para adicionar a foto da cliente.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

@@ -277,6 +277,13 @@ class _FakeProfessionalRepository implements ProfessionalRepository {
   ];
 
   @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

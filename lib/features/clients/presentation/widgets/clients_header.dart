@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lacos_app/core/config/app_strings.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
-import 'package:lacos_app/features/auth/presentation/account/account_actions_flow.dart';
+import 'package:lacos_app/features/professional/presentation/navigation/professional_profile_navigation.dart';
 
-class ClientsHeader extends ConsumerWidget {
+class ClientsHeader extends StatelessWidget {
   const ClientsHeader({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Row(
@@ -63,8 +63,9 @@ class ClientsHeader extends ConsumerWidget {
         ),
         const SizedBox(width: AppSpacing.xxs),
         _HeaderIconButton(
-          icon: Icons.account_circle_outlined,
-          onPressed: () => showAccountActionsFlow(context, ref),
+          icon: Icons.person_outline_rounded,
+          tooltip: AppStrings.profile,
+          onPressed: () => openProfessionalProfile(context),
         ),
       ],
     );
@@ -72,10 +73,15 @@ class ClientsHeader extends ConsumerWidget {
 }
 
 class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.icon, required this.onPressed});
+  const _HeaderIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.tooltip = '',
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +93,11 @@ class _HeaderIconButton extends StatelessWidget {
         icon: Icon(icon),
         color: AppColors.purple700,
         iconSize: AppIconSizes.md,
-        tooltip: '',
+        tooltip: tooltip,
+        constraints: const BoxConstraints(
+          minWidth: kMinInteractiveDimension,
+          minHeight: kMinInteractiveDimension,
+        ),
       ),
     );
   }

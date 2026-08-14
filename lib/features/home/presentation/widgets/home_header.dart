@@ -13,7 +13,8 @@ class HomeHeader extends StatelessWidget {
   const HomeHeader({
     required this.professionalName,
     required this.salonName,
-    required this.onAccountTap,
+    required this.onProfileTap,
+    required this.onSalonTap,
     required this.now,
     this.isLoading = false,
     this.hasError = false,
@@ -22,12 +23,14 @@ class HomeHeader extends StatelessWidget {
   });
 
   static const headerSkeletonKey = Key('home-header-skeleton');
-  static const accountButtonKey = Key('home-header-account');
+  static const profileAvatarKey = Key('home-header-profile');
+  static const salonButtonKey = Key('home-header-salon');
   static const retryButtonKey = Key('home-header-retry');
 
   final String professionalName;
   final String salonName;
-  final VoidCallback onAccountTap;
+  final VoidCallback onProfileTap;
+  final VoidCallback onSalonTap;
   final DateTime now;
   final bool isLoading;
   final bool hasError;
@@ -54,22 +57,14 @@ class HomeHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.purple100,
+          _ProfileAvatarButton(
+            key: profileAvatarKey,
+            initial: initial.toUpperCase(),
+            textStyle: theme.textTheme.titleMedium?.copyWith(
+              color: AppColors.purple800,
+              fontWeight: FontWeight.w700,
             ),
-            child: Center(
-              child: Text(
-                initial.toUpperCase(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.purple800,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            onTap: onProfileTap,
           ),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
@@ -113,12 +108,52 @@ class HomeHeader extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs),
           _HeaderIconButton(
-            key: accountButtonKey,
-            icon: Icons.account_circle_outlined,
-            tooltip: AppStrings.account,
-            onPressed: onAccountTap,
+            key: salonButtonKey,
+            icon: Icons.storefront_outlined,
+            tooltip: AppStrings.mySalon,
+            onPressed: onSalonTap,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileAvatarButton extends StatelessWidget {
+  const _ProfileAvatarButton({
+    required this.initial,
+    required this.onTap,
+    this.textStyle,
+    super.key,
+  });
+
+  final String initial;
+  final TextStyle? textStyle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: AppStrings.profile,
+      child: Tooltip(
+        message: AppStrings.profile,
+        child: Material(
+          color: AppColors.purple100,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: SizedBox.square(
+              dimension: kMinInteractiveDimension,
+              child: Center(
+                child: ExcludeSemantics(
+                  child: Text(initial, style: textStyle),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

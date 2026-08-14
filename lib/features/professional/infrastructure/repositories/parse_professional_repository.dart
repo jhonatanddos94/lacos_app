@@ -64,6 +64,59 @@ class ParseProfessionalRepository implements ProfessionalRepository {
   }
 
   @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) async {
+    try {
+      final salon = await _salonRepository.getCurrentSalon();
+      if (salon == null) {
+        throw StateError(
+          'Não encontramos seu salão. Cadastre um salão antes de continuar.',
+        );
+      }
+
+      final query =
+          QueryBuilder<ParseObject>(ParseObject(_professionalClassName))
+            ..whereEqualTo('objectId', professionalId)
+            ..whereEqualTo('salon', _salonPointer(salon.id));
+
+      final fetchResponse = await query.query<ParseObject>();
+      if (!fetchResponse.success) {
+        throw FormatException(_errorMapper.toMessage(fetchResponse.error));
+      }
+
+      final results = fetchResponse.results;
+      if (results == null || results.isEmpty) {
+        throw const FormatException(AppStrings.professionalProfileUpdateError);
+      }
+
+      final parseProfessional = results.first as ParseObject
+        ..set<String>('name', name);
+
+      if (specialties != null && specialties.isNotEmpty) {
+        parseProfessional.set<String>('specialties', specialties);
+      } else {
+        parseProfessional.unset('specialties');
+      }
+
+      final response = await parseProfessional.save();
+      if (!response.success) {
+        throw FormatException(_errorMapper.toMessage(response.error));
+      }
+
+      return _mapper.toDomain(parseProfessional);
+    } on StateError {
+      rethrow;
+    } on FormatException {
+      rethrow;
+    } on Object {
+      throw const FormatException(AppStrings.professionalProfileUpdateError);
+    }
+  }
+
+  @override
   Future<Professional?> getCurrentProfessional() async {
     try {
       final salon = await _salonRepository.getCurrentSalon();

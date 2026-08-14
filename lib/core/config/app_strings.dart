@@ -3,8 +3,32 @@ abstract final class AppStrings {
   static const String cancel = 'Cancelar';
   static const String edit = 'Editar';
   static const String delete = 'Excluir';
-  static const String account = 'Conta';
   static const String profile = 'Meu perfil';
+  static const String mySalon = 'Meu salão';
+  static const String professionalProfileNameLabel = 'Nome profissional';
+  static const String professionalProfileSpecialtiesLabel = 'Especialidade';
+  static const String professionalProfileEmailLabel = 'E-mail';
+  static const String professionalProfileProfessionalSection =
+      'Informações profissionais';
+  static const String professionalProfileAccountSection = 'Conta';
+  static const String professionalProfileEditAction = 'Editar perfil';
+  static const String professionalProfileSaveAction = 'Salvar alterações';
+  static const String professionalProfileEditTitle = 'Editar perfil';
+  static const String professionalProfileUpdatedSuccess =
+      'Perfil atualizado.';
+  static const String professionalProfileUpdateError =
+      'Não foi possível salvar seu perfil profissional. Tente novamente.';
+  static const String professionalProfileNameRequired =
+      'Informe seu nome profissional.';
+  static const String professionalProfileNameHint = 'Maria Oliveira';
+  static const String professionalProfileSpecialtiesHint =
+      'Ex.: Cabeleireira, Colorista...';
+  static String professionalProfileAvatarSemantics(String name) =>
+      'Avatar de $name';
+  static const String salonNameLabel = 'Nome do salão';
+  static const String salonResponsibleLabel = 'Responsável';
+  static const String salonPhoneLabel = 'Telefone';
+  static const String salonAddressLabel = 'Endereço';
   static const String logout = 'Sair da conta';
   static const String logoutTitle = 'Sair da conta?';
   static const String logoutMessage =
@@ -19,6 +43,8 @@ abstract final class AppStrings {
   static const String temporarySaveError =
       'Não foi possível conectar ao servidor. Tente novamente.';
   static const String comingSoon = 'Em breve';
+  static const String adsPrivacyOptions = 'Opções de anúncios';
+  static const String adsBannerSemantics = 'Anúncio';
   static const String addPhoto = 'Adicionar foto';
   static const String tapAvatarToAddPhoto =
       'Toque no avatar para adicionar uma foto';

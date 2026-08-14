@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/features/professional/application/controllers/create_professional_controller.dart';
+import 'package:lacos_app/features/professional/application/controllers/update_professional_controller.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/domain/repositories/professional_repository.dart';
 import 'package:lacos_app/features/professional/infrastructure/repositories/parse_professional_repository.dart';
@@ -23,4 +24,13 @@ final createProfessionalControllerProvider =
     >((ref) {
       final repository = ref.watch(professionalRepositoryProvider);
       return CreateProfessionalController(repository);
+    });
+
+final updateProfessionalControllerProvider =
+    StateNotifierProvider<
+      UpdateProfessionalController,
+      AsyncValue<Professional?>
+    >((ref) {
+      final repository = ref.watch(professionalRepositoryProvider);
+      return UpdateProfessionalController(repository);
     });

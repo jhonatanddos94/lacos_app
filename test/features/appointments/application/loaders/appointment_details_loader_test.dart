@@ -261,12 +261,26 @@ class _FakeProfessionalRepository implements ProfessionalRepository {
   ];
 
   @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _InactiveProfessionalRepository implements ProfessionalRepository {
   @override
   Future<List<Professional>> findAll() async => const [];
+
+  @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) => throw UnimplementedError();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

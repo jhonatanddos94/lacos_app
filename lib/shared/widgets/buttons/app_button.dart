@@ -90,7 +90,12 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildLabel({required Key key}) {
-    final text = Text(label);
+    final text = Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+    );
 
     if (icon == null) {
       return KeyedSubtree(key: key, child: text);

@@ -19,7 +19,6 @@ import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appoi
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_professional_section.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_preparation_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/helpers/agenda_appointment_open_flow.dart';
-import 'package:lacos_app/features/auth/presentation/bottom_sheets/account_actions_bottom_sheet.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/repositories/client_repository.dart';
@@ -37,6 +36,10 @@ import 'package:lacos_app/features/memories/domain/repositories/client_memory_re
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
 import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
+import 'package:lacos_app/features/professional/presentation/navigation/professional_profile_navigation.dart';
+import 'package:lacos_app/features/professional/presentation/pages/professional_profile_page.dart';
+import 'package:lacos_app/features/salon/presentation/navigation/salon_navigation.dart';
+import 'package:lacos_app/features/salon/presentation/pages/salon_page.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
 import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
@@ -47,8 +50,16 @@ void main() {
   final now = homeTestNow;
   final today = AgendaDay.from(now);
 
-  setUp(resetAgendaAppointmentOpenGuardForTest);
-  tearDown(resetAgendaAppointmentOpenGuardForTest);
+  setUp(() {
+    resetAgendaAppointmentOpenGuardForTest();
+    resetProfessionalProfileNavigationGuardForTest();
+    resetSalonNavigationGuardForTest();
+  });
+  tearDown(() {
+    resetAgendaAppointmentOpenGuardForTest();
+    resetProfessionalProfileNavigationGuardForTest();
+    resetSalonNavigationGuardForTest();
+  });
 
   Future<void> pumpHome(
     WidgetTester tester, {
@@ -134,14 +145,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('perfil abre o fluxo real de conta', (tester) async {
+  testWidgets('avatar abre Meu perfil e não abre o sheet Conta', (tester) async {
     await pumpHome(tester);
 
-    await tester.tap(find.byKey(HomeHeader.accountButtonKey));
+    await tester.tap(find.byKey(HomeHeader.profileAvatarKey));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AccountActionsBottomSheet), findsOneWidget);
-    expect(find.text(AppStrings.profile), findsOneWidget);
+    expect(find.byType(ProfessionalProfilePage), findsOneWidget);
+    expect(find.text(AppStrings.profile), findsWidgets);
+    expect(find.text(AppStrings.logout), findsOneWidget);
+    expect(find.text(AppStrings.comingSoon), findsNothing);
+  });
+
+  testWidgets('storefront abre Meu salão', (tester) async {
+    await pumpHome(tester);
+
+    expect(find.byIcon(Icons.storefront_outlined), findsOneWidget);
+    await tester.tap(find.byKey(HomeHeader.salonButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SalonPage), findsOneWidget);
+    expect(find.text(AppStrings.mySalon), findsWidgets);
   });
 
   testWidgets('O: Home → Agendar auto-seleciona a única Professional', (

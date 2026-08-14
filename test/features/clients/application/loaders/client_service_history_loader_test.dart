@@ -414,6 +414,13 @@ class _FakeProfessionalRepository implements ProfessionalRepository {
     required String name,
     String? specialties,
   }) => throw UnimplementedError();
+
+  @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) => throw UnimplementedError();
 }
 
 class _FakeServiceRepository implements ServiceRepository {

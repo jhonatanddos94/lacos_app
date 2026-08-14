@@ -375,7 +375,7 @@ void main() {
       expect(find.byType(AppShellPage), findsOneWidget);
       expect(rememberMe.value, isTrue);
 
-      await tester.tap(find.byKey(HomeHeader.accountButtonKey));
+      await tester.tap(find.byKey(HomeHeader.profileAvatarKey));
       await tester.pumpAndSettle();
       await tester.tap(find.text(AppStrings.logout));
       await tester.pumpAndSettle();
@@ -402,7 +402,7 @@ void main() {
       await fillAndSubmit(tester);
       expect(find.text('Salon uid-a'), findsOneWidget);
 
-      await tester.tap(find.byKey(HomeHeader.accountButtonKey));
+      await tester.tap(find.byKey(HomeHeader.profileAvatarKey));
       await tester.pumpAndSettle();
       await tester.tap(find.text(AppStrings.logout));
       await tester.pumpAndSettle();

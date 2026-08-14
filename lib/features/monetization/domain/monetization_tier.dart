@@ -1,0 +1,1 @@
+enum MonetizationTier { free, premium }

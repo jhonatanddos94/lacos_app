@@ -91,7 +91,10 @@ class _InMemoryProfessionalRepository implements ProfessionalRepository {
   Professional? created;
 
   @override
-  Future<Professional> create({required String name, String? specialties}) async {
+  Future<Professional> create({
+    required String name,
+    String? specialties,
+  }) async {
     created = Professional(
       id: 'pro-1',
       name: name,
@@ -101,6 +104,15 @@ class _InMemoryProfessionalRepository implements ProfessionalRepository {
       updatedAt: DateTime(2026, 8, 13),
     );
     return created!;
+  }
+
+  @override
+  Future<Professional> update({
+    required String professionalId,
+    required String name,
+    String? specialties,
+  }) {
+    throw UnimplementedError();
   }
 
   @override

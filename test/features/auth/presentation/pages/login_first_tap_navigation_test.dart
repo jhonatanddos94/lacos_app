@@ -357,7 +357,7 @@ void main() {
       await tapEntrarOnce(tester);
       await pumpAuthResolution(tester);
 
-      await tester.tap(find.byKey(HomeHeader.accountButtonKey));
+      await tester.tap(find.byKey(HomeHeader.profileAvatarKey));
       await tester.pumpAndSettle();
       await tester.tap(find.text(AppStrings.logout));
       await tester.pumpAndSettle();
@@ -384,7 +384,7 @@ void main() {
       await pumpAuthResolution(tester);
       expect(find.text('Salon uid-a'), findsOneWidget);
 
-      await tester.tap(find.byKey(HomeHeader.accountButtonKey));
+      await tester.tap(find.byKey(HomeHeader.profileAvatarKey));
       await tester.pumpAndSettle();
       await tester.tap(find.text(AppStrings.logout));
       await tester.pumpAndSettle();
