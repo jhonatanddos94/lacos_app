@@ -175,7 +175,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(HomeUpcomingDaysSection.sectionKey), findsOneWidget);
-    expect(find.byType(CircleAvatar), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(HomeUpcomingDaysSection.sectionKey),
+        matching: find.byType(CircleAvatar),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('ações rápidas continuam funcionando', (tester) async {

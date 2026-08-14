@@ -157,6 +157,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final professionalName =
         workspaceState.valueOrNull?.professional?.name ??
         AppStrings.homeDefaultProfessionalName;
+    final professionalPhotoUrl = workspaceState.valueOrNull?.professional?.photoUrl;
     final salonName =
         workspaceState.valueOrNull?.salon?.name ??
         AppStrings.homeDefaultSalonName;
@@ -180,6 +181,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 children: [
                   HomeHeader(
                     professionalName: professionalName,
+                    professionalPhotoUrl: professionalPhotoUrl,
                     salonName: salonName,
                     now: now,
                     isLoading:

@@ -14,8 +14,7 @@ abstract final class AppStrings {
   static const String professionalProfileEditAction = 'Editar perfil';
   static const String professionalProfileSaveAction = 'Salvar alterações';
   static const String professionalProfileEditTitle = 'Editar perfil';
-  static const String professionalProfileUpdatedSuccess =
-      'Perfil atualizado.';
+  static const String professionalProfileUpdatedSuccess = 'Perfil atualizado.';
   static const String professionalProfileUpdateError =
       'Não foi possível salvar seu perfil profissional. Tente novamente.';
   static const String professionalProfileNameRequired =
@@ -29,6 +28,20 @@ abstract final class AppStrings {
   static const String salonResponsibleLabel = 'Responsável';
   static const String salonPhoneLabel = 'Telefone';
   static const String salonAddressLabel = 'Endereço';
+  static const String salonCityLabel = 'Cidade';
+  static const String salonStateLabel = 'Estado';
+  static const String salonInformationSection = 'INFORMAÇÕES';
+  static const String salonEditAction = 'Editar salão';
+  static const String salonEditTitle = 'Editar salão';
+  static const String salonSaveAction = 'Salvar alterações';
+  static const String salonUpdatedSuccess = 'Salão atualizado.';
+  static const String salonUpdateError =
+      'Não foi possível salvar seu salão. Tente novamente.';
+  static const String salonNameHint = 'Studio Aurora';
+  static const String salonAddressHint = 'Rua, número e complemento';
+  static const String salonCityHint = 'Sua cidade';
+  static const String salonStateHint = 'UF';
+  static String salonIdentitySemantics(String name) => 'Meu salão, $name';
   static const String logout = 'Sair da conta';
   static const String logoutTitle = 'Sair da conta?';
   static const String logoutMessage =
@@ -45,7 +58,40 @@ abstract final class AppStrings {
   static const String comingSoon = 'Em breve';
   static const String adsPrivacyOptions = 'Opções de anúncios';
   static const String adsBannerSemantics = 'Anúncio';
+  static const String moreTitle = 'Mais';
+  static const String moreSubtitle = 'Gerencie sua conta e seu salão';
+  static const String moreBusinessSection = 'SEU NEGÓCIO';
+  static const String moreAccountSection = 'CONTA';
+  static const String moreSupportSection = 'SUPORTE';
+  static const String morePrivacySection = 'PRIVACIDADE';
+  static const String moreSalonSubtitle = 'Dados do estabelecimento';
+  static const String moreProfileSubtitle = 'Seus dados profissionais';
+  static const String morePrivacySubtitle =
+      'Gerencie suas preferências de anúncios';
+  static const String moreHelpSupport = 'Ajuda e suporte';
+  static const String moreAbout = 'Sobre o Laços';
+  static const String moreHelpIntro = 'Precisa de ajuda?';
+  static const String moreHelpBody =
+      'Nossa equipe pode ajudar você pelo WhatsApp.';
+  static const String supportCardTitle = 'Fale com nosso suporte';
+  static const String supportCardDescription =
+      'Envie uma mensagem para nossa equipe.';
+  static const String supportExternalNotice =
+      'Você será direcionada ao WhatsApp e decide quando enviar a mensagem.';
+  static const String supportWhatsAppAction = 'Falar pelo WhatsApp';
+  static const String supportWhatsAppOpenError =
+      'Não foi possível abrir o WhatsApp. Tente novamente.';
+  static const String moreAboutAppName = 'Laços';
+  static const String moreAboutDescription =
+      'O Laços é o espaço de trabalho da profissional de beleza: agenda, '
+      'clientes, serviços e o cuidado de cada atendimento.';
+  static const String moreAboutLegalPending =
+      'Política de privacidade e Termos de uso serão publicados aqui quando '
+      'as URLs oficiais existirem.';
+  static const String moreVersionPrefix = 'versão';
   static const String addPhoto = 'Adicionar foto';
+  static const String changePhoto = 'Alterar foto';
+  static const String removePhoto = 'Remover foto';
   static const String tapAvatarToAddPhoto =
       'Toque no avatar para adicionar uma foto';
   static const String optional = 'Opcional';

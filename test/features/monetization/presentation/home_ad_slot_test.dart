@@ -22,6 +22,7 @@ import 'package:lacos_app/features/monetization/domain/ads_sdk.dart';
 import 'package:lacos_app/features/monetization/domain/monetization_tier.dart';
 import 'package:lacos_app/features/monetization/infrastructure/admob_ids.dart';
 import 'package:lacos_app/features/monetization/presentation/widgets/home_ad_slot.dart';
+import 'package:lacos_app/features/more/presentation/pages/more_page.dart';
 import 'package:lacos_app/features/shell/application/models/app_shell_tab.dart';
 import 'package:lacos_app/features/shell/application/providers/app_shell_providers.dart';
 import 'package:lacos_app/features/shell/presentation/pages/app_shell_page.dart';
@@ -542,6 +543,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.adsPrivacyOptions), findsNothing);
-    expect(find.text('Mais em breve'), findsOneWidget);
+    expect(find.byKey(MorePage.pageKey), findsOneWidget);
   });
 }

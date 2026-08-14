@@ -368,6 +368,8 @@ class _CountingProfessionalRepository implements ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) {
     throw UnimplementedError();
   }

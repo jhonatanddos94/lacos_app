@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/infrastructure/parse/parse_photo_file_upload.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
@@ -67,7 +66,7 @@ class ParseClientRepository implements ClientRepository {
       final owner = ParseUser.forQuery()..objectId = currentUser.objectId;
       client.set<ParseUser>('owner', owner);
 
-      final uploadedPhoto = await _uploadClientPhoto(photoPath);
+      final uploadedPhoto = await uploadParsePhotoFile(photoPath);
       if (uploadedPhoto != null) {
         client.set<ParseFileBase>('photo', uploadedPhoto);
       }
@@ -136,7 +135,7 @@ class ParseClientRepository implements ClientRepository {
       }
 
       if (photoPath != null) {
-        final uploadedPhoto = await _uploadClientPhoto(photoPath);
+        final uploadedPhoto = await uploadParsePhotoFile(photoPath);
         if (uploadedPhoto != null) {
           parseClient.set<ParseFileBase>('photo', uploadedPhoto);
         }
@@ -244,24 +243,5 @@ class ParseClientRepository implements ClientRepository {
 
   ParseObject _salonPointer(String salonId) {
     return ParseObject(_salonClassName)..objectId = salonId;
-  }
-
-  Future<ParseFile?> _uploadClientPhoto(String? photoPath) async {
-    if (photoPath == null || photoPath.isEmpty) {
-      return null;
-    }
-
-    final file = File(photoPath);
-    if (!await file.exists()) {
-      throw const ClientPhotoUploadException();
-    }
-
-    final parseFile = ParseFile(file);
-    final response = await parseFile.save();
-    if (!response.success) {
-      throw const ClientPhotoUploadException();
-    }
-
-    return parseFile;
   }
 }

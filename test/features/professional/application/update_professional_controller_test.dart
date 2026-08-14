@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/config/app_validation_messages.dart';
+import 'package:lacos_app/core/domain/exceptions/photo_upload_exception.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/professional/application/controllers/update_professional_controller.dart';
@@ -127,6 +129,55 @@ void main() {
     expect(repository.current?.name, 'Leticia');
   });
 
+  test('upload photo persiste url simulada', () async {
+    final repository = InMemoryProfessionalRepository(current: professional());
+    final controller = UpdateProfessionalController(repository);
+
+    final updated = await controller.updateProfessional(
+      professionalId: 'pro-1',
+      name: 'Leticia',
+      specialties: 'Cabeleireira',
+      photoPath: '/tmp/photo.jpg',
+    );
+
+    expect(updated?.photoUrl, 'memory:///tmp/photo.jpg');
+    expect(repository.updateCalls, 1);
+  });
+
+  test('remove photo limpa url', () async {
+    final repository = InMemoryProfessionalRepository(
+      current: professional().copyWithPhoto('https://example.com/a.jpg'),
+    );
+    final controller = UpdateProfessionalController(repository);
+
+    final updated = await controller.updateProfessional(
+      professionalId: 'pro-1',
+      name: 'Leticia',
+      removePhoto: true,
+    );
+
+    expect(updated?.photoUrl, isNull);
+    expect(repository.lastRemovePhoto, isTrue);
+  });
+
+  test('erro de upload retorna mensagem sanitizada', () async {
+    final repository = InMemoryProfessionalRepository(current: professional())
+      ..updateError = const PhotoUploadException();
+    final controller = UpdateProfessionalController(repository);
+
+    final updated = await controller.updateProfessional(
+      professionalId: 'pro-1',
+      name: 'Leticia',
+      photoPath: '/tmp/photo.jpg',
+    );
+
+    expect(updated, isNull);
+    expect(
+      (controller.state.error as FormatException).message,
+      AppValidationMessages.clientPhotoUploadFailed,
+    );
+  });
+
   test('Z: rename não altera Appointment.professionalId', () async {
     final appointment = Appointment(
       id: 'appointment-1',
@@ -153,4 +204,19 @@ void main() {
     expect(repository.current?.id, 'pro-1');
     expect(repository.current?.name, 'Leticia Souza');
   });
+}
+
+extension on Professional {
+  Professional copyWithPhoto(String? photoUrl) {
+    return Professional(
+      id: id,
+      name: name,
+      specialties: specialties,
+      role: role,
+      photoUrl: photoUrl,
+      isActive: isActive,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 }

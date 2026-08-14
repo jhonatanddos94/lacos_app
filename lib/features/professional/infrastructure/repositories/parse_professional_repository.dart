@@ -1,6 +1,8 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/domain/exceptions/photo_upload_exception.dart';
+import 'package:lacos_app/core/infrastructure/parse/parse_photo_file_upload.dart';
 import 'package:lacos_app/core/network/parse_temporary_error_mapper.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/domain/repositories/professional_repository.dart';
@@ -68,6 +70,8 @@ class ParseProfessionalRepository implements ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) async {
     try {
       final salon = await _salonRepository.getCurrentSalon();
@@ -101,6 +105,15 @@ class ParseProfessionalRepository implements ProfessionalRepository {
         parseProfessional.unset('specialties');
       }
 
+      if (removePhoto) {
+        parseProfessional.unset('photo');
+      } else if (photoPath != null) {
+        final uploadedPhoto = await uploadParsePhotoFile(photoPath);
+        if (uploadedPhoto != null) {
+          parseProfessional.set<ParseFileBase>('photo', uploadedPhoto);
+        }
+      }
+
       final response = await parseProfessional.save();
       if (!response.success) {
         throw FormatException(_errorMapper.toMessage(response.error));
@@ -110,6 +123,8 @@ class ParseProfessionalRepository implements ProfessionalRepository {
     } on StateError {
       rethrow;
     } on FormatException {
+      rethrow;
+    } on PhotoUploadException {
       rethrow;
     } on Object {
       throw const FormatException(AppStrings.professionalProfileUpdateError);

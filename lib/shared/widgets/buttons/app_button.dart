@@ -104,11 +104,11 @@ class AppButton extends StatelessWidget {
     return KeyedSubtree(
       key: key,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: _iconSize),
           const SizedBox(width: AppSpacing.xxxs),
-          text,
+          Flexible(child: text),
         ],
       ),
     );

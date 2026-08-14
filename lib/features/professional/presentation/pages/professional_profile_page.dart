@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/config/app_validation_messages.dart';
+import 'package:lacos_app/core/domain/exceptions/photo_upload_exception.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/auth/presentation/account/logout_flow.dart';
 import 'package:lacos_app/features/professional/application/helpers/professional_provider_invalidation.dart';
+import 'package:lacos_app/features/professional/application/providers/professional_providers.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/presentation/helpers/professional_profile_form_sheet.dart';
+import 'package:lacos_app/shared/widgets/avatars/profile_avatar.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class ProfessionalProfilePage extends ConsumerStatefulWidget {
@@ -17,6 +21,8 @@ class ProfessionalProfilePage extends ConsumerStatefulWidget {
   static const logoutButtonKey = Key('professional-profile-logout');
   static const editButtonKey = Key('professional-profile-edit');
   static const avatarKey = Key('professional-profile-avatar');
+  static const photoActionKey = Key('professional-profile-photo-action');
+  static const removePhotoActionKey = Key('professional-profile-remove-photo');
   static const emailKey = Key('professional-profile-email');
 
   @override
@@ -50,10 +56,85 @@ class _ProfessionalProfilePageState
     }
   }
 
+  Future<void> _changePhoto(Professional professional) async {
+    if (ref.read(updateProfessionalControllerProvider).isLoading) return;
+
+    final photo = await ref.read(professionalPhotoPickerProvider)(
+      context,
+      onMessage: _showMessage,
+    );
+    if (!mounted || photo == null) return;
+
+    final updated = await ref
+        .read(updateProfessionalControllerProvider.notifier)
+        .updateProfessional(
+          professionalId: professional.id,
+          name: professional.name,
+          specialties: professional.specialties,
+          photoPath: photo.path,
+        );
+
+    if (!mounted) return;
+
+    if (updated != null) {
+      invalidateProfessionalSources(ref);
+      _showMessage(AppStrings.professionalProfileUpdatedSuccess);
+      return;
+    }
+
+    final error = ref.read(updateProfessionalControllerProvider).error;
+    if (error != null) {
+      _showMessage(_resolveErrorMessage(error));
+    }
+  }
+
+  Future<void> _removePhoto(Professional professional) async {
+    if (ref.read(updateProfessionalControllerProvider).isLoading) return;
+
+    final updated = await ref
+        .read(updateProfessionalControllerProvider.notifier)
+        .updateProfessional(
+          professionalId: professional.id,
+          name: professional.name,
+          specialties: professional.specialties,
+          removePhoto: true,
+        );
+
+    if (!mounted) return;
+
+    if (updated != null) {
+      invalidateProfessionalSources(ref);
+      _showMessage(AppStrings.professionalProfileUpdatedSuccess);
+      return;
+    }
+
+    final error = ref.read(updateProfessionalControllerProvider).error;
+    if (error != null) {
+      _showMessage(_resolveErrorMessage(error));
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  String _resolveErrorMessage(Object error) {
+    return switch (error) {
+      PhotoUploadException() => AppValidationMessages.clientPhotoUploadFailed,
+      FormatException(message: final message) => message,
+      StateError(message: final message) => message,
+      _ => AppStrings.professionalProfileUpdateError,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final workspaceState = ref.watch(workspaceProvider);
+    final updateState = ref.watch(updateProfessionalControllerProvider);
     final workspace = workspaceState.valueOrNull;
     final professional = workspace?.professional;
     final email = workspace?.user.email;
@@ -61,6 +142,7 @@ class _ProfessionalProfilePageState
     final name = professional?.name ?? AppStrings.homeDefaultProfessionalName;
     final showLoading = workspaceState.isLoading && !workspaceState.hasValue;
     final showError = workspaceState.hasError && !workspaceState.hasValue;
+    final isUpdatingPhoto = updateState.isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
@@ -107,7 +189,41 @@ class _ProfessionalProfilePageState
                         onPressed: () => ref.invalidate(workspaceProvider),
                       ),
                     ] else ...[
-                      _ProfileIdentity(name: name, specialties: specialties),
+                      _ProfileIdentity(
+                        name: name,
+                        specialties: specialties,
+                        photoUrl: professional?.photoUrl,
+                        isUpdatingPhoto: isUpdatingPhoto,
+                        onPhotoTap: professional == null
+                            ? null
+                            : () => _changePhoto(professional),
+                      ),
+                      if (professional != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        AppButton(
+                          key: ProfessionalProfilePage.photoActionKey,
+                          label: professional.photoUrl?.isNotEmpty == true
+                              ? AppStrings.changePhoto
+                              : AppStrings.addPhoto,
+                          variant: AppButtonVariant.text,
+                          isLoading: isUpdatingPhoto,
+                          onPressed: isUpdatingPhoto
+                              ? null
+                              : () => _changePhoto(professional),
+                        ),
+                        if (professional.photoUrl?.isNotEmpty == true) ...[
+                          const SizedBox(height: AppSpacing.xxxs),
+                          AppButton(
+                            key: ProfessionalProfilePage.removePhotoActionKey,
+                            label: AppStrings.removePhoto,
+                            variant: AppButtonVariant.text,
+                            isLoading: isUpdatingPhoto,
+                            onPressed: isUpdatingPhoto
+                                ? null
+                                : () => _removePhoto(professional),
+                          ),
+                        ],
+                      ],
                       const SizedBox(height: AppSpacing.lg),
                       Text(
                         AppStrings.professionalProfileProfessionalSection,
@@ -134,7 +250,9 @@ class _ProfessionalProfilePageState
                           key: ProfessionalProfilePage.editButtonKey,
                           label: AppStrings.professionalProfileEditAction,
                           variant: AppButtonVariant.secondary,
-                          onPressed: () => _openEditor(professional),
+                          onPressed: isUpdatingPhoto
+                              ? null
+                              : () => _openEditor(professional),
                         ),
                       ],
                       const SizedBox(height: AppSpacing.xl),
@@ -170,39 +288,40 @@ class _ProfessionalProfilePageState
 }
 
 class _ProfileIdentity extends StatelessWidget {
-  const _ProfileIdentity({required this.name, this.specialties});
+  const _ProfileIdentity({
+    required this.name,
+    this.specialties,
+    this.photoUrl,
+    this.isUpdatingPhoto = false,
+    this.onPhotoTap,
+  });
 
   final String name;
   final String? specialties;
+  final String? photoUrl;
+  final bool isUpdatingPhoto;
+  final VoidCallback? onPhotoTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final firstName = name.split(' ').first;
-    final initial = firstName.isEmpty ? 'L' : firstName.substring(0, 1);
 
     return Column(
       children: [
         Semantics(
           label: AppStrings.professionalProfileAvatarSemantics(name),
-          child: Container(
+          button: onPhotoTap != null,
+          child: ProfileAvatar(
             key: ProfessionalProfilePage.avatarKey,
-            width: 72,
-            height: 72,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.purple100,
-            ),
-            child: Center(
-              child: ExcludeSemantics(
-                child: Text(
-                  initial.toUpperCase(),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.purple800,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+            name: name,
+            photoUrl: photoUrl,
+            radius: 36,
+            showCameraBadge: onPhotoTap != null,
+            isLoading: isUpdatingPhoto,
+            onTap: onPhotoTap,
+            initialTextStyle: theme.textTheme.headlineSmall?.copyWith(
+              color: AppColors.purple800,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

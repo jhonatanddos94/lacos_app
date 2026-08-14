@@ -76,10 +76,11 @@ void main() {
     expect(find.text(AppStrings.comingSoon), findsNothing);
   });
 
-  testWidgets('4/5: ícone direito é storefront e abre Salão', (tester) async {
+  testWidgets('4/5: ícone direito é store_outlined e abre Salão', (tester) async {
     await pumpHome(tester);
 
-    expect(find.byIcon(Icons.storefront_outlined), findsOneWidget);
+    expect(find.byIcon(HomeHeader.salonHeaderIcon), findsOneWidget);
+    expect(find.byIcon(Icons.storefront_outlined), findsNothing);
     expect(find.byIcon(Icons.account_circle_outlined), findsNothing);
     expect(find.byIcon(Icons.person_outline_rounded), findsNothing);
 
@@ -102,6 +103,12 @@ void main() {
     );
     expect(profileSemantics.label, AppStrings.profile);
     expect(profileSemantics.tooltip, AppStrings.profile);
+
+    final salonSemantics = tester.getSemantics(
+      find.byKey(HomeHeader.salonButtonKey),
+    );
+    expect(salonSemantics.label, AppStrings.mySalon);
+    expect(salonSemantics.tooltip, AppStrings.mySalon);
   });
 
   testWidgets('8: touch targets do header >= 48', (tester) async {
@@ -128,6 +135,21 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(HomeHeader), findsOneWidget);
+    expect(find.byKey(HomeHeader.salonButtonKey), findsOneWidget);
+  });
+
+  testWidgets('HomeHeader 360px e textScale 1.5 sem overflow', (tester) async {
+    await pumpHome(
+      tester,
+      size: const Size(360, 800),
+      textScaler: const TextScaler.linear(1.5),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byKey(HomeHeader.salonButtonKey)).shortestSide,
+      greaterThanOrEqualTo(48),
+    );
   });
 
   testWidgets('11: logout permanece no Perfil', (tester) async {
@@ -199,7 +221,7 @@ void main() {
     expect(find.byType(ProfessionalProfilePage), findsOneWidget);
   });
 
-  testWidgets('15: duplo toque no storefront não empilha dois salões', (
+  testWidgets('15: duplo toque no botão do salão não empilha dois salões', (
     tester,
   ) async {
     await pumpHome(tester);

@@ -1,5 +1,6 @@
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'package:lacos_app/core/infrastructure/parse/parse_photo_file_upload.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 
 class ClientMapper {
@@ -19,21 +20,12 @@ class ClientMapper {
       name: object.get<String>('name') ?? '',
       phone: object.get<String>('phone') ?? '',
       birthDate: object.get<DateTime>('birthDate'),
-      photoUrl: _photoUrl(object),
+      photoUrl: parsePhotoUrl(object),
       instagram: object.get<String>('instagram'),
       isActive: object.get<bool>('isActive') ?? true,
       clientSince: object.get<DateTime>('clientSince'),
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
-  }
-
-  String? _photoUrl(ParseObject object) {
-    final photo = object.get<dynamic>('photo');
-    if (photo == null) {
-      return null;
-    }
-
-    return photo.url as String?;
   }
 }

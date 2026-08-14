@@ -265,6 +265,8 @@ class _FakeProfessionalRepository implements ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) => throw UnimplementedError();
 
   @override
@@ -280,6 +282,8 @@ class _InactiveProfessionalRepository implements ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) => throw UnimplementedError();
 
   @override

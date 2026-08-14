@@ -5,4 +5,13 @@ abstract interface class SalonRepository {
   Future<Salon?> getCurrentSalon();
 
   Future<Salon> create({required String name, required String responsibleName});
+
+  Future<Salon> update({
+    required String salonId,
+    required String name,
+    String? phone,
+    String? address,
+    String? city,
+    String? state,
+  });
 }

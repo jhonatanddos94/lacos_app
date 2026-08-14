@@ -17,6 +17,9 @@ import 'package:lacos_app/core/workspace/domain/entities/workspace.dart';
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
+  /// Chave da marca na Splash — exposta para testes de layout.
+  static const brandLogoKey = Key('splash-brand-logo');
+
   @override
   ConsumerState<SplashPage> createState() => _SplashPageState();
 }
@@ -97,7 +100,7 @@ class _SplashLoading extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const _SplashBrand(),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         Text(
           AppStrings.splashPreparing,
           textAlign: TextAlign.center,
@@ -105,7 +108,7 @@ class _SplashLoading extends StatelessWidget {
             color: AppColors.onPrimary,
           ),
         ),
-        const SizedBox(height: AppSpacing.xxxs),
+        const SizedBox(height: AppSpacing.xxs),
         Text(
           AppStrings.splashYourEnvironment,
           textAlign: TextAlign.center,
@@ -190,15 +193,30 @@ class _SplashBackground extends StatelessWidget {
 class _SplashBrand extends StatelessWidget {
   const _SplashBrand();
 
-  static const _maxLogoWidth = 340.0;
+  /// Fração da largura da tela — reduzida ~25% em relação ao layout anterior
+  /// (0,64 → 0,48) para o laço funcionar como assinatura, não ilustração.
+  static const _logoWidthFactor = 0.48;
+
+  /// Largura mínima (~25% menor que 220).
+  static const _minLogoWidth = 165.0;
+
+  /// Largura máxima (~25% menor que 340) — evita dominar tablets.
+  static const _maxLogoWidth = 255.0;
+
+  static double logoWidthForScreenWidth(double screenWidth) {
+    return (screenWidth * _logoWidthFactor).clamp(
+      _minLogoWidth,
+      _maxLogoWidth,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final logoWidth = (screenWidth * 0.64).clamp(220.0, _maxLogoWidth);
+    final logoWidth = logoWidthForScreenWidth(MediaQuery.sizeOf(context).width);
 
     return Image.asset(
       AppAssets.lacosLogo,
+      key: SplashPage.brandLogoKey,
       width: logoWidth,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,

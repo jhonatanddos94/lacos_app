@@ -7,6 +7,8 @@ abstract interface class ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   });
 
   Future<Professional?> getCurrentProfessional();

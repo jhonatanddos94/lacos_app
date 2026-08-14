@@ -466,6 +466,8 @@ class _DelayedProfessionalRepository extends InMemoryProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) async {
     updateCalls++;
     current = Professional(

@@ -8,6 +8,7 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/core/widgets/app_skeleton_box.dart';
 import 'package:lacos_app/features/home/presentation/widgets/home_greeting.dart';
+import 'package:lacos_app/shared/widgets/avatars/profile_avatar.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({
@@ -16,6 +17,7 @@ class HomeHeader extends StatelessWidget {
     required this.onProfileTap,
     required this.onSalonTap,
     required this.now,
+    this.professionalPhotoUrl,
     this.isLoading = false,
     this.hasError = false,
     this.onRetry,
@@ -27,7 +29,11 @@ class HomeHeader extends StatelessWidget {
   static const salonButtonKey = Key('home-header-salon');
   static const retryButtonKey = Key('home-header-retry');
 
+  /// Ícone da ação compacta "Meu salão" — mais leve que storefront.
+  static const salonHeaderIcon = Icons.store_outlined;
+
   final String professionalName;
+  final String? professionalPhotoUrl;
   final String salonName;
   final VoidCallback onProfileTap;
   final VoidCallback onSalonTap;
@@ -44,7 +50,6 @@ class HomeHeader extends StatelessWidget {
 
     final theme = Theme.of(context);
     final firstName = professionalName.split(' ').first;
-    final initial = firstName.isEmpty ? 'L' : firstName.substring(0, 1);
     final greeting = HomeGreeting.resolve(now, professionalName: firstName);
 
     return TweenAnimationBuilder<double>(
@@ -59,7 +64,8 @@ class HomeHeader extends StatelessWidget {
         children: [
           _ProfileAvatarButton(
             key: profileAvatarKey,
-            initial: initial.toUpperCase(),
+            name: professionalName,
+            photoUrl: professionalPhotoUrl,
             textStyle: theme.textTheme.titleMedium?.copyWith(
               color: AppColors.purple800,
               fontWeight: FontWeight.w700,
@@ -109,7 +115,7 @@ class HomeHeader extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           _HeaderIconButton(
             key: salonButtonKey,
-            icon: Icons.storefront_outlined,
+            icon: salonHeaderIcon,
             tooltip: AppStrings.mySalon,
             onPressed: onSalonTap,
           ),
@@ -121,13 +127,15 @@ class HomeHeader extends StatelessWidget {
 
 class _ProfileAvatarButton extends StatelessWidget {
   const _ProfileAvatarButton({
-    required this.initial,
+    required this.name,
     required this.onTap,
+    this.photoUrl,
     this.textStyle,
     super.key,
   });
 
-  final String initial;
+  final String name;
+  final String? photoUrl;
   final TextStyle? textStyle;
   final VoidCallback onTap;
 
@@ -138,20 +146,13 @@ class _ProfileAvatarButton extends StatelessWidget {
       label: AppStrings.profile,
       child: Tooltip(
         message: AppStrings.profile,
-        child: Material(
-          color: AppColors.purple100,
-          shape: const CircleBorder(),
-          child: InkWell(
+        child: ExcludeSemantics(
+          child: ProfileAvatar(
+            name: name,
+            photoUrl: photoUrl,
+            radius: kMinInteractiveDimension / 2,
             onTap: onTap,
-            customBorder: const CircleBorder(),
-            child: SizedBox.square(
-              dimension: kMinInteractiveDimension,
-              child: Center(
-                child: ExcludeSemantics(
-                  child: Text(initial, style: textStyle),
-                ),
-              ),
-            ),
+            initialTextStyle: textStyle,
           ),
         ),
       ),
@@ -185,8 +186,8 @@ class _HomeHeaderSkeleton extends StatelessWidget {
         ),
         SizedBox(width: AppSpacing.xs),
         AppSkeletonBox(
-          width: 40,
-          height: 40,
+          width: kMinInteractiveDimension,
+          height: kMinInteractiveDimension,
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ],
@@ -208,18 +209,30 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: AppRadius.borderSm,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        color: AppColors.purple700,
-        iconSize: AppIconSizes.md,
-        tooltip: tooltip,
-        constraints: const BoxConstraints(
-          minWidth: kMinInteractiveDimension,
-          minHeight: kMinInteractiveDimension,
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: AppColors.purple50,
+          borderRadius: AppRadius.borderSm,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: AppRadius.borderSm,
+            child: SizedBox.square(
+              dimension: kMinInteractiveDimension,
+              child: Center(
+                child: ExcludeSemantics(
+                  child: Icon(
+                    icon,
+                    color: AppColors.purple700,
+                    size: AppIconSizes.md,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

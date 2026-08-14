@@ -119,9 +119,7 @@ void main() {
     expect(find.byType(AgendaPage, skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('tab Mais permanece placeholder sem destinos mortos', (
-    tester,
-  ) async {
+  testWidgets('tab Mais mostra administração secundária real', (tester) async {
     await pumpShell(tester);
 
     await tester.tap(
@@ -136,7 +134,12 @@ void main() {
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       AppShellTab.more.index,
     );
-    expect(find.text('Mais em breve'), findsOneWidget);
+    expect(find.text('Mais em breve'), findsNothing);
+    expect(find.text(AppStrings.mySalon), findsOneWidget);
+    expect(find.text(AppStrings.profile), findsOneWidget);
+    expect(find.text(AppStrings.moreHelpSupport), findsOneWidget);
+    expect(find.text(AppStrings.moreAbout), findsOneWidget);
+    expect(find.text(AppStrings.logout), findsNothing);
   });
 
   testWidgets('tab Serviços mostra o catálogo e não o placeholder', (

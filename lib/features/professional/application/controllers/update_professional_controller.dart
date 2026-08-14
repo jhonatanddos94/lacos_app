@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
+import 'package:lacos_app/core/config/app_validation_messages.dart';
+import 'package:lacos_app/core/domain/exceptions/photo_upload_exception.dart';
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/domain/repositories/professional_repository.dart';
 
@@ -18,6 +20,8 @@ class UpdateProfessionalController
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) async {
     if (state.isLoading) return null;
 
@@ -42,6 +46,8 @@ class UpdateProfessionalController
         specialties: professionalSpecialties?.isEmpty == true
             ? null
             : professionalSpecialties,
+        photoPath: photoPath,
+        removePhoto: removePhoto,
       );
       state = AsyncData(professional);
       return professional;
@@ -60,6 +66,7 @@ class UpdateProfessionalController
 
 String _resolveErrorMessage(Object error) {
   return switch (error) {
+    PhotoUploadException() => AppValidationMessages.clientPhotoUploadFailed,
     FormatException(message: final message) => message,
     StateError(message: final message) when message.contains('salão') =>
       message,

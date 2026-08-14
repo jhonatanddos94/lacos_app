@@ -7,6 +7,8 @@ class InMemoryProfessionalRepository implements ProfessionalRepository {
   Professional? current;
   int updateCalls = 0;
   Object? updateError;
+  String? lastPhotoPath;
+  var lastRemovePhoto = false;
 
   @override
   Future<Professional> create({required String name, String? specialties}) {
@@ -18,8 +20,12 @@ class InMemoryProfessionalRepository implements ProfessionalRepository {
     required String professionalId,
     required String name,
     String? specialties,
+    String? photoPath,
+    bool removePhoto = false,
   }) async {
     updateCalls++;
+    lastPhotoPath = photoPath;
+    lastRemovePhoto = removePhoto;
     if (updateError != null) {
       throw updateError!;
     }
@@ -31,11 +37,19 @@ class InMemoryProfessionalRepository implements ProfessionalRepository {
       );
     }
 
+    String? photoUrl = existing.photoUrl;
+    if (removePhoto) {
+      photoUrl = null;
+    } else if (photoPath != null && photoPath.isNotEmpty) {
+      photoUrl = 'memory://$photoPath';
+    }
+
     current = Professional(
       id: existing.id,
       name: name,
       specialties: specialties,
       role: existing.role,
+      photoUrl: photoUrl,
       isActive: existing.isActive,
       createdAt: existing.createdAt,
       updatedAt: DateTime(2026, 8, 14, 16),

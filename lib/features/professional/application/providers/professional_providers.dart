@@ -5,6 +5,7 @@ import 'package:lacos_app/features/professional/application/controllers/update_p
 import 'package:lacos_app/features/professional/domain/entities/professional.dart';
 import 'package:lacos_app/features/professional/domain/repositories/professional_repository.dart';
 import 'package:lacos_app/features/professional/infrastructure/repositories/parse_professional_repository.dart';
+import 'package:lacos_app/features/professional/presentation/helpers/professional_photo_picker.dart';
 import 'package:lacos_app/features/salon/application/providers/salon_providers.dart';
 
 final professionalRepositoryProvider = Provider<ProfessionalRepository>((ref) {
@@ -34,3 +35,7 @@ final updateProfessionalControllerProvider =
       final repository = ref.watch(professionalRepositoryProvider);
       return UpdateProfessionalController(repository);
     });
+
+final professionalPhotoPickerProvider = Provider<ProfessionalPhotoPicker>(
+  (ref) => pickProfessionalPhotoFromGallery,
+);

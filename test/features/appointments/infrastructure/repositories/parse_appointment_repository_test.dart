@@ -1074,6 +1074,18 @@ class _FakeSalonRepository implements SalonRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Salon> update({
+    required String salonId,
+    required String name,
+    String? phone,
+    String? address,
+    String? city,
+    String? state,
+  }) {
+    throw UnimplementedError();
+  }
 }
 
 class _RecordedRequest {

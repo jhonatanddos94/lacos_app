@@ -157,10 +157,11 @@ void main() {
     expect(find.text(AppStrings.comingSoon), findsNothing);
   });
 
-  testWidgets('storefront abre Meu salão', (tester) async {
+  testWidgets('store_outlined abre Meu salão', (tester) async {
     await pumpHome(tester);
 
-    expect(find.byIcon(Icons.storefront_outlined), findsOneWidget);
+    expect(find.byIcon(HomeHeader.salonHeaderIcon), findsOneWidget);
+    expect(find.byIcon(Icons.storefront_outlined), findsNothing);
     await tester.tap(find.byKey(HomeHeader.salonButtonKey));
     await tester.pumpAndSettle();
 
