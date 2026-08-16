@@ -363,14 +363,13 @@ void main() {
     expect(find.byType(MorePage, skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('X/Y/Z: logout, Premium e Configurações não aparecem', (
+  testWidgets('X/Y/Z: logout e Configurações não aparecem', (
     tester,
   ) async {
     await pumpShell(tester);
     await openMore(tester);
 
     expect(find.text(AppStrings.logout), findsNothing);
-    expect(find.text('Premium'), findsNothing);
     expect(find.text('Configurações'), findsNothing);
   });
 }

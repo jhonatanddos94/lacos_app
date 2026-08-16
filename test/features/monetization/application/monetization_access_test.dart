@@ -115,7 +115,7 @@ void main() {
     expect(await sdk.loadAnchoredAdaptiveBanner(widthDp: 320), isNull);
   });
 
-  test('I: Free permite Ads', () {
+  test('I: Free permite Ads e não concede IA', () {
     const access = MonetizationAccess(tier: MonetizationTier.free);
     expect(access.shouldShowAds, isTrue);
     expect(access.hasAiAccess, isFalse);
@@ -129,10 +129,10 @@ void main() {
     );
   });
 
-  test('J/K: Premium bloqueia Ads e não cria banner', () {
+  test('J/K: Premium bloqueia Ads e não concede IA', () {
     const access = MonetizationAccess(tier: MonetizationTier.premium);
     expect(access.shouldShowAds, isFalse);
-    expect(access.hasAiAccess, isTrue);
+    expect(access.hasAiAccess, isFalse);
     expect(
       adsAreEligible(
         access: access,
@@ -141,6 +141,28 @@ void main() {
       ),
       isFalse,
     );
+  });
+
+  test('produção resolve Free sem entitlement', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(monetizationTierProvider), MonetizationTier.free);
+    expect(container.read(monetizationAccessProvider).shouldShowAds, isTrue);
+    expect(container.read(monetizationAccessProvider).hasAiAccess, isFalse);
+  });
+
+  test('teste pode override Premium sem persistir', () {
+    final container = ProviderContainer(
+      overrides: [
+        monetizationTierProvider.overrideWithValue(MonetizationTier.premium),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(container.read(monetizationTierProvider), MonetizationTier.premium);
+    expect(container.read(monetizationAccessProvider).shouldShowAds, isFalse);
+    expect(container.read(monetizationAccessProvider).hasAiAccess, isFalse);
   });
 
   test('L/M: consentimento pendente ou canRequestAds false não carrega', () {

@@ -9,12 +9,12 @@ import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
-import 'package:lacos_app/features/clients/presentation/widgets/client_tag.dart';
 
 class ClientCard extends StatelessWidget {
   const ClientCard({required this.client, this.onTap, super.key});
 
   static const _avatarSize = 54.0;
+  static const favoriteIconKey = Key('client-card-favorite');
 
   final Client client;
   final VoidCallback? onTap;
@@ -63,19 +63,20 @@ class ClientCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Text(
-                          _shortDate(client.createdAt),
-                          maxLines: 1,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
+                        if (client.isFavorite) ...[
+                          const SizedBox(width: AppSpacing.xxs),
+                          const ExcludeSemantics(
+                            child: Icon(
+                              key: favoriteIconKey,
+                              Icons.favorite_rounded,
+                              color: AppColors.softRose,
+                              size: 14,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xxxs),
-
                     Text(
                       _formatPhone(client.phone),
                       maxLines: 1,
@@ -85,8 +86,6 @@ class ClientCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xxxs),
-
-                    // Memória principal (agora com maior destaque)
                     Row(
                       children: [
                         const Icon(
@@ -107,13 +106,6 @@ class ClientCard extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: AppSpacing.xxxs),
-
-                    // Informação secundária
-                    ClientTag(
-                      icon: Icons.favorite_rounded,
-                      label: _sinceLabel(client),
                     ),
                   ],
                 ),
@@ -176,34 +168,7 @@ String _memoryLabel(Client client) {
   return AppStrings.clientNoMemory;
 }
 
-String _sinceLabel(Client client) {
-  final since = client.clientSince ?? client.createdAt;
-  return '${AppStrings.clientSince} ${since.year}';
-}
-
-String _shortDate(DateTime date) {
-  return '${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)}';
-}
-
 String _dayMonthDate(DateTime date) {
   return '${date.day.toString().padLeft(2, '0')}/'
       '${date.month.toString().padLeft(2, '0')}';
-}
-
-String _monthName(int month) {
-  return switch (month) {
-    1 => 'Jan',
-    2 => 'Fev',
-    3 => 'Mar',
-    4 => 'Abr',
-    5 => 'Mai',
-    6 => 'Jun',
-    7 => 'Jul',
-    8 => 'Ago',
-    9 => 'Set',
-    10 => 'Out',
-    11 => 'Nov',
-    12 => 'Dez',
-    _ => '',
-  };
 }

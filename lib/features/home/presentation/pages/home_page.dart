@@ -276,6 +276,7 @@ class _HomeDayContent extends StatelessWidget {
     final presentation = HomeTodaySummaryFormatter.format(
       totalCount: snapshot.totalCount,
       summary: snapshot.summary,
+      nextUpcomingStartAt: snapshot.nextUpcomingAppointment?.startAt,
     );
     final nextAppointment = snapshot.nextAppointment;
     final overdueCount = snapshot.overdueAppointments.length;

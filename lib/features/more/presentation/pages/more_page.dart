@@ -9,6 +9,7 @@ import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/monetization/application/monetization_providers.dart';
 import 'package:lacos_app/features/more/presentation/navigation/more_navigation.dart';
 import 'package:lacos_app/features/more/presentation/widgets/more_menu_tile.dart';
+import 'package:lacos_app/features/more/presentation/widgets/more_premium_card.dart';
 import 'package:lacos_app/features/professional/presentation/navigation/professional_profile_navigation.dart';
 import 'package:lacos_app/features/salon/presentation/navigation/salon_navigation.dart';
 
@@ -26,6 +27,7 @@ class MorePage extends ConsumerWidget {
   static const supportGroupKey = Key('more-group-support');
   static const privacyGroupKey = Key('more-group-privacy');
   static const supportDividerKey = Key('more-support-divider');
+  static const premiumCardKey = MorePremiumCard.cardKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,6 +63,13 @@ class MorePage extends ConsumerWidget {
               color: AppColors.textSecondary,
               height: 1.35,
             ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          MorePremiumCard(
+            pricePerPeriod: ref
+                .watch(premiumProductConfigProvider)
+                .pricePerPeriod,
+            onTap: () => openPremiumPage(context),
           ),
           const SizedBox(height: AppSpacing.md),
           _MoreSection(

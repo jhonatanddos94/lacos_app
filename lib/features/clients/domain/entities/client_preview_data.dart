@@ -1,3 +1,5 @@
+import 'package:lacos_app/features/clients/domain/enums/client_list_filter.dart';
+
 class ClientShortcutPreview {
   const ClientShortcutPreview({
     required this.label,
@@ -7,9 +9,7 @@ class ClientShortcutPreview {
   });
 
   final String label;
-  final ClientShortcutType type;
+  final ClientListFilter type;
   final bool isSelected;
   final bool isEnabled;
 }
-
-enum ClientShortcutType { all, favorites, recent, withoutReturn }

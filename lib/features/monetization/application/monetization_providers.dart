@@ -4,18 +4,26 @@ import 'package:lacos_app/features/monetization/application/ads_consent_controll
 import 'package:lacos_app/features/monetization/domain/ads_sdk.dart';
 import 'package:lacos_app/features/monetization/domain/monetization_access.dart';
 import 'package:lacos_app/features/monetization/domain/monetization_tier.dart';
+import 'package:lacos_app/features/monetization/domain/premium_product_config.dart';
 import 'package:lacos_app/features/monetization/infrastructure/admob_ids.dart';
 import 'package:lacos_app/features/monetization/infrastructure/ads_platform.dart';
 import 'package:lacos_app/features/monetization/infrastructure/google_mobile_ads_sdk.dart';
 import 'package:lacos_app/features/monetization/infrastructure/noop_ads_sdk.dart';
 
-/// V1: todo mundo é Free. Trocar este provider quando houver entitlement real.
+/// V1: produção resolve sempre Free.
+///
+/// Não persistir Premium no Parse, SharedPreferences ou User nesta sprint.
+/// Trocar este provider somente quando houver entitlement validado por Billing.
 final monetizationTierProvider = Provider<MonetizationTier>((ref) {
   return MonetizationTier.free;
 });
 
 final monetizationAccessProvider = Provider<MonetizationAccess>((ref) {
   return MonetizationAccess(tier: ref.watch(monetizationTierProvider));
+});
+
+final premiumProductConfigProvider = Provider<PremiumProductConfig>((ref) {
+  return PremiumProductConfig.current;
 });
 
 final adMobAdsConfigProvider = Provider<AdMobAdsConfig>((ref) {

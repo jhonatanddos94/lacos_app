@@ -92,4 +92,72 @@ void main() {
       expect(HomeNextAppointmentSelector.select(const [], now: now), isNull);
     });
   });
+
+  group('HomeNextAppointmentSelector.selectUpcoming', () {
+    test('ignora o current e devolve o próximo horário real', () {
+      final current = homeTestAppointment(
+        id: 'current',
+        clientName: 'Josefa',
+        startAt: DateTime(2026, 8, 13, 13, 30),
+      );
+      final upcoming = homeTestAppointment(
+        id: 'upcoming',
+        clientName: 'Carla',
+        startAt: DateTime(2026, 8, 13, 16, 0),
+      );
+
+      final selected = HomeNextAppointmentSelector.selectUpcoming([
+        upcoming,
+        current,
+      ], now: now);
+
+      expect(selected?.appointmentId, 'upcoming');
+    });
+
+    test('sem upcoming devolve null mesmo com current em andamento', () {
+      final current = homeTestAppointment(
+        id: 'current',
+        clientName: 'Josefa',
+        startAt: DateTime(2026, 8, 13, 13, 30),
+      );
+
+      expect(
+        HomeNextAppointmentSelector.selectUpcoming([current], now: now),
+        isNull,
+      );
+    });
+
+    test('escolhe o upcoming mais cedo e ignora terminais e overdue', () {
+      final sooner = homeTestAppointment(
+        id: 'sooner',
+        clientName: 'Bia',
+        startAt: DateTime(2026, 8, 13, 16, 0),
+      );
+      final later = homeTestAppointment(
+        id: 'later',
+        clientName: 'Ana',
+        startAt: DateTime(2026, 8, 13, 18, 0),
+      );
+      final completed = homeTestAppointment(
+        id: 'completed',
+        clientName: 'Concluída',
+        startAt: DateTime(2026, 8, 13, 9, 0),
+        status: AppointmentStatus.completed,
+      );
+      final overdue = homeTestAppointment(
+        id: 'overdue',
+        clientName: 'Atrasada',
+        startAt: DateTime(2026, 8, 13, 10, 0),
+      );
+
+      final selected = HomeNextAppointmentSelector.selectUpcoming([
+        later,
+        completed,
+        overdue,
+        sooner,
+      ], now: now);
+
+      expect(selected?.appointmentId, 'sooner');
+    });
+  });
 }

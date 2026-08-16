@@ -89,6 +89,32 @@ abstract final class AppStrings {
       'Política de privacidade e Termos de uso serão publicados aqui quando '
       'as URLs oficiais existirem.';
   static const String moreVersionPrefix = 'versão';
+  static const String premiumTitle = 'Laços Premium';
+  static const String premiumCardSubtitle =
+      'Uma experiência mais leve para cuidar do seu salão.';
+  static const String premiumCardCta = 'Conhecer Premium';
+  static const String premiumPageHeadline = 'Seu Laços, ainda melhor.';
+  static const String premiumPageSubtitle =
+      'Tenha uma experiência mais tranquila e ajude o Laços a continuar '
+      'evoluindo.';
+  static const String premiumBenefitAdsTitle = 'Sem anúncios';
+  static const String premiumBenefitAdsBody =
+      'Use o Laços sem anúncios e mantenha o foco no seu salão.';
+  static const String premiumBenefitEvolutionTitle = 'Ajude o Laços a evoluir';
+  static const String premiumBenefitEvolutionBody =
+      'Sua assinatura contribui para a evolução contínua do aplicativo.';
+  static const String premiumPricePeriod = 'por mês';
+  static const String premiumBillingNote =
+      'Assinatura mensal. O gerenciamento será feito pela loja do seu '
+      'dispositivo.';
+  static const String premiumCtaPreparing = 'Assinatura em preparação';
+  static const String premiumCtaPreparingHint =
+      'Estamos preparando a assinatura do Laços Premium.';
+  static const String premiumActiveStatus = 'Premium ativo';
+  static const String premiumActiveBody =
+      'Você já usa o Laços sem anúncios.';
+  static String premiumCardSemantics(String pricePerPeriod) =>
+      '$premiumTitle, $pricePerPeriod';
   static const String addPhoto = 'Adicionar foto';
   static const String changePhoto = 'Alterar foto';
   static const String removePhoto = 'Remover foto';
@@ -114,15 +140,28 @@ abstract final class AppStrings {
   static const String preferredProfessionalUnavailable =
       'Será disponível após cadastro.';
   static const String clientsListTitle = 'Todos os clientes';
+  static const String favoriteClientsListTitle = 'Clientes favoritas';
   static const String clientsSortByName = 'Nome A-Z';
   static const String clientsSearchHint = 'Buscar cliente';
   static const String allClients = 'Todas';
   static const String favoriteClients = 'Favoritas';
-  static const String recentClients = 'Recentes';
-  static const String clientsWithoutReturn = 'Sem retorno';
-  static const String emptyClientsTitle = 'Nenhuma cliente cadastrada';
-  static const String emptyClientsMessage =
+  static const String favoriteClientAction = 'Favoritar cliente';
+  static const String removeClientFromFavorites = 'Remover dos favoritos';
+  static const String emptyAllClientsTitle = 'Você ainda não possui clientes.';
+  static const String emptyAllClientsMessage =
       'Cadastre sua primeira cliente para começar a construir o relacionamento.';
+  static const String emptyFavoritesTitle = 'Nenhuma cliente favorita ainda.';
+  static const String emptyFavoritesMessage =
+      'Marque uma cliente como favorita na ficha para vê-la aqui.';
+  static const String emptyClientsSearchTitle = 'Nenhuma cliente encontrada.';
+  static const String emptyClientsSearchMessage =
+      'Tente outro nome, telefone ou Instagram.';
+  static const String emptyFavoritesSearchTitle =
+      'Nenhuma favorita encontrada.';
+  static const String emptyFavoritesSearchMessage =
+      'Nenhuma cliente favorita corresponde à busca.';
+  static const String emptyClientsTitle = emptyAllClientsTitle;
+  static const String emptyClientsMessage = emptyAllClientsMessage;
   static const String clientsLoadError =
       'Não foi possível carregar as clientes.';
   static const String clientSince = 'Cliente desde';
@@ -265,6 +304,13 @@ abstract final class AppStrings {
   static const String birthDateCopied = 'Nascimento copiado.';
   static const String dateCopied = 'Data copiada.';
   static const String openLinkComingSoon = 'Abertura de links em breve.';
+  static String clientWhatsappGreeting(String firstName) =>
+      'Olá, $firstName! Tudo bem?';
+  static const String clientWhatsappGreetingFallback = 'Olá! Tudo bem?';
+  static const String clientWhatsappInvalidPhone =
+      'Esta cliente não possui um telefone válido para WhatsApp.';
+  static const String clientWhatsappOpenError =
+      'Não foi possível abrir o WhatsApp. Tente novamente.';
   static const String deletionComingSoon = 'Exclusão em breve.';
   static const String clientRelationshipNote =
       'Use esta ficha para lembrar detalhes importantes e tornar cada atendimento mais pessoal.';
@@ -295,8 +341,17 @@ abstract final class AppStrings {
   static const String homeUpcomingDaysOpenAgenda = 'Ver agenda →';
   static const String homeUpcomingDaysOpenAgendaSemantic = 'Ver agenda';
   static const String homeUpcomingDayOpenAgendaSemantic = 'Abrir agenda.';
-  static const String homeAgendaFreeToday = 'Agenda livre';
-  static const String homeEmptyDayDescription = 'Nenhum atendimento hoje.';
+  static const String homeAgendaFreeToday = 'Seu dia está livre';
+  static const String homeEmptyDayDescription = 'Nenhum atendimento para hoje.';
+  static const String homeTodayFreeDayWarmLine =
+      'Aproveite esse tempo para você.';
+  static const String homeTodayFinishedTitle = 'Tudo certo por hoje';
+  static const String homeTodayFinishedWarmLine =
+      'Obrigado por cuidar tão bem das suas clientes.';
+  static const String homeTodayNothingLeftTitle = 'Nada mais para hoje';
+  static const String homeTodayCountSuffix = 'hoje';
+  static const String homeTodayNextAtPrefix = 'Próximo às';
+  static const String homeTodaySemanticsPrefix = 'Hoje';
   static const String homeNewAppointmentCta = '+ Agendar';
   static const String homeNoNextAppointment = 'Nenhum próximo horário hoje.';
   static const String homeDayLoadError =

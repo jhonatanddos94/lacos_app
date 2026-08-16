@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lacos_app/core/config/app_strings.dart';
-import 'package:lacos_app/core/formatters/client_form_formatters.dart';
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
 import 'package:lacos_app/features/clients/application/providers/clients_providers.dart';
+import 'package:lacos_app/features/clients/application/services/client_list_query_service.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
+import 'package:lacos_app/features/clients/domain/enums/client_list_filter.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_shortcuts_section.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/clients_header.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/clients_list_section.dart';
@@ -29,6 +30,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchText = '';
+  var _filter = ClientListFilter.all;
 
   static const _fabSize = 56.0;
   static const _maxContentWidth = 560.0;
@@ -49,27 +51,12 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
     setState(() => _searchText = '');
   }
 
-  List<Client> _filterClients(List<Client> clients) {
-    final query = _searchText.trim().toLowerCase();
-    if (query.isEmpty) {
-      return clients;
-    }
-
-    final queryDigits = digitsOnly(query);
-
-    return clients
-        .where((client) {
-          final name = client.name.toLowerCase();
-          final phone = client.phone.toLowerCase();
-          final phoneDigits = digitsOnly(client.phone);
-          final instagram = client.instagram?.toLowerCase() ?? '';
-
-          return name.contains(query) ||
-              phone.contains(query) ||
-              instagram.contains(query) ||
-              (queryDigits.isNotEmpty && phoneDigits.contains(queryDigits));
-        })
-        .toList(growable: false);
+  List<Client> _visibleClients(List<Client> clients) {
+    return ClientListQueryService.apply(
+      clients: clients,
+      filter: _filter,
+      query: _searchText,
+    );
   }
 
   Future<void> _openCreateClientSheet(
@@ -127,7 +114,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
               Padding(
                 padding: AppSpacing.screenPadding.copyWith(
                   top: AppSpacing.md,
-                  bottom: AppSpacing.md,
+                  bottom: AppSpacing.xs,
                 ),
                 child: Align(
                   alignment: Alignment.topCenter,
@@ -147,8 +134,14 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                           onChanged: _handleSearchChanged,
                           onClear: _clearSearch,
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        ClientShortcutsSection(shortcuts: shortcuts),
+                        const SizedBox(height: AppSpacing.xs),
+                        ClientShortcutsSection(
+                          shortcuts: shortcuts,
+                          selected: _filter,
+                          onSelected: (filter) {
+                            setState(() => _filter = filter);
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -167,8 +160,10 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                         onRefresh: () => _refreshClients(ref),
                         child: clients.when(
                           data: (clients) => ClientsListSection(
-                            clients: _filterClients(clients),
+                            clients: _visibleClients(clients),
                             bottomPadding: bottomInset,
+                            filter: _filter,
+                            hasSearchQuery: _searchText.trim().isNotEmpty,
                           ),
                           loading: () =>
                               _ClientsLoadingState(bottomPadding: bottomInset),

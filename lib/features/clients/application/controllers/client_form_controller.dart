@@ -10,6 +10,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
   ClientFormController(this._repository) : super(const AsyncData(null));
 
   final ClientRepository _repository;
+  var _isMutating = false;
 
   void reset() {
     state = const AsyncData(null);
@@ -23,7 +24,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
     String? instagram,
     String? photoPath,
   }) async {
-    if (state.isLoading) return null;
+    if (_isMutating || state.isLoading) return null;
 
     final clientName = name.trim();
     final clientPhone = digitsOnly(phone);
@@ -43,6 +44,7 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
       return _fail(AppValidationMessages.clientPhoneInvalid);
     }
 
+    _isMutating = true;
     state = const AsyncLoading();
 
     try {
@@ -51,17 +53,13 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
           : clientInstagram;
 
       if (initialClient != null) {
-        final updatedClient = Client(
-          id: initialClient.id,
+        final updatedClient = initialClient.copyWith(
           name: clientName,
           phone: clientPhone,
           birthDate: birthDate,
           instagram: normalizedInstagram,
-          photoUrl: initialClient.photoUrl,
-          isActive: initialClient.isActive,
-          clientSince: initialClient.clientSince,
-          createdAt: initialClient.createdAt,
-          updatedAt: initialClient.updatedAt,
+          clearBirthDate: birthDate == null,
+          clearInstagram: normalizedInstagram == null,
         );
         final client = await _repository.update(
           updatedClient,
@@ -84,12 +82,38 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
       final friendlyError = FormatException(_resolveErrorMessage(error));
       state = AsyncError(friendlyError, stackTrace);
       return null;
+    } finally {
+      _isMutating = false;
+    }
+  }
+
+  Future<Client?> setFavorite({
+    required Client client,
+    required bool isFavorite,
+  }) async {
+    if (_isMutating || state.isLoading) return null;
+
+    _isMutating = true;
+
+    try {
+      final updated = await _repository.update(
+        client.copyWith(isFavorite: isFavorite),
+      );
+      state = AsyncData(updated);
+      return updated;
+    } on Object catch (error, stackTrace) {
+      final friendlyError = FormatException(_resolveErrorMessage(error));
+      state = AsyncError(friendlyError, stackTrace);
+      return null;
+    } finally {
+      _isMutating = false;
     }
   }
 
   Future<bool> delete(Client client) async {
-    if (state.isLoading) return false;
+    if (_isMutating || state.isLoading) return false;
 
+    _isMutating = true;
     state = const AsyncLoading();
 
     try {
@@ -100,6 +124,8 @@ class ClientFormController extends StateNotifier<AsyncValue<Client?>> {
       final friendlyError = FormatException(_resolveErrorMessage(error));
       state = AsyncError(friendlyError, stackTrace);
       return false;
+    } finally {
+      _isMutating = false;
     }
   }
 

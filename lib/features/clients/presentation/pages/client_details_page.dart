@@ -14,6 +14,8 @@ import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/application/providers/client_providers.dart';
+import 'package:lacos_app/features/clients/application/providers/client_whatsapp_providers.dart';
+import 'package:lacos_app/features/clients/application/services/client_whatsapp_service.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/domain/exceptions/client_photo_upload_exception.dart';
 import 'package:lacos_app/features/clients/presentation/widgets/client_avatar.dart';
@@ -32,6 +34,9 @@ class ClientDetailsPage extends ConsumerStatefulWidget {
   const ClientDetailsPage({required this.client, super.key});
 
   static const _avatarSize = 86.0;
+  static const favoriteButtonKey = Key('client-details-favorite');
+  static const whatsappActionKey = Key('client-details-whatsapp');
+  static const phoneRowKey = Key('client-details-phone-row');
 
   final Client client;
 
@@ -42,6 +47,8 @@ class ClientDetailsPage extends ConsumerStatefulWidget {
 class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
   late Client _client;
   var _isOpeningSchedule = false;
+  var _isTogglingFavorite = false;
+  var _isOpeningWhatsapp = false;
 
   @override
   void initState() {
@@ -102,6 +109,68 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
     final error = ref.read(clientFormControllerProvider).error;
     if (error != null) {
       _showMessage(_resolveErrorMessage(error));
+    }
+  }
+
+  Future<void> _openWhatsappConversation() async {
+    if (_isOpeningWhatsapp) return;
+
+    _isOpeningWhatsapp = true;
+    try {
+      final result = await ref
+          .read(clientWhatsappServiceProvider)
+          .openConversation(_client);
+
+      if (!mounted) return;
+
+      switch (result) {
+        case ClientWhatsappResult.invalidPhone:
+          _showMessage(AppStrings.clientWhatsappInvalidPhone);
+        case ClientWhatsappResult.failed:
+          _showMessage(AppStrings.clientWhatsappOpenError);
+        case ClientWhatsappResult.launched:
+        case ClientWhatsappResult.ignored:
+          break;
+      }
+    } finally {
+      _isOpeningWhatsapp = false;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isTogglingFavorite ||
+        ref.read(clientFormControllerProvider).isLoading) {
+      return;
+    }
+
+    setState(() => _isTogglingFavorite = true);
+
+    try {
+      final updatedClient = await ref
+          .read(clientFormControllerProvider.notifier)
+          .setFavorite(
+            client: _client,
+            isFavorite: !_client.isFavorite,
+          );
+
+      if (!mounted) return;
+
+      if (updatedClient != null) {
+        setState(() => _client = updatedClient);
+        ref.invalidate(clientsProvider);
+        return;
+      }
+
+      final error = ref.read(clientFormControllerProvider).error;
+      if (error != null) {
+        _showMessage(_resolveErrorMessage(error));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isTogglingFavorite = false);
+      } else {
+        _isTogglingFavorite = false;
+      }
     }
   }
 
@@ -213,10 +282,16 @@ class _ClientDetailsPageState extends ConsumerState<ClientDetailsPage> {
                 onPhotoTap: _changeClientPhoto,
                 onNewMemory: _openNewMemorySheet,
                 onSchedule: _openScheduleAppointment,
+                onFavoriteTap: _toggleFavorite,
+                onWhatsapp: _openWhatsappConversation,
                 isPhotoLoading: isPhotoLoading,
+                isFavoriteLoading: _isTogglingFavorite,
               ),
               const SizedBox(height: AppSpacing.sm),
-              _ClientDataCard(client: _client),
+              _ClientDataCard(
+                client: _client,
+                onWhatsapp: _openWhatsappConversation,
+              ),
               const SizedBox(height: AppSpacing.sm),
               ClientMemoryHighlightsSection(
                 clientId: _client.id,
@@ -251,7 +326,10 @@ class _ProfileCard extends StatelessWidget {
     required this.onPhotoTap,
     required this.onNewMemory,
     required this.onSchedule,
+    required this.onFavoriteTap,
+    required this.onWhatsapp,
     required this.isPhotoLoading,
+    required this.isFavoriteLoading,
   });
 
   final Client client;
@@ -259,7 +337,10 @@ class _ProfileCard extends StatelessWidget {
   final VoidCallback onPhotoTap;
   final VoidCallback onNewMemory;
   final VoidCallback onSchedule;
+  final VoidCallback onFavoriteTap;
+  final VoidCallback onWhatsapp;
   final bool isPhotoLoading;
+  final bool isFavoriteLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -303,38 +384,76 @@ class _ProfileCard extends StatelessWidget {
                         const SizedBox(height: AppSpacing.xxxs),
                         Text(
                           '@$instagram',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppColors.purple700,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.xs),
-                      _SoftChip(
-                        label:
-                            '${AppStrings.clientSince} '
-                            '${_formatMonthYear(client.clientSince ?? client.createdAt)}',
-                        icon: Icons.calendar_month_outlined,
-                      ),
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.favorite_border_rounded,
-                  color: AppColors.purple300,
-                  size: 36,
+                _FavoriteButton(
+                  isFavorite: client.isFavorite,
+                  isLoading: isFavoriteLoading,
+                  onPressed: onFavoriteTap,
                 ),
               ],
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
           _QuickActions(
-            client: client,
             onEdit: onEdit,
             onNewMemory: onNewMemory,
             onSchedule: onSchedule,
+            onWhatsapp: onWhatsapp,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FavoriteButton extends StatelessWidget {
+  const _FavoriteButton({
+    required this.isFavorite,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  final bool isFavorite;
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final tooltip = isFavorite
+        ? AppStrings.removeClientFromFavorites
+        : AppStrings.favoriteClientAction;
+
+    return IconButton(
+      key: ClientDetailsPage.favoriteButtonKey,
+      onPressed: isLoading ? null : onPressed,
+      tooltip: tooltip,
+      icon: isLoading
+          ? const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : ExcludeSemantics(
+              child: Icon(
+                isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+              ),
+            ),
+      color: isFavorite ? AppColors.softRose : AppColors.purple700,
+      iconSize: AppIconSizes.md,
+      constraints: const BoxConstraints(
+        minWidth: kMinInteractiveDimension,
+        minHeight: kMinInteractiveDimension,
       ),
     );
   }
@@ -371,16 +490,16 @@ class _ClientAvatar extends StatelessWidget {
 
 class _QuickActions extends StatelessWidget {
   const _QuickActions({
-    required this.client,
     required this.onEdit,
     required this.onNewMemory,
     required this.onSchedule,
+    required this.onWhatsapp,
   });
 
-  final Client client;
   final VoidCallback onEdit;
   final VoidCallback onNewMemory;
   final VoidCallback onSchedule;
+  final VoidCallback onWhatsapp;
 
   @override
   Widget build(BuildContext context) {
@@ -389,11 +508,12 @@ class _QuickActions extends StatelessWidget {
         children: [
           Expanded(
             child: _QuickActionButton(
+              key: ClientDetailsPage.whatsappActionKey,
               icon: Icons.chat_bubble_outline_rounded,
               iconColor: AppColors.softGreen,
               title: AppStrings.whatsapp,
               subtitle: AppStrings.talk,
-              onTap: () => _openWhatsApp(context, client.phone),
+              onTap: onWhatsapp,
             ),
           ),
           const VerticalDivider(width: 1, color: AppColors.divider),
@@ -431,6 +551,7 @@ class _QuickActions extends StatelessWidget {
 
 class _QuickActionButton extends StatelessWidget {
   const _QuickActionButton({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -485,9 +606,10 @@ class _QuickActionButton extends StatelessWidget {
 }
 
 class _ClientDataCard extends StatelessWidget {
-  const _ClientDataCard({required this.client});
+  const _ClientDataCard({required this.client, required this.onWhatsapp});
 
   final Client client;
+  final VoidCallback onWhatsapp;
 
   @override
   Widget build(BuildContext context) {
@@ -499,11 +621,12 @@ class _ClientDataCard extends StatelessWidget {
       child: Column(
         children: [
           _CopyableInfoRow(
+            key: ClientDetailsPage.phoneRowKey,
             label: AppStrings.clientPhone,
             value: _formatPhone(client.phone),
             copiedMessage: AppStrings.phoneCopied,
             trailingAsset: AppAssets.whatsappIcon,
-            onTrailingTap: () => _openWhatsApp(context, client.phone),
+            onTrailingTap: onWhatsapp,
           ),
           if (instagram != null && instagram.isNotEmpty)
             _CopyableInfoRow(
@@ -533,10 +656,14 @@ class _ClientDataCard extends StatelessWidget {
                 size: 14,
               ),
               const SizedBox(width: AppSpacing.xxxs),
-              Text(
-                AppStrings.tapValueToCopy,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary,
+              Expanded(
+                child: Text(
+                  AppStrings.tapValueToCopy,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -549,6 +676,7 @@ class _ClientDataCard extends StatelessWidget {
 
 class _CopyableInfoRow extends StatelessWidget {
   const _CopyableInfoRow({
+    super.key,
     required this.label,
     required this.value,
     required this.copiedMessage,
@@ -709,13 +837,21 @@ class _DeleteClientCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
-          OutlinedButton(
-            onPressed: onDelete,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.softRose,
-              side: const BorderSide(color: AppColors.softRose),
+          Flexible(
+            child: OutlinedButton(
+              onPressed: onDelete,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.softRose,
+                side: const BorderSide(color: AppColors.softRose),
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              ),
+              child: const Text(
+                AppStrings.deleteClient,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            child: const Text(AppStrings.deleteClient),
           ),
         ],
       ),
@@ -898,44 +1034,6 @@ class _SmallIcon extends StatelessWidget {
   }
 }
 
-class _SoftChip extends StatelessWidget {
-  const _SoftChip({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxxs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.borderLg,
-        border: Border.all(color: AppColors.purple100),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: AppColors.purple700, size: 14),
-          const SizedBox(width: AppSpacing.xxxs),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.purple800,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 Future<void> _copyValue(
   BuildContext context,
   String value,
@@ -944,14 +1042,6 @@ Future<void> _copyValue(
   await Clipboard.setData(ClipboardData(text: value));
   if (!context.mounted) return;
   _showMessage(context, copiedMessage);
-}
-
-void _openWhatsApp(BuildContext context, String phone) {
-  final digits = digitsOnly(phone);
-  if (digits.isEmpty) return;
-
-  // TODO: abrir WhatsApp quando url_launcher ou deep link oficial estiver disponível.
-  _showMessage(context, AppStrings.openLinkComingSoon);
 }
 
 void _openInstagram(BuildContext context, String instagram) {
@@ -983,26 +1073,4 @@ String _formatPhone(String phone) {
 String _formatDate(DateTime date) {
   return '${date.day.toString().padLeft(2, '0')}/'
       '${date.month.toString().padLeft(2, '0')}/${date.year}';
-}
-
-String _formatMonthYear(DateTime date) {
-  return '${_monthName(date.month)}/${date.year}';
-}
-
-String _monthName(int month) {
-  return switch (month) {
-    1 => 'Jan',
-    2 => 'Fev',
-    3 => 'Mar',
-    4 => 'Abr',
-    5 => 'Mai',
-    6 => 'Jun',
-    7 => 'Jul',
-    8 => 'Ago',
-    9 => 'Set',
-    10 => 'Out',
-    11 => 'Nov',
-    12 => 'Dez',
-    _ => '',
-  };
 }

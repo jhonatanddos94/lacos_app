@@ -23,6 +23,7 @@ class ClientMapper {
       photoUrl: parsePhotoUrl(object),
       instagram: object.get<String>('instagram'),
       isActive: object.get<bool>('isActive') ?? true,
+      isFavorite: object.get<bool>('isFavorite') ?? false,
       clientSince: object.get<DateTime>('clientSince'),
       createdAt: createdAt,
       updatedAt: updatedAt,

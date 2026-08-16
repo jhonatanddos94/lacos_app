@@ -277,7 +277,8 @@ void main() {
     expect(find.text(AppStrings.homeNoNextAppointment), findsNothing);
     expect(find.byKey(HomeNextAppointmentEmpty.sectionKey), findsNothing);
     expect(find.byKey(HomeNextAppointmentCard.sectionKey), findsNothing);
-    expect(find.text('1 concluído'), findsOneWidget);
+    expect(find.text(AppStrings.homeTodayFinishedTitle), findsOneWidget);
+    expect(find.text('1 atendimento concluído'), findsOneWidget);
     expect(find.text(AppStrings.homeAgendaFreeToday), findsNothing);
   });
 
@@ -305,7 +306,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1 concluído • 1 cancelado'), findsOneWidget);
+    expect(find.text('1 atendimento concluído'), findsOneWidget);
+    expect(find.text('1 cancelado'), findsOneWidget);
     expect(find.text(AppStrings.homeNoNextAppointment), findsNothing);
     expect(find.byKey(HomeNextAppointmentCard.sectionKey), findsNothing);
     expect(find.text(AppStrings.homeAgendaFreeToday), findsNothing);
@@ -439,7 +441,7 @@ void main() {
 
     expect(find.byKey(HomeNextAppointmentCard.sectionKey), findsOneWidget);
     expect(find.text('Cliente 0'), findsOneWidget);
-    expect(find.text('10 atendimentos'), findsOneWidget);
+    expect(find.text('10 atendimentos hoje'), findsOneWidget);
     expect(find.text('Cliente 9'), findsNothing);
   });
 

@@ -1,0 +1,1 @@
+enum ClientListFilter { all, favorites }

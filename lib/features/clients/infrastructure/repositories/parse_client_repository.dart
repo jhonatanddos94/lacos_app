@@ -48,10 +48,13 @@ class ParseClientRepository implements ClientRepository {
         );
       }
 
+      // Schema: Client.isFavorite Boolean. Create the column in Back4App
+      // Dashboard before production. Do not enable Add Field at runtime.
       final client = ParseObject(_clientClassName)
         ..set<String>('name', name)
         ..set<String>('phone', phone)
         ..set<bool>('isActive', true)
+        ..set<bool>('isFavorite', false)
         ..set<DateTime>('clientSince', DateTime.now())
         ..set<ParseObject>('salon', _salonPointer(salon.id));
 
@@ -118,7 +121,8 @@ class ParseClientRepository implements ClientRepository {
 
       parseClient
         ..set<String>('name', client.name)
-        ..set<String>('phone', client.phone);
+        ..set<String>('phone', client.phone)
+        ..set<bool>('isFavorite', client.isFavorite);
 
       final birthDate = client.birthDate;
       if (birthDate != null) {

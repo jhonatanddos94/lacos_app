@@ -9,6 +9,7 @@ class HomeTodaySnapshot {
     required this.appointments,
     required this.summary,
     required this.nextAppointment,
+    required this.nextUpcomingAppointment,
     required this.overdueAppointments,
   });
 
@@ -23,6 +24,10 @@ class HomeTodaySnapshot {
         appointments,
         now: now,
       ),
+      nextUpcomingAppointment: HomeNextAppointmentSelector.selectUpcoming(
+        appointments,
+        now: now,
+      ),
       overdueAppointments: HomeAttentionSelector.select(appointments, now: now),
     );
   }
@@ -30,6 +35,9 @@ class HomeTodaySnapshot {
   final List<AgendaAppointmentDisplay> appointments;
   final AgendaOperationalSummary summary;
   final AgendaAppointmentDisplay? nextAppointment;
+
+  /// Próximo horário que ainda não começou; `null` quando só existe current.
+  final AgendaAppointmentDisplay? nextUpcomingAppointment;
   final List<AgendaAppointmentDisplay> overdueAppointments;
 
   int get totalCount => appointments.length;

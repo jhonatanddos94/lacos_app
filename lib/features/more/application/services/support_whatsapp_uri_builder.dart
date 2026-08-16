@@ -1,10 +1,7 @@
+import 'package:lacos_app/core/external_url/whatsapp_uri_builder.dart';
+
 abstract final class SupportWhatsAppUriBuilder {
   static Uri build({required String phone, required String message}) {
-    final sanitizedPhone = phone.replaceAll(RegExp(r'\D'), '');
-    if (sanitizedPhone.isEmpty) {
-      throw ArgumentError.value(phone, 'phone', 'Informe um número válido.');
-    }
-
-    return Uri.https('wa.me', '/$sanitizedPhone', {'text': message});
+    return WhatsAppUriBuilder.build(phone: phone, message: message);
   }
 }

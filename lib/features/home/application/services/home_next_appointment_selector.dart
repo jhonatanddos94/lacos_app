@@ -30,4 +30,23 @@ class HomeNextAppointmentSelector {
 
     return firstUpcoming;
   }
+
+  /// `upcoming` mais cedo por `startAt`, ignorando o que já está em andamento.
+  /// Usado pelo resumo HOJE para não apontar "Próximo às" para o atual.
+  static AgendaAppointmentDisplay? selectUpcoming(
+    List<AgendaAppointmentDisplay> appointments, {
+    required DateTime now,
+  }) {
+    final upcoming =
+        appointments
+            .where(
+              (appointment) =>
+                  appointment.operationalState(now: now) ==
+                  AppointmentOperationalState.upcoming,
+            )
+            .toList()
+          ..sort((a, b) => a.startAt.compareTo(b.startAt));
+
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
 }

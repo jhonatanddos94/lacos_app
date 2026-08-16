@@ -2,12 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_icon_sizes.dart';
-import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
 import 'package:lacos_app/features/clients/domain/entities/client_preview_data.dart';
+import 'package:lacos_app/features/clients/domain/enums/client_list_filter.dart';
 
 class ClientShortcutCard extends StatelessWidget {
   const ClientShortcutCard({required this.shortcut, super.key});
+
+  static const visualHeight = 44.0;
+  static const hitVisualInset =
+      (kMinInteractiveDimension - visualHeight) / 2;
+
+  static Key chipKey(ClientListFilter filter) =>
+      Key('client-filter-${filter.name}');
+
+  static const selectedFillKey = Key('client-filter-selected-fill');
 
   final ClientShortcutPreview shortcut;
 
@@ -22,33 +31,24 @@ class ClientShortcutCard extends StatelessWidget {
         : AppColors.purple700;
     final backgroundColor = shortcut.isSelected
         ? AppColors.lacosPurple
-        : AppColors.purple50;
+        : Colors.transparent;
 
-    return Material(
+    return ColoredBox(
+      key: shortcut.isSelected ? selectedFillKey : null,
       color: backgroundColor,
-      borderRadius: AppRadius.borderLg,
-      child: InkWell(
-        onTap: shortcut.isEnabled ? () {} : null,
-        borderRadius: AppRadius.borderLg,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xs,
-            vertical: AppSpacing.xxs,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.borderLg,
-            border: Border.all(
-              color: shortcut.isSelected
-                  ? AppColors.lacosPurple
-                  : AppColors.divider,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              style.icon,
+              color: foregroundColor,
+              size: AppIconSizes.sm,
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(style.icon, color: foregroundColor, size: AppIconSizes.sm),
-              const SizedBox(width: AppSpacing.xxs),
-              Text(
+            const SizedBox(width: AppSpacing.xxs),
+            Flexible(
+              child: Text(
                 shortcut.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -59,8 +59,8 @@ class ClientShortcutCard extends StatelessWidget {
                       : FontWeight.w700,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -72,19 +72,13 @@ class _ShortcutStyle {
 
   final IconData icon;
 
-  factory _ShortcutStyle.fromType(ClientShortcutType type) {
+  factory _ShortcutStyle.fromType(ClientListFilter type) {
     return switch (type) {
-      ClientShortcutType.all => const _ShortcutStyle(
+      ClientListFilter.all => const _ShortcutStyle(
         icon: Icons.groups_2_outlined,
       ),
-      ClientShortcutType.favorites => const _ShortcutStyle(
+      ClientListFilter.favorites => const _ShortcutStyle(
         icon: Icons.favorite_border_rounded,
-      ),
-      ClientShortcutType.recent => const _ShortcutStyle(
-        icon: Icons.schedule_rounded,
-      ),
-      ClientShortcutType.withoutReturn => const _ShortcutStyle(
-        icon: Icons.history_toggle_off_rounded,
       ),
     };
   }
