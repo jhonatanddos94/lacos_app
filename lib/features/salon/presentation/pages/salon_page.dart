@@ -12,6 +12,7 @@ import 'package:lacos_app/core/workspace/application/providers/workspace_provide
 import 'package:lacos_app/features/salon/application/helpers/salon_provider_invalidation.dart';
 import 'package:lacos_app/features/salon/domain/entities/salon.dart';
 import 'package:lacos_app/features/salon/presentation/helpers/salon_form_sheet.dart';
+import 'package:lacos_app/features/working_hours/presentation/navigation/working_hours_navigation.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class SalonPage extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class SalonPage extends ConsumerStatefulWidget {
   static const infoCardKey = Key('salon-info-card');
   static const responsibleFieldKey = Key('salon-responsible-field');
   static const editButtonKey = Key('salon-edit-button');
+  static const workingHoursButtonKey = Key('salon-working-hours-button');
 
   @override
   ConsumerState<SalonPage> createState() => _SalonPageState();
@@ -128,6 +130,16 @@ class _SalonPageState extends ConsumerState<SalonPage> {
                     ),
                     if (salon != null) ...[
                       const SizedBox(height: AppSpacing.md),
+                      AppButton(
+                        key: SalonPage.workingHoursButtonKey,
+                        label: AppStrings.workingHoursOpenAction,
+                        icon: Icons.schedule_rounded,
+                        variant: AppButtonVariant.secondary,
+                        onPressed: workspaceState.valueOrNull?.professional == null
+                            ? null
+                            : () => openProfessionalWorkingHoursPage(context),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
                       AppButton(
                         key: SalonPage.editButtonKey,
                         label: AppStrings.salonEditAction,

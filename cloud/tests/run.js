@@ -11,6 +11,12 @@ const suites = [
   './services/sessionService.test.js',
   './config/firebaseConfig.test.js',
   './scripts/assertStagingEnv.test.js',
+  './scripts/seedCrossTenant.test.js',
+  './scripts/baselineAuth.test.js',
+  './security/workingHoursTenancyPolicy.test.js',
+  './scripts/workingHoursAclMigration.test.js',
+  './deploy_staging_bundle.test.js',
+  './scripts/workingHoursSecureHarness.test.js',
 ];
 
 async function main() {

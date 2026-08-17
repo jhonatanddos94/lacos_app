@@ -1,10 +1,9 @@
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
+import 'package:lacos_app/features/appointments/domain/scheduling/scheduling_defaults.dart';
 
 class AvailabilityEngine {
   const AvailabilityEngine();
-
-  static const slotIntervalMinutes = 15;
 
   List<DateTime> calculateAvailableStartTimes({
     required DateTime day,
@@ -55,7 +54,7 @@ class AvailabilityEngine {
 
       if (notBefore != null && candidateStart.isBefore(notBefore)) {
         candidateStart = candidateStart.add(
-          const Duration(minutes: slotIntervalMinutes),
+          Duration(minutes: SchedulingDefaults.slotIntervalMinutes),
         );
         continue;
       }
@@ -69,7 +68,7 @@ class AvailabilityEngine {
       }
 
       candidateStart = candidateStart.add(
-        const Duration(minutes: slotIntervalMinutes),
+        Duration(minutes: SchedulingDefaults.slotIntervalMinutes),
       );
     }
 
@@ -85,16 +84,33 @@ class AvailabilityEngine {
     required DateTime closingTime,
     String? ignoreAppointmentId,
   }) {
-    if (!startAt.isBefore(endAt)) {
+    if (!_isIntervalWithinWorkingHours(
+      startAt: startAt,
+      endAt: endAt,
+      openingTime: openingTime,
+      closingTime: closingTime,
+    )) {
       return false;
     }
 
-    final normalizedDay = _normalizeDate(startAt);
-    final openAt = _combineDateAndTime(normalizedDay, openingTime);
-    final closeAt = _combineDateAndTime(normalizedDay, closingTime);
+    return !hasScheduleConflict(
+      startAt: startAt,
+      endAt: endAt,
+      professionalId: professionalId,
+      existingAppointments: existingAppointments,
+      ignoreAppointmentId: ignoreAppointmentId,
+    );
+  }
 
-    if (startAt.isBefore(openAt) || endAt.isAfter(closeAt)) {
-      return false;
+  bool hasScheduleConflict({
+    required DateTime startAt,
+    required DateTime endAt,
+    required String professionalId,
+    required List<Appointment> existingAppointments,
+    String? ignoreAppointmentId,
+  }) {
+    if (!startAt.isBefore(endAt)) {
+      return true;
     }
 
     final professionalAppointments = existingAppointments
@@ -107,11 +123,28 @@ class AvailabilityEngine {
         )
         .toList(growable: false);
 
-    return !_hasConflict(
+    return _hasConflict(
       newStart: startAt,
       newEnd: endAt,
       appointments: professionalAppointments,
     );
+  }
+
+  bool _isIntervalWithinWorkingHours({
+    required DateTime startAt,
+    required DateTime endAt,
+    required DateTime openingTime,
+    required DateTime closingTime,
+  }) {
+    if (!startAt.isBefore(endAt)) {
+      return false;
+    }
+
+    final normalizedDay = _normalizeDate(startAt);
+    final openAt = _combineDateAndTime(normalizedDay, openingTime);
+    final closeAt = _combineDateAndTime(normalizedDay, closingTime);
+
+    return !startAt.isBefore(openAt) && !endAt.isAfter(closeAt);
   }
 
   bool _isBlockingAppointment(Appointment appointment) {

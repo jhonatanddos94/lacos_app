@@ -14,7 +14,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import 'package:lacos_app/features/working_hours/domain/entities/professional_working_hours.dart';
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
@@ -24,6 +24,25 @@ import 'package:lacos_app/features/professional/domain/entities/professional.dar
 import 'package:lacos_app/features/services/application/providers/service_providers.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 
+import '../../../../helpers/appointment_schedule_test_support.dart';
+
+List<Override> _appointmentFormCommonOverrides({
+  CreateAppointmentUseCase? createUseCase,
+  UpdateAppointmentUseCase? updateUseCase,
+  List<ProfessionalWorkingHours> configuredWeek = const [],
+}) {
+  return [
+    if (createUseCase != null)
+      createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
+    if (updateUseCase != null)
+      updateAppointmentUseCaseProvider.overrideWithValue(updateUseCase),
+    appointmentsByDayProvider.overrideWith((ref, day) async => const []),
+    professionalsProvider.overrideWith((ref) async => [_formProfessional()]),
+    appointmentFormWorkspaceOverride(),
+    appointmentFormWorkingHoursOverride(week: configuredWeek),
+  ];
+}
+
 void main() {
   group('AppointmentFormBottomSheet initialDate', () {
     late CreateAppointmentUseCase useCase;
@@ -32,7 +51,7 @@ void main() {
       useCase = CreateAppointmentUseCase(
         appointmentRepository: _FakeAppointmentRepository(),
         appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
     });
 
@@ -44,15 +63,7 @@ void main() {
     }) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            createAppointmentUseCaseProvider.overrideWithValue(useCase),
-            appointmentsByDayProvider.overrideWith(
-              (ref, day) async => const [],
-            ),
-            professionalsProvider.overrideWith(
-              (ref) async => [_formProfessional()],
-            ),
-          ],
+          overrides: _appointmentFormCommonOverrides(createUseCase: useCase),
           child: MaterialApp(
             home: Scaffold(
               body: SizedBox(
@@ -122,7 +133,7 @@ void main() {
       useCase = CreateAppointmentUseCase(
         appointmentRepository: _FakeAppointmentRepository(),
         appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
     });
 
@@ -135,15 +146,7 @@ void main() {
     }) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            createAppointmentUseCaseProvider.overrideWithValue(useCase),
-            appointmentsByDayProvider.overrideWith(
-              (ref, day) async => const [],
-            ),
-            professionalsProvider.overrideWith(
-              (ref) async => [_formProfessional()],
-            ),
-          ],
+          overrides: _appointmentFormCommonOverrides(createUseCase: useCase),
           child: MaterialApp(
             home: Scaffold(
               body: SizedBox(
@@ -223,13 +226,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            createAppointmentUseCaseProvider.overrideWithValue(useCase),
-            appointmentsByDayProvider.overrideWith(
-              (ref, day) async => const [],
-            ),
-            professionalsProvider.overrideWith(
-              (ref) async => [_formProfessional()],
-            ),
+            ..._appointmentFormCommonOverrides(createUseCase: useCase),
             clientsProvider.overrideWith(
               (ref) async => [_initialClient(), _alternateClient()],
             ),
@@ -270,19 +267,13 @@ void main() {
       final createUseCase = CreateAppointmentUseCase(
         appointmentRepository: appointmentRepository,
         appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
-            appointmentsByDayProvider.overrideWith(
-              (ref, day) async => const [],
-            ),
-            professionalsProvider.overrideWith(
-              (ref) async => [_formProfessional()],
-            ),
+            ..._appointmentFormCommonOverrides(createUseCase: createUseCase),
             servicesProvider.overrideWith((ref) async => [_formService()]),
           ],
           child: MaterialApp(
@@ -330,16 +321,12 @@ void main() {
       updateUseCase = UpdateAppointmentUseCase(
         appointmentRepository: updateRepository,
         appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
     });
 
     List<Override> buildOverrides() => [
-      updateAppointmentUseCaseProvider.overrideWithValue(updateUseCase),
-      appointmentsByDayProvider.overrideWith((ref, day) async => const []),
-      professionalsProvider.overrideWith(
-        (ref) async => [_formProfessional()],
-      ),
+      ..._appointmentFormCommonOverrides(updateUseCase: updateUseCase),
     ];
 
     Future<void> mountEditForm(

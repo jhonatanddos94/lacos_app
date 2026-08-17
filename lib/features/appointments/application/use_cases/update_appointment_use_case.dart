@@ -3,9 +3,9 @@ import 'package:lacos_app/features/appointments/application/models/updated_appoi
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment_service.dart';
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
+import 'package:lacos_app/features/appointments/application/services/appointment_schedule_validator.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 
 class UpdateAppointmentParams {
@@ -32,17 +32,14 @@ class UpdateAppointmentUseCase {
   const UpdateAppointmentUseCase({
     required AppointmentRepository appointmentRepository,
     required AppointmentServiceRepository appointmentServiceRepository,
-    required AvailabilityEngine availabilityEngine,
+    required AppointmentScheduleValidator scheduleValidator,
   }) : _appointmentRepository = appointmentRepository,
        _appointmentServiceRepository = appointmentServiceRepository,
-       _availabilityEngine = availabilityEngine;
-
-  static const _salonOpeningHour = 9;
-  static const _salonClosingHour = 18;
+       _scheduleValidator = scheduleValidator;
 
   final AppointmentRepository _appointmentRepository;
   final AppointmentServiceRepository _appointmentServiceRepository;
-  final AvailabilityEngine _availabilityEngine;
+  final AppointmentScheduleValidator _scheduleValidator;
 
   Future<UpdatedAppointment> call(UpdateAppointmentParams params) async {
     final existingAppointment = await _appointmentRepository.findById(
@@ -70,13 +67,29 @@ class UpdateAppointmentUseCase {
       DateTime(params.startAt.year, params.startAt.month, params.startAt.day),
     );
 
-    _ensureIntervalIsAvailable(
-      appointmentId: params.appointmentId,
-      startAt: params.startAt,
-      endAt: params.endAt,
-      professionalId: params.professionalId,
-      existingAppointments: freshDayAppointments,
+    final scheduleChanged = _hasScheduleChanged(
+      existingAppointment: existingAppointment,
+      params: params,
     );
+
+    if (scheduleChanged) {
+      await _scheduleValidator.ensureIntervalIsAvailable(
+        startAt: params.startAt,
+        endAt: params.endAt,
+        professionalId: params.professionalId,
+        existingAppointments: freshDayAppointments,
+        ignoreAppointmentId: params.appointmentId,
+      );
+    } else {
+      await _scheduleValidator.ensureIntervalIsAvailable(
+        startAt: params.startAt,
+        endAt: params.endAt,
+        professionalId: params.professionalId,
+        existingAppointments: freshDayAppointments,
+        ignoreAppointmentId: params.appointmentId,
+        enforceWorkingHoursWindow: false,
+      );
+    }
 
     final normalizedNotes = _normalizeNotes(params.notes);
     final replacementServices = _buildAppointmentServices(
@@ -196,40 +209,13 @@ class UpdateAppointmentUseCase {
     }
   }
 
-  void _ensureIntervalIsAvailable({
-    required String appointmentId,
-    required DateTime startAt,
-    required DateTime endAt,
-    required String professionalId,
-    required List<Appointment> existingAppointments,
+  bool _hasScheduleChanged({
+    required Appointment existingAppointment,
+    required UpdateAppointmentParams params,
   }) {
-    final normalizedDay = DateTime(startAt.year, startAt.month, startAt.day);
-    final openingTime = DateTime(
-      normalizedDay.year,
-      normalizedDay.month,
-      normalizedDay.day,
-      _salonOpeningHour,
-    );
-    final closingTime = DateTime(
-      normalizedDay.year,
-      normalizedDay.month,
-      normalizedDay.day,
-      _salonClosingHour,
-    );
-
-    final isAvailable = _availabilityEngine.isIntervalAvailable(
-      startAt: startAt,
-      endAt: endAt,
-      professionalId: professionalId,
-      existingAppointments: existingAppointments,
-      openingTime: openingTime,
-      closingTime: closingTime,
-      ignoreAppointmentId: appointmentId,
-    );
-
-    if (!isAvailable) {
-      throw const AppointmentUnavailableException();
-    }
+    return existingAppointment.startAt != params.startAt ||
+        existingAppointment.endAt != params.endAt ||
+        existingAppointment.professionalId != params.professionalId;
   }
 
   String? _normalizeNotes(String? notes) {

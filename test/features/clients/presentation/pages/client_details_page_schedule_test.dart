@@ -10,7 +10,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import '../../../../helpers/appointment_schedule_test_support.dart';
 import 'package:lacos_app/features/clients/application/providers/client_service_history_providers.dart';
 import 'package:lacos_app/features/clients/domain/entities/client.dart';
 import 'package:lacos_app/features/clients/presentation/pages/client_details_page.dart';
@@ -35,7 +35,7 @@ void main() {
       final createUseCase = CreateAppointmentUseCase(
         appointmentRepository: _FakeAppointmentRepository(),
         appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
 
       await tester.pumpWidget(
@@ -46,6 +46,8 @@ void main() {
               (ref) async => const [],
             ),
             createAppointmentUseCaseProvider.overrideWithValue(createUseCase),
+            appointmentFormWorkspaceOverride(),
+            appointmentFormWorkingHoursOverride(),
             professionalsProvider.overrideWith(
               (ref) async => [
                 Professional(

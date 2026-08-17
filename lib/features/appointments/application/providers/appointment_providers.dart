@@ -11,6 +11,7 @@ import 'package:lacos_app/features/appointments/application/models/cancel_appoin
 import 'package:lacos_app/features/appointments/application/models/complete_appointment_state.dart';
 import 'package:lacos_app/features/appointments/application/models/created_appointment.dart';
 import 'package:lacos_app/features/appointments/application/models/updated_appointment.dart';
+import 'package:lacos_app/features/appointments/application/services/appointment_schedule_validator.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/cancel_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/complete_appointment_use_case.dart';
 import 'package:lacos_app/features/appointments/application/use_cases/create_appointment_use_case.dart';
@@ -26,10 +27,22 @@ import 'package:lacos_app/features/salon/application/providers/salon_providers.d
 import 'package:lacos_app/features/service_records/application/providers/service_record_providers.dart';
 import 'package:lacos_app/features/service_records/application/providers/service_record_service_providers.dart';
 import 'package:lacos_app/features/services/application/providers/service_providers.dart';
+import 'package:lacos_app/features/working_hours/application/providers/working_hours_providers.dart';
 
 final availabilityEngineProvider = Provider<AvailabilityEngine>((ref) {
   return const AvailabilityEngine();
 });
+
+final appointmentScheduleValidatorProvider =
+    Provider<AppointmentScheduleValidator>((ref) {
+      return AppointmentScheduleValidator(
+        salonRepository: ref.watch(salonRepositoryProvider),
+        workingHoursRepository: ref.watch(
+          professionalWorkingHoursRepositoryProvider,
+        ),
+        availabilityEngine: ref.watch(availabilityEngineProvider),
+      );
+    });
 
 final createAppointmentUseCaseProvider = Provider<CreateAppointmentUseCase>((
   ref,
@@ -39,7 +52,7 @@ final createAppointmentUseCaseProvider = Provider<CreateAppointmentUseCase>((
     appointmentServiceRepository: ref.watch(
       appointmentServiceRepositoryProvider,
     ),
-    availabilityEngine: ref.watch(availabilityEngineProvider),
+    scheduleValidator: ref.watch(appointmentScheduleValidatorProvider),
   );
 });
 
@@ -60,7 +73,7 @@ final updateAppointmentUseCaseProvider = Provider<UpdateAppointmentUseCase>((
     appointmentServiceRepository: ref.watch(
       appointmentServiceRepositoryProvider,
     ),
-    availabilityEngine: ref.watch(availabilityEngineProvider),
+    scheduleValidator: ref.watch(appointmentScheduleValidatorProvider),
   );
 });
 

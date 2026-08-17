@@ -24,4 +24,18 @@ abstract final class AppValidationMessages {
   static const String serviceDurationRequired = 'Informe a duração do serviço.';
 
   static const String memoryTitleRequired = 'Informe um título para a memória.';
+
+  static const String workingHoursInvalidWeekday = 'Dia da semana inválido.';
+  static const String workingHoursInvalidGranularity =
+      'Use horários em intervalos de 15 minutos.';
+  static const String workingHoursOutOfRange =
+      'Informe horários entre 00:00 e 23:59.';
+  static const String workingHoursInvalidRange =
+      'O horário inicial deve ser anterior ao final.';
+  static const String workingHoursDurationTooShort =
+      'A janela de atendimento deve ter pelo menos 15 minutos.';
+  static const String workingHoursIncompleteWeek =
+      'Informe todos os dias da semana.';
+  static const String workingHoursDuplicateWeekday =
+      'Há dias da semana duplicados.';
 }

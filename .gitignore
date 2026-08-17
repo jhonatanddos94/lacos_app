@@ -39,6 +39,7 @@ cloud/coverage/
 cloud/.env
 cloud/.env.*
 !cloud/.env.example
+cloud/tests/staging/.seed-manifest.json
 
 # Symbolication related
 app.*.symbols

@@ -1,4 +1,4 @@
 # beforeSave triggers
 
-Wire class-specific beforeSave handlers here in later sprints (e.g. Client.js).
-Register them from `triggers/index.js`.
+T1.S1 wires `ProfessionalWorkingHours` only (`professionalWorkingHours.js`).
+Other classes stay unregistered. Production `LACOS_ENV=production` skips enforcement.

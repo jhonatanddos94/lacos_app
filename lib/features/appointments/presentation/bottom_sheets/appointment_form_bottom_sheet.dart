@@ -12,6 +12,7 @@ import 'package:lacos_app/core/theme/app_colors.dart';
 import 'package:lacos_app/core/theme/app_radius.dart';
 import 'package:lacos_app/core/theme/app_shadows.dart';
 import 'package:lacos_app/core/theme/app_spacing.dart';
+import 'package:lacos_app/core/workspace/application/providers/workspace_providers.dart';
 import 'package:lacos_app/features/agenda/application/agenda_day.dart';
 import 'package:lacos_app/features/appointments/application/models/appointment_details.dart';
 import 'package:lacos_app/features/appointments/application/policies/scheduling_professional_policy.dart';
@@ -34,6 +35,9 @@ import 'package:lacos_app/features/professional/domain/entities/professional.dar
 import 'package:lacos_app/features/professional/presentation/bottom_sheets/professional_picker_bottom_sheet.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 import 'package:lacos_app/features/services/presentation/bottom_sheets/service_picker_bottom_sheet.dart';
+import 'package:lacos_app/features/working_hours/application/providers/working_hours_providers.dart';
+import 'package:lacos_app/features/working_hours/domain/services/working_hours_resolver.dart';
+import 'package:lacos_app/features/working_hours/domain/value_objects/working_day_availability.dart';
 import 'package:lacos_app/shared/widgets/buttons/app_button.dart';
 
 class AppointmentFormBottomSheet extends ConsumerStatefulWidget {
@@ -707,6 +711,21 @@ class _AppointmentFormBottomSheetState
   void _retryLoadAvailableTimes() {
     final date = _selectedDate;
     if (date == null) return;
+
+    final workspace = ref.read(workspaceProvider).valueOrNull;
+    final salonId = workspace?.salon?.id;
+    final professionalId = _resolvedProfessional(
+      SchedulingProfessionalPolicy.resolve(ref.read(professionalsProvider)),
+    )?.id;
+
+    if (salonId != null && professionalId != null) {
+      ref.invalidate(
+        professionalWorkingHoursWeekProvider(
+          (salonId: salonId, professionalId: professionalId),
+        ),
+      );
+    }
+
     ref.invalidate(appointmentsByDayProvider(AgendaDay.from(date)));
   }
 
@@ -726,18 +745,37 @@ class _AppointmentFormBottomSheetState
   List<DateTime> _calculateAvailableStartTimes(
     List<Appointment> dayAppointments,
     Professional professional,
+    WorkingDayAvailability dayAvailability,
   ) {
     return _availabilityCalculator.calculateAvailableStartTimes(
       day: _selectedDate!,
       durationMinutes: _totalDurationMinutes,
       dayAppointments: _filterDayAppointmentsForAvailability(dayAppointments),
       professionalId: professional.id,
+      dayAvailability: dayAvailability,
     );
+  }
+
+  bool get _isEditSchedulePositionLocked {
+    if (!_isEditMode || widget.initialData == null) return false;
+    if (_selectedProfessional?.id !=
+        widget.initialData!.appointment.professionalId) {
+      return false;
+    }
+    if (_selectedDate == null || _selectedStartTimeMinutes == null) {
+      return false;
+    }
+
+    final appointment = widget.initialData!.appointment;
+    return _buildStartAt() == appointment.startAt &&
+        _buildEndAt() == appointment.endAt;
   }
 
   void _invalidateSelectedTimeIfNoLongerAvailable(
     List<DateTime> availableStartTimes,
   ) {
+    if (_isEditSchedulePositionLocked) return;
+
     final selected = _selectedStartTimeMinutes;
     if (selected == null) return;
 
@@ -754,9 +792,18 @@ class _AppointmentFormBottomSheetState
     });
   }
 
-  Future<void> _openTimePicker(List<DateTime> availableStartTimes) async {
+  Future<void> _openTimePicker(
+    List<DateTime> availableStartTimes,
+    WorkingDayAvailability dayAvailability,
+  ) async {
+    final openingMinutes = dayAvailability.isWorking
+        ? dayAvailability.startMinutes
+        : 9 * 60;
     final initialTime = _selectedStartTimeMinutes == null
-        ? const TimeOfDay(hour: 9, minute: 0)
+        ? TimeOfDay(
+            hour: openingMinutes ~/ 60,
+            minute: openingMinutes % 60,
+          )
         : TimeOfDay(
             hour: _selectedStartTimeMinutes! ~/ 60,
             minute: _selectedStartTimeMinutes! % 60,
@@ -785,11 +832,15 @@ class _AppointmentFormBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    var isLoadingWorkingHours = false;
     var isLoadingAvailableTimes = false;
+    String? workingHoursError;
     String? availabilityError;
     List<int> displayedStartTimeMinutes = const [];
     List<DateTime> availableStartTimes = const [];
+    var showDayNotWorkingMessage = false;
     var showNoAvailableTimesMessage = false;
+    WorkingDayAvailability? resolvedDayAvailability;
 
     final professionalResolution = SchedulingProfessionalPolicy.resolve(
       ref.watch(professionalsProvider),
@@ -800,28 +851,67 @@ class _AppointmentFormBottomSheetState
     final canCalculateAvailableTimes = _canCalculateAvailableTimes(
       resolvedProfessional,
     );
+    final workspace = ref.watch(workspaceProvider).valueOrNull;
+    final salonId = workspace?.salon?.id;
 
     if (canCalculateAvailableTimes) {
-      final appointmentsAsync = ref.watch(
-        appointmentsByDayProvider(AgendaDay.from(_selectedDate!)),
-      );
+      if (salonId == null) {
+        workingHoursError = AppStrings.appointmentWorkingHoursLoadError;
+      } else {
+        final workingHoursAsync = ref.watch(
+          professionalWorkingHoursWeekProvider(
+            (salonId: salonId, professionalId: resolvedProfessional!.id),
+          ),
+        );
 
-      appointmentsAsync.when(
-        data: (dayAppointments) {
-          availableStartTimes = _calculateAvailableStartTimes(
-            dayAppointments,
-            resolvedProfessional!,
+        workingHoursAsync.when(
+          data: (week) {
+            resolvedDayAvailability = WorkingHoursResolver.resolve(
+              day: _selectedDate!,
+              configuredWeek: week,
+            );
+          },
+          loading: () => isLoadingWorkingHours = true,
+          error: (_, _) {
+            workingHoursError = AppStrings.appointmentWorkingHoursLoadError;
+          },
+        );
+      }
+
+      if (resolvedDayAvailability != null &&
+          !isLoadingWorkingHours &&
+          workingHoursError == null) {
+        final dayAvailability = resolvedDayAvailability!;
+
+        if (!dayAvailability.isWorking) {
+          showDayNotWorkingMessage = true;
+          if (!_isEditSchedulePositionLocked) {
+            _invalidateSelectedTimeIfNoLongerAvailable(const []);
+          }
+        } else {
+          final appointmentsAsync = ref.watch(
+            appointmentsByDayProvider(AgendaDay.from(_selectedDate!)),
           );
-          displayedStartTimeMinutes = _availabilityCalculator
-              .toDisplayedStartTimeMinutes(availableStartTimes);
-          showNoAvailableTimesMessage = availableStartTimes.isEmpty;
-          _invalidateSelectedTimeIfNoLongerAvailable(availableStartTimes);
-        },
-        loading: () => isLoadingAvailableTimes = true,
-        error: (_, _) {
-          availabilityError = AppStrings.appointmentAvailabilityLoadError;
-        },
-      );
+
+          appointmentsAsync.when(
+            data: (dayAppointments) {
+              availableStartTimes = _calculateAvailableStartTimes(
+                dayAppointments,
+                resolvedProfessional!,
+                dayAvailability,
+              );
+              displayedStartTimeMinutes = _availabilityCalculator
+                  .toDisplayedStartTimeMinutes(availableStartTimes);
+              showNoAvailableTimesMessage = availableStartTimes.isEmpty;
+              _invalidateSelectedTimeIfNoLongerAvailable(availableStartTimes);
+            },
+            loading: () => isLoadingAvailableTimes = true,
+            error: (_, _) {
+              availabilityError = AppStrings.appointmentAvailabilityLoadError;
+            },
+          );
+        }
+      }
     }
 
     final isSaving = _isEditMode
@@ -938,7 +1028,11 @@ class _AppointmentFormBottomSheetState
                                     canCalculateAvailableTimes,
                                 isLoadingAvailableTimes:
                                     isLoadingAvailableTimes,
+                                isLoadingWorkingHours: isLoadingWorkingHours,
                                 availabilityError: availabilityError,
+                                workingHoursError: workingHoursError,
+                                showDayNotWorkingMessage:
+                                    showDayNotWorkingMessage,
                                 displayedStartTimeMinutes:
                                     displayedStartTimeMinutes,
                                 showNoAvailableTimesMessage:
@@ -947,8 +1041,13 @@ class _AppointmentFormBottomSheetState
                                 onTodayTap: _selectToday,
                                 onTomorrowTap: _selectTomorrow,
                                 onSelectStartTime: _setSelectedStartTime,
-                                onCustomStartTimeTap: () =>
-                                    _openTimePicker(availableStartTimes),
+                                onCustomStartTimeTap: resolvedDayAvailability ==
+                                        null
+                                    ? () {}
+                                    : () => _openTimePicker(
+                                          availableStartTimes,
+                                          resolvedDayAvailability!,
+                                        ),
                                 onRetryAvailability: canCalculateAvailableTimes
                                     ? _retryLoadAvailableTimes
                                     : null,

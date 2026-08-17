@@ -1,0 +1,10 @@
+{
+  "name": "lacos-cloud-staging-t1s1-bundle",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Staging-only Cloud Code artifact for T1.S1 ProfessionalWorkingHours beforeSave. Does not replace production Cloud Code.",
+  "main": "main.js",
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -7,7 +7,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import '../../../../helpers/appointment_schedule_test_support.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 
 void main() {
@@ -22,7 +22,7 @@ void main() {
       useCase = CreateAppointmentUseCase(
         appointmentRepository: appointmentRepository,
         appointmentServiceRepository: appointmentServiceRepository,
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
     });
 

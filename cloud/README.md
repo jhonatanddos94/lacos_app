@@ -147,10 +147,59 @@ Harness remoto (bloqueado por padrão; **recusa** Application ID de produção):
 
 ```bash
 cd cloud
-npm run test:staging   # exige LACOS_STAGING_SMOKE=1 + IDs de staging
+npm run test:staging            # ping/health/exchangeSession
+npm run seed:staging            # T1.S0 tenants teste_a / teste_b (Master Key)
+npm run test:staging:baseline   # T1.S0 REST A vs B (parse_login ou exchange_session)
+npm run migrate:staging:working-hours-acl  # T1.S1 ACL+CLP WorkingHours (Master Key)
+npm run test:staging:working-hours-secure  # T1.S1 prova REST pós-hardening
 ```
 
 O CI/`npm test` padrão **não** chama staging.
+
+### Seed staging (`npm run seed:staging`)
+
+Popula o grafo falso **teste_a / teste_b** no Back4App staging (Master Key). Não cria `_User`. Não aplica ACL segura. Idempotente.
+
+```bash
+export LACOS_STAGING_SEED=1
+export LACOS_STAGING_APPLICATION_ID='…'   # ou LACOS_STAGING_PARSE_APPLICATION_ID
+export LACOS_STAGING_SERVER_URL='https://parseapi.back4app.com'
+export LACOS_STAGING_MASTER_KEY='…'       # nunca commitar / nunca no Flutter
+cd cloud && npm run seed:staging
+```
+
+Aborta (exit ≠ 0) se Application ID/URL/Master Key faltarem, se o Application ID for o de produção, ou se `LACOS_ENV=production`. Manifesto local gitignored: `tests/staging/.seed-manifest.json`. O baseline REST reutiliza esses IDs.
+
+### Baseline REST (`npm run test:staging:baseline`)
+
+Prova autorização cross-tenant no Parse. **Não** exige Firebase.
+
+```bash
+export LACOS_STAGING_AUTH_MODE=parse_login
+export LACOS_STAGING_APPLICATION_ID='…'
+export LACOS_STAGING_SERVER_URL='https://parseapi.back4app.com'
+export LACOS_STAGING_CLIENT_KEY='…'
+export LACOS_STAGING_USER_A_USERNAME='teste_a'
+export LACOS_STAGING_USER_A_PASSWORD='…'
+export LACOS_STAGING_USER_B_USERNAME='teste_b'
+export LACOS_STAGING_USER_B_PASSWORD='…'
+cd cloud && npm run test:staging:baseline
+```
+
+Modo opcional `exchange_session` continua disponível (`LACOS_STAGING_ID_TOKEN_A` / `B`) para testar Firebase depois. O baseline pode DELETE objetos do seed — rode `npm run seed:staging` de novo se precisar restaurar.
+
+### Hardening WorkingHours (`npm run migrate:staging:working-hours-acl`)
+
+T1.S1, **somente staging**. Aplica ACL owner-only nos `ProfessionalWorkingHours` existentes e CLP `requiresAuthentication` (Public OFF). Não altera outras classes. Não toca produção (gate recusa o Application ID conhecido).
+
+Depois do deploy do Cloud Code no app staging (`beforeSave` de WorkingHours):
+
+```bash
+cd cloud
+npm run seed:staging
+npm run migrate:staging:working-hours-acl
+npm run test:staging:working-hours-secure
+```
 
 ## Smoke test staging (procedimento — sem tokens reais)
 

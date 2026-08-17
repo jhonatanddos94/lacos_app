@@ -15,7 +15,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_cancele
 import 'package:lacos_app/features/appointments/domain/enums/appointment_status.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import '../../../../helpers/appointment_schedule_test_support.dart';
 import 'package:lacos_app/features/appointments/presentation/appointment_form_mode.dart';
 import 'package:lacos_app/features/appointments/presentation/bottom_sheets/appointment_form_bottom_sheet.dart';
 import 'package:lacos_app/features/appointments/presentation/widgets/appointment_professional_section.dart';
@@ -52,17 +52,19 @@ void main() {
             CreateAppointmentUseCase(
               appointmentRepository: _FakeAppointmentRepository(),
               appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-              availabilityEngine: const AvailabilityEngine(),
+              scheduleValidator: buildAppointmentScheduleValidator(),
             ),
           ),
           updateAppointmentUseCaseProvider.overrideWithValue(
             UpdateAppointmentUseCase(
               appointmentRepository: _FakeAppointmentRepository(),
               appointmentServiceRepository: _FakeAppointmentServiceRepository(),
-              availabilityEngine: const AvailabilityEngine(),
+              scheduleValidator: buildAppointmentScheduleValidator(),
             ),
           ),
           appointmentsByDayProvider.overrideWith((ref, day) async => const []),
+          appointmentFormWorkspaceOverride(),
+          appointmentFormWorkingHoursOverride(),
           servicesProvider.overrideWith((ref) async => [service]),
           ...extraOverrides,
         ],

@@ -13,8 +13,11 @@ import 'package:lacos_app/features/salon/application/providers/salon_providers.d
 import 'package:lacos_app/features/salon/domain/entities/salon.dart';
 import 'package:lacos_app/features/salon/presentation/bottom_sheets/salon_form_bottom_sheet.dart';
 import 'package:lacos_app/features/salon/presentation/pages/salon_page.dart';
+import 'package:lacos_app/features/working_hours/application/providers/working_hours_providers.dart';
+import 'package:lacos_app/features/working_hours/presentation/pages/professional_working_hours_page.dart';
 import 'package:lacos_app/shared/widgets/inputs/app_text_field.dart';
 
+import '../../../../helpers/in_memory_professional_working_hours_repository.dart';
 import '../../../../helpers/in_memory_salon_repository.dart';
 
 void main() {
@@ -254,6 +257,35 @@ void main() {
 
     expect(find.text('Studio Leticia'), findsOneWidget);
     expect(repository.current?.responsibleName, 'Leticia');
+  });
+
+  testWidgets('Horários: Meu salão abre tela semanal', (tester) async {
+    final workingHoursRepository = InMemoryProfessionalWorkingHoursRepository();
+    await tester.binding.setSurfaceSize(const Size(390, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          salonRepositoryProvider.overrideWithValue(
+            InMemorySalonRepository(current: salon()),
+          ),
+          professionalWorkingHoursRepositoryProvider.overrideWithValue(
+            workingHoursRepository,
+          ),
+          workspaceProvider.overrideWith((ref) async => workspaceFor(salon())),
+        ],
+        child: const MaterialApp(home: SalonPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final action = find.byKey(SalonPage.workingHoursButtonKey);
+    await tester.ensureVisible(action);
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfessionalWorkingHoursPage), findsOneWidget);
+    expect(find.text(AppStrings.workingHoursTitle), findsOneWidget);
   });
 
   testWidgets('W–Y: 320px e textScale 1.3/1.5 sem overflow', (tester) async {

@@ -24,7 +24,10 @@ class AppointmentDateTimeSection extends StatelessWidget {
     required this.appointmentSummaryLabel,
     required this.canCalculateAvailableTimes,
     required this.isLoadingAvailableTimes,
+    required this.isLoadingWorkingHours,
     required this.availabilityError,
+    required this.workingHoursError,
+    required this.showDayNotWorkingMessage,
     required this.displayedStartTimeMinutes,
     required this.showNoAvailableTimesMessage,
     required this.onDateTap,
@@ -49,7 +52,10 @@ class AppointmentDateTimeSection extends StatelessWidget {
   final String? appointmentSummaryLabel;
   final bool canCalculateAvailableTimes;
   final bool isLoadingAvailableTimes;
+  final bool isLoadingWorkingHours;
   final String? availabilityError;
+  final String? workingHoursError;
+  final bool showDayNotWorkingMessage;
   final List<int> displayedStartTimeMinutes;
   final bool showNoAvailableTimesMessage;
   final VoidCallback onDateTap;
@@ -133,7 +139,7 @@ class AppointmentDateTimeSection extends StatelessWidget {
                 height: 1.35,
               ),
             )
-          else if (isLoadingAvailableTimes)
+          else if (isLoadingWorkingHours || isLoadingAvailableTimes)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxs),
               child: Center(
@@ -143,7 +149,25 @@ class AppointmentDateTimeSection extends StatelessWidget {
                 ),
               ),
             )
-          else if (availabilityError != null) ...[
+          else if (workingHoursError != null) ...[
+            Text(
+              workingHoursError!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.35,
+              ),
+            ),
+            if (onRetryAvailability != null) ...[
+              const SizedBox(height: AppSpacing.xxxs),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: onRetryAvailability,
+                  child: const Text(AppStrings.tryAgain),
+                ),
+              ),
+            ],
+          ] else if (availabilityError != null) ...[
             Text(
               availabilityError!,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -161,6 +185,14 @@ class AppointmentDateTimeSection extends StatelessWidget {
                 ),
               ),
             ],
+          ] else if (showDayNotWorkingMessage) ...[
+            Text(
+              AppStrings.appointmentDayNotWorking,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.35,
+              ),
+            ),
           ] else ...[
             if (showNoAvailableTimesMessage) ...[
               Text(

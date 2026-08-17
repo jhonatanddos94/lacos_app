@@ -7,7 +7,7 @@ import 'package:lacos_app/features/appointments/domain/enums/appointment_status.
 import 'package:lacos_app/features/appointments/domain/exceptions/appointment_exceptions.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_repository.dart';
 import 'package:lacos_app/features/appointments/domain/repositories/appointment_service_repository.dart';
-import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import '../../../../helpers/appointment_schedule_test_support.dart';
 import 'package:lacos_app/features/services/domain/entities/service.dart';
 
 void main() {
@@ -22,7 +22,7 @@ void main() {
       useCase = UpdateAppointmentUseCase(
         appointmentRepository: appointmentRepository,
         appointmentServiceRepository: appointmentServiceRepository,
-        availabilityEngine: const AvailabilityEngine(),
+        scheduleValidator: buildAppointmentScheduleValidator(),
       );
     });
 
@@ -85,6 +85,52 @@ void main() {
         );
 
         expect(result.appointment.id, existing.id);
+        expect(appointmentRepository.updateCalls, 1);
+      },
+    );
+
+    test(
+      'permite editar notas de appointment legado fora do novo expediente',
+      () async {
+        final startAt = DateTime(2026, 8, 17, 19);
+        final endAt = startAt.add(const Duration(minutes: 60));
+        final existing = _appointment(
+          status: AppointmentStatus.confirmed,
+          startAt: startAt,
+          endAt: endAt,
+        );
+
+        appointmentRepository.appointment = existing;
+        appointmentRepository.dayAppointments = [existing];
+
+        useCase = UpdateAppointmentUseCase(
+          appointmentRepository: appointmentRepository,
+          appointmentServiceRepository: appointmentServiceRepository,
+          scheduleValidator: buildAppointmentScheduleValidator(
+            configuredWeek: workingWeek(
+              salonId: appointmentTestSalonId,
+              professionalId: 'professional-1',
+              weekday: startAt.weekday,
+              isWorking: true,
+              startMinutes: 9 * 60,
+              endMinutes: 18 * 60,
+            ),
+          ),
+        );
+
+        final result = await useCase(
+          UpdateAppointmentParams(
+            appointmentId: existing.id,
+            clientId: existing.clientId,
+            professionalId: existing.professionalId,
+            services: [_service()],
+            startAt: startAt,
+            endAt: endAt,
+            notes: 'Observação atualizada',
+          ),
+        );
+
+        expect(result.appointment.notes, 'Observação atualizada');
         expect(appointmentRepository.updateCalls, 1);
       },
     );

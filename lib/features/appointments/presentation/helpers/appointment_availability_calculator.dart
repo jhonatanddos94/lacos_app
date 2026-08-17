@@ -1,14 +1,13 @@
 import 'package:lacos_app/core/formatters/appointment_display_formatters.dart';
 import 'package:lacos_app/features/appointments/domain/entities/appointment.dart';
 import 'package:lacos_app/features/appointments/domain/services/availability_engine.dart';
+import 'package:lacos_app/features/working_hours/domain/services/working_day_time_window.dart';
+import 'package:lacos_app/features/working_hours/domain/value_objects/working_day_availability.dart';
 
 class AppointmentAvailabilityCalculator {
   const AppointmentAvailabilityCalculator({AvailabilityEngine? engine})
     : _engine = engine ?? const AvailabilityEngine();
 
-  // TODO: futuro: substituir por horário de funcionamento do salão.
-  static const salonOpeningHour = 9;
-  static const salonClosingHour = 18;
   static const maxDisplayedStartTimes = 8;
 
   final AvailabilityEngine _engine;
@@ -18,24 +17,19 @@ class AppointmentAvailabilityCalculator {
     required int durationMinutes,
     required List<Appointment> dayAppointments,
     required String professionalId,
+    required WorkingDayAvailability dayAvailability,
   }) {
+    if (!dayAvailability.isWorking) {
+      return const [];
+    }
+
     final professionalAppointments = dayAppointments
         .where((appointment) => appointment.professionalId == professionalId)
         .toList(growable: false);
 
     final normalizedDay = DateTime(day.year, day.month, day.day);
-    final openingTime = DateTime(
-      normalizedDay.year,
-      normalizedDay.month,
-      normalizedDay.day,
-      salonOpeningHour,
-    );
-    final closingTime = DateTime(
-      normalizedDay.year,
-      normalizedDay.month,
-      normalizedDay.day,
-      salonClosingHour,
-    );
+    final openingTime = dayAvailability.openingTimeOn(normalizedDay);
+    final closingTime = dayAvailability.closingTimeOn(normalizedDay);
 
     DateTime? notBefore;
     final now = DateTime.now();

@@ -42,6 +42,23 @@ abstract final class AppStrings {
   static const String salonCityHint = 'Sua cidade';
   static const String salonStateHint = 'UF';
   static String salonIdentitySemantics(String name) => 'Meu salão, $name';
+
+  static const String workingHoursTitle = 'Horários de atendimento';
+  static const String workingHoursSubtitle =
+      'Defina os dias e horários em que você atende.';
+  static const String workingHoursOpenAction = 'Horários de atendimento';
+  static const String workingHoursSaveAction = 'Salvar horários';
+  static const String workingHoursUpdatedSuccess = 'Horários atualizados.';
+  static const String workingHoursSaveError =
+      'Não foi possível salvar os horários. Tente novamente.';
+  static const String workingHoursLoadError =
+      'Não foi possível carregar os horários. Tente novamente.';
+  static const String workingHoursWorkingLabel = 'Atende';
+  static const String workingHoursNotWorkingLabel = 'Não atende';
+  static const String workingHoursStartLabel = 'Início';
+  static const String workingHoursEndLabel = 'Fim';
+  static const String workingHoursProfessionalRequired =
+      'Cadastre seu perfil profissional antes de configurar horários.';
   static const String logout = 'Sair da conta';
   static const String logoutTitle = 'Sair da conta?';
   static const String logoutMessage =
@@ -466,6 +483,10 @@ abstract final class AppStrings {
       'Escolha cliente, serviços e profissional para ver horários disponíveis.';
   static const String appointmentAvailabilityLoadError =
       'Não foi possível carregar horários disponíveis.';
+  static const String appointmentWorkingHoursLoadError =
+      'Não foi possível carregar seus horários de atendimento.';
+  static const String appointmentDayNotWorking =
+      'Você não atende neste dia.';
   static const String appointmentNoAvailableTimes =
       'Nenhum horário disponível para esta duração neste dia.';
   static const String appointmentCustomTimeUnavailable =
